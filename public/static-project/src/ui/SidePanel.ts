@@ -40,7 +40,7 @@ class SidePanel {
       },
       {
         tool: Tool.CREATE_POLYGON,
-        iconPath: "icons/create.svg",
+        iconPath: "static-project/icons/create.svg",
       }
     );
 
@@ -53,7 +53,7 @@ class SidePanel {
       },
       {
         tool: Tool.TRANSLATE,
-        iconPath: "icons/translate.svg",
+        iconPath: "static-project/icons/translate.svg",
       }
     );
 
@@ -66,7 +66,7 @@ class SidePanel {
       },
       {
         tool: Tool.ROTATE,
-        iconPath: "icons/rotate.svg",
+        iconPath: "static-project/icons/rotate.svg",
       }
     );
 
@@ -79,7 +79,7 @@ class SidePanel {
       },
       {
         tool: Tool.SCALE,
-        iconPath: "icons/scale.svg",
+        iconPath: "static-project/icons/scale.svg",
       }
     );
 
@@ -91,7 +91,7 @@ class SidePanel {
         CurvesUI.toggleCurvesPanel(true);
       },
       {
-        iconPath: "icons/curve.svg",
+        iconPath: "static-project/icons/curve.svg",
       }
     );
 
@@ -105,7 +105,7 @@ class SidePanel {
       },
       {
         tool: Tool.ANIMATION,
-        iconPath: "icons/animation-icon.svg",
+        iconPath: "static-project/icons/animation-icon.svg",
       }
     );
 
@@ -128,7 +128,7 @@ class SidePanel {
         Mirror.mirror("y");
       },
       {
-        iconPath: "icons/mirror-x.svg",
+        iconPath: "static-project/icons/mirror-x.svg",
       }
     );
 
@@ -140,7 +140,7 @@ class SidePanel {
         Mirror.mirror("x");
       },
       {
-        iconPath: "icons/mirror-y.svg",
+        iconPath: "static-project/icons/mirror-y.svg",
       }
     );
 
@@ -152,7 +152,7 @@ class SidePanel {
         Shear.ShearUniform();
       },
       {
-        iconPath: "icons/skew.svg",
+        iconPath: "static-project/icons/skew.svg",
       }
     );
 
@@ -164,7 +164,7 @@ class SidePanel {
         Shear.ShearNonUniform();
       },
       {
-        iconPath: "icons/skew.svg",
+        iconPath: "static-project/icons/skew.svg",
       }
     );
 
@@ -186,7 +186,7 @@ class SidePanel {
         ColorPickerUI.toggle();
       },
       {
-        iconPath: "icons/color-palette.svg", // TODO: Edit color-palette-v2.svg to remove outline
+        iconPath: "static-project/icons/color-palette.svg", // TODO: Edit color-palette-v2.svg to remove outline
       }
     );
 
@@ -201,7 +201,7 @@ class SidePanel {
         SidePanel.shouldDrawVertices = !SidePanel.shouldDrawVertices;
       },
       {
-        iconPath: "icons/draw-vertices-on.svg",
+        iconPath: "static-project/icons/draw-vertices-on.svg",
         fixedWidth: false,
       }
     );
@@ -214,7 +214,7 @@ class SidePanel {
         SidePanel.shouldDrawGrid = !SidePanel.shouldDrawGrid;
       },
       {
-        iconPath: "icons/grid.svg",
+        iconPath: "static-project/icons/grid.svg",
         fixedWidth: false,
       }
     );
@@ -227,7 +227,7 @@ class SidePanel {
         SidePanel.shouldDrawAxis = !SidePanel.shouldDrawAxis;
       },
       {
-        iconPath: "./icons/axis.svg",
+        iconPath: "./static-project/icons/axis.svg",
         fixedWidth: false,
       }
     );

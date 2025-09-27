@@ -22,11 +22,10 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 ${scrolled
           ? "bg-black/80 backdrop-blur-md border-b border-white/10"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
@@ -52,7 +51,6 @@ export default function Header() {
                 <div className="bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent font-bold text-lg lg:text-xl">
                   Voltar ao Início
                 </div>
-                <div className="text-xs text-white/60 -mt-1">Pixel Forge</div>
               </div>
             </Link>
           ) : (
@@ -75,17 +73,17 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Desktop Navigation - Only show on home page */}
-          {!isInfosPage && (
+          {/* Desktop Navigation */}
+          {(
             <nav className="hidden lg:flex items-center gap-8">
               <Link
-                href="#graphics"
+                href="/#graphics"
                 className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
               >
                 Computação Gráfica
               </Link>
               <Link
-                href="#multimidia"
+                href="/#multimidia"
                 className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
               >
                 Multimídia
@@ -97,15 +95,6 @@ export default function Header() {
                 Material Teórico
               </Link>
             </nav>
-          )}
-
-          {/* Page Title for /infos */}
-          {isInfosPage && (
-            <div className="hidden lg:block">
-              <h1 className="text-white font-bold text-xl lg:text-2xl">
-                Material Teórico
-              </h1>
-            </div>
           )}
 
           {/* Mobile Menu Button - Only show on home page */}

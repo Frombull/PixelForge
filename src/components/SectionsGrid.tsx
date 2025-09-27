@@ -54,24 +54,18 @@ export default function SectionsComponent() {
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent pb-2">
             Computação Gráfica
           </h2>
-          <p className="text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-            Aprenda e visualize conceitos de computação gráfica em tempo real
-            usando nossa ferramenta interativa para criar e manipular formas,
-            animações e transformações.
-          </p>
         </div>
 
         {/* Tools Grid */}
-
-        {/* Tools Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:gap-8 mb-12 sm:mb-16">
-          {tools.map((tool, index) => (
-            <Link
-              key={index}
-              href={tool.href}
-              className={`group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-white/15 min-h-[320px] sm:min-h-[380px] lg:min-h-[400px] flex flex-col ${getColorClasses(
-                tool.color
-              )}`}
+        <div className="flex justify-center mb-12 sm:mb-16">
+          <div className="w-full max-w-md sm:max-w-lg lg:max-w-xl">
+            {tools.map((tool, index) => (
+              <Link
+                key={index}
+                href={tool.href}
+                className={`group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-white/15 min-h-[320px] sm:min-h-[380px] lg:min-h-[400px] flex flex-col ${getColorClasses(
+                  tool.color
+                )}`}
             >
               {/* Header */}
               <div className="relative flex items-start justify-between mb-4 sm:mb-6">
@@ -117,6 +111,7 @@ export default function SectionsComponent() {
               </div>
             </Link>
           ))}
+          </div>
         </div>
       </div>
     </section>

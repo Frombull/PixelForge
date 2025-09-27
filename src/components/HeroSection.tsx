@@ -28,38 +28,34 @@ export default function HeroSection() {
           e <span className="font-semibold text-blue-300">Multimídia</span>
         </p>
 
-        {/* Target Audience */}
-        <div className="flex flex-col gap-4 md:flex-row md:gap-6 mb-12 md:mb-16 w-full md:w-auto px-2">
-          <div className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-5 hover:bg-white/15 transition-all duration-300">
-            <h3 className="text-base md:text-lg font-semibold text-white mb-2">
-              Para Alunos
-            </h3>
-            <p className="text-white/80 text-sm md:text-base">
-              Aprenda através de experimentação visual e interativa
-            </p>
-          </div>
-          <div className="flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-6 py-5 hover:bg-white/15 transition-all duration-300">
-            <h3 className="text-base md:text-lg font-semibold text-white mb-2">
-              Para Professores
-            </h3>
-            <p className="text-white/80 text-sm md:text-base">
-              Ferramentas didáticas para ensinar conceitos complexos
-            </p>
-          </div>
-        </div>
-
         {/* CTA Buttons */}
         <div className="flex flex-col gap-4 md:flex-row md:gap-6 mb-12 md:mb-16 w-full md:w-auto px-2">
           <Link
             href="/infos"
-            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3"
-          >
-            <span>Ver Material Teórico</span>
+            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
+            <span>Material Teórico</span>
+            <span className="group-hover:translate-x-1 transition-transform duration-300">
+              →
+            </span>
+          </Link>
+          <Link
+            href="#graphics"
+            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
+            <span>Computação Gráfica</span>
+            <span className="group-hover:translate-x-1 transition-transform duration-300">
+              →
+            </span>
+          </Link>
+          <Link
+            href="#multimidia"
+            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
+            <span>Multimídia</span>
             <span className="group-hover:translate-x-1 transition-transform duration-300">
               →
             </span>
           </Link>
         </div>
+
       </div>
     </section>
   );

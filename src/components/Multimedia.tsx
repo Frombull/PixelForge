@@ -82,11 +82,6 @@ export default function SectionsComponent() {
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
             Multimídia
           </h2>
-          <p className="text-base sm:text-xl text-white/70 max-w-3xl mx-auto leading-relaxed">
-            Domine técnicas fundamentais de processamento de imagens,
-            compressão, anti-aliasing, segmentação e comparação vetorial vs
-            matricial através de demonstrações visuais práticas e interativas.
-          </p>
         </div>
 
         {/* Tools Grid */}

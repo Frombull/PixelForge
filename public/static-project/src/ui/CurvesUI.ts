@@ -447,7 +447,7 @@ class CurvesUI {
     CurvesUI.createCurvesPanel();
   }
 
-  static drawTextAtVertex(myVertex: Vertex, myText: String, offsetX: number = 0, offsetY: number = 0, myTextSize: number = 16, myStrokeWeight: number = 0.2) {
+  static drawTextAtVertex(myVertex: Vertex, myText: string, offsetX: number = 0, offsetY: number = 0, myTextSize: number = 16, myStrokeWeight: number = 0.2) {
     push();
 
     fill(0);

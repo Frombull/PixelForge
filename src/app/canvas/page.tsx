@@ -27,7 +27,7 @@ export default function CanvasPage() {
       {/* Iframe */}
       <div className="w-full h-full">
         <iframe
-          src="/static-project/pages/transform.html"
+          src="/static-project/pages/index.html"
           className="w-full h-full border-0"
           title="Transformações 2D - Canvas"
           onLoad={handleIframeLoad}

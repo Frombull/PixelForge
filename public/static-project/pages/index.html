@@ -49,21 +49,33 @@
 
     <link rel="stylesheet" type="text/css" href="../style.css" />
 
-    <script src="../node_modules/p5/lib/p5.js"></script>
+    <!-- External libraries -->
     <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
-    <script src="../node_modules/@jaames/iro/dist/iro.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5.5.2/dist/iro.min.js"></script>
 
-    <script src="../dist/index.js"></script>
+    <!-- Core classes -->
     <script src="../dist/Polygon.js"></script>
 
+    <!-- Utilities (load first as they're dependencies) -->
+    <script src="../dist/utils/Colors.js"></script>
     <script src="../dist/utils/Grid.js"></script>
+    <script src="../dist/utils/Camera.js"></script>
     <script src="../dist/utils/Mouse.js"></script>
     <script src="../dist/utils/Keyboard.js"></script>
-    <script src="../dist/utils/Camera.js"></script>
-    <script src="../dist/utils/BrowserUtils.js"></script>
-    <script src="../dist/utils/Colors.js"></script>
+    <script src="../dist/utils/browserUtils.js"></script>
     <script src="../dist/utils/HistoryManager.js"></script>
 
+    <!-- UI components -->
+    <script src="../dist/ui/Button.js"></script>
+    <script src="../dist/ui/DebugUI.js"></script>
+    <script src="../dist/ui/ToolInfo.js"></script>
+    <script src="../dist/ui/ColorPickerUI.js"></script>
+    <script src="../dist/ui/SidePanel.js"></script>
+    <script src="../dist/ui/ZoomControlUI.js"></script>
+    <script src="../dist/ui/CurvesUI.js"></script>
+    <script src="../dist/ui/AnimationUI.js"></script>
+
+    <!-- Tools -->
     <script src="../dist/tools/CreatePolygon.js"></script>
     <script src="../dist/tools/Transform.js"></script>
     <script src="../dist/tools/Rotate.js"></script>
@@ -73,16 +85,11 @@
     <script src="../dist/tools/Curves.js"></script>
     <script src="../dist/tools/Animation.js"></script>
 
-    <script src="../dist/ui/DebugUI.js"></script>
-    <script src="../dist/ui/SidePanel.js"></script>
-    <script src="../dist/ui/ColorPickerUI.js"></script>
-    <script src="../dist/ui/CurvesUI.js"></script>
-    <script src="../dist/ui/Button.js"></script>
-    <script src="../dist/ui/ZoomControlUI.js"></script>
-    <script src="../dist/ui/ToolInfo.js"></script>
-    <script src="../dist/ui/AnimationUI.js"></script>
-
+    <!-- Configuration -->
     <script src="../dist/config/Keybinds.js"></script>
+
+    <!-- Main entry point (load last) -->
+    <script src="../dist/index.js"></script>
   </head>
   <body>
     <!-- Back button - only show when not in iframe -->

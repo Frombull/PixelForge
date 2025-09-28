@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "es2017"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": false,
+    "outDir": "./public/static-project/dist",
+    "rootDir": "./public/static-project/src",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "declaration": false,
+    "sourceMap": false,
+    "removeComments": true,
+    "types": ["p5"],
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": [
+    "public/static-project/src/**/*.ts",
+    "global.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src"
+  ]
+}

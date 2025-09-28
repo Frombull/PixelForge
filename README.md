@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pixel Forge
 
-## Getting Started
+<p align="center">
+  <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="NextJS">
+  <img src="https://img.shields.io/badge/p5.js-ED225D?style=for-the-badge&logo=p5.js&logoColor=white" alt="p5.js">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+</p>
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 📖 Sobre o Projeto
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do Inatel, o projeto foi desenvolvido para ensino de conceitos fundamentais de **Computação Gráfica** e **Multimídia**. Nele, estudantes podem visualizar e experimentar com conceitos vistos em sala de aula, de maneira interativa!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Rodando o projeto
 
-## Learn More
+### Pré-requisitos
+- Node.js
 
-To learn more about Next.js, take a look at the following resources:
+### Instalação
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone o repositório**
+   ```bash
+   git clone <url-do-repositorio>
+   cd PixelForge
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Instale as dependências**
+   ```bash
+   npm install
+   ```
 
-## Deploy on Vercel
+3. **Compile o TypeScript**
+   ```bash
+   npx tsc
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ou
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   > task: run build task
+   ```
+
+4. **Execute um servidor local**
+   ```bash
+   # Usando Python 3
+   python -m http.server 8000
+   
+   # Ou usando Node.js
+   npx serve .
+   
+   # Ou usando Live Server (VS Code)
+   # Instale a extensão Live Server e clique em "Go Live"
+   ```
+
+5. **Acessando a aplicação**
+   - Abra o navegador e vá para `http://localhost:8000`
+
+
+### Atalhos do canvas2D
+- `C` - Criação de polígonos
+- `T` - Translação
+- `R` - Rotação
+- `S` - Escala
+- `X` - Espelhamento no eixo X
+- `Y` - Espelhamento no eixo Y
+- `B` - Curvas de Bézier
+- `A` - Animação
+
+
+## 🛠️ Tecnologias Utilizadas
+
+- **[TypeScript](https://www.typescriptlang.org/)**: Linguagem principal com tipagem estática
+- **[p5.js](https://p5js.org/)**: Biblioteca para gráficos e animações
+- **[@jaames/iro](https://iro.js.org/)**: Seletor de cores interativo
+- **Next.JS**: 
+
+
+## 🙏 Agradecimentos
+- Prof. Me. Cysneiros, orientador do projeto
+- Meu amigo Torres, por abandonar seu grupo antigo da Fetin em pro desse projeto :D
+
+
+---
+
+<p align="center">
+  Desenvolvido com ❤️ para a Fetin 2025 - Inatel
+</p>

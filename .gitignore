@@ -1,41 +1,124 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# =====================================================
+# PixelForge gitignore
+# =====================================================
 
-# dependencies
-/node_modules
+# -------------------- Dependencies -------------------
+# Node modules and package managers
+node_modules/
+.node_modules/
 /.pnp
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
-# testing
-/coverage
+# -------------------- Next.js ------------------------
+# Build output
+.next/
+out/
+dist/
+build/
+built/
 
-# next.js
-/.next/
-/out/
+# Next.js cache
+.next/cache/
 
-# production
-/build
+# Next.js environment
+next-env.d.ts
 
-# misc
-.DS_Store
-*.pem
+# -------------------- P5.js --------------------------
+# P5.js libraries and builds
+/lib/
+libraries/p5.*
+sketch-*.js
 
-# debug
+# -------------------- Development --------------------
+# IDEs and editors
+.vscode/*
+!.vscode/tasks.json
+!.vscode/settings.template.json
+!.vscode/launch.template.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.settings/
+.vs/
+
+# -------------------- Environment --------------------
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.template
+
+# -------------------- Debug/Logs ---------------------
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
+lerna-debug.log*
+*.log
+*v8.log
+.parallelperf.*
 
-# env files (can opt-in for committing if needed)
-.env*
+# -------------------- OS Files -----------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
 
-# vercel
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+.Trash-*
+
+# -------------------- Build/Compile ------------------
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+*.js.map
+
+# Build artifacts
+*.actual
+build.json
+.eslintcache
+rwc-report.html
+
+# -------------------- Deployment ---------------------
+# Vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Netlify
+.netlify
+
+# -------------------- Security -----------------------
+# Certificates and keys
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# -------------------- Documentation ------------------
+# Temporary docs
+~*.docx
+\#*\#
+.\#*
+
+# -------------------- Project Specific ---------------
+# Add project-specific ignores here
+# public/sketches/temp/
+# scripts/**/*.js
+# scripts/**/*.js.map
+
+# -------------------- Temporary Files ----------------
+tmp/
+temp/
+.tmp/
+.cache/
+*.tmp
+*.temp
+*.bak
+*.backup

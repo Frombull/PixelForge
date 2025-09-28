@@ -35,10 +35,11 @@ export default function CompressPage() {
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadLennaImage();
+    loadLennaImage(); // TODO: Lenna isnt used anymore
   }, []);
 
-  const loadLennaImage = async () => {
+  // TODO: Lenna isnt used anymore
+  const loadLennaImage = async () => { 
     try {
       const response = await fetch("/images/mandrill.png");
       const blob = await response.blob();
@@ -48,7 +49,7 @@ export default function CompressPage() {
       loadOriginalImage(file);
       setIsImageLoaded(true);
     } catch (error) {
-      console.error("Erro ao carregar imagem Lenna:", error);
+      console.error("Erro ao carregar imagem:", error);
     }
   };
 

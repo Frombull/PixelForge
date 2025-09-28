@@ -21,7 +21,7 @@ Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do 
 
 1. **Clone o repositório**
    ```bash
-   git clone <url-do-repositorio>
+   git clone https://github.com/Frombull/PixelForge.git
    cd PixelForge
    ```
 
@@ -52,7 +52,7 @@ Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do 
    ```
 
 5. **Acessando a aplicação**
-   - Abra o navegador e vá para `http://localhost:8000`
+   - Abra o navegador e vá para `http://localhost:3000`
 
 
 ### Atalhos do canvas2D

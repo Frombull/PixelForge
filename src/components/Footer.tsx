@@ -15,7 +15,7 @@ export default function Footer() {
           {/* Links sociais */}
           <div className="flex flex-wrap justify-center md:justify-end gap-4">
             <a
-              href="https://github.com/Torress01/Fetin"
+              href="https://github.com/Frombull/PixelForge.git"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2"

@@ -89,6 +89,12 @@ export default function Header() {
                 Multimídia
               </Link>
               <Link
+                href="/#ia"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+              >
+                Inteligência Computacional
+              </Link>
+              <Link
                 href="/infos"
                 className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
               >
@@ -146,6 +152,13 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Multimídia
+              </Link>
+              <Link
+                href="#ia"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Inteligência Computacional
               </Link>
               <Link
                 href="/infos"

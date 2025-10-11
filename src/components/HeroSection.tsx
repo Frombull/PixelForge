@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Header from "./Header";
 
 export default function HeroSection() {
   return (
     <section className="min-h-screen flex flex-col text-center px-4 md:px-8 pt-28 md:pt-36 relative bg-gradient-to-t from-slate-900 to-black overflow-hidden">
-      <Header />
-
       {/* Main Hero Content */}
       <div className="flex-1 flex flex-col justify-center items-center max-w-6xl mx-auto">
         {/* Main Title */}
@@ -50,6 +47,14 @@ export default function HeroSection() {
             href="#multimidia"
             className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
             <span>Multimídia</span>
+            <span className="group-hover:translate-x-1 transition-transform duration-300">
+              →
+            </span>
+          </Link>
+          <Link
+            href="#ia"
+            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
+            <span>Inteligência Computacional</span>
             <span className="group-hover:translate-x-1 transition-transform duration-300">
               →
             </span>

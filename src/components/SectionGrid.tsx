@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-interface ToolCard {
+export interface ToolCard {
   title: string;
   description: string;
   icon: string;

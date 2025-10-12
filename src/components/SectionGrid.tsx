@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-interface ToolCard {
+export interface ToolCard {
   title: string;
   description: string;
   icon: string;
@@ -11,48 +11,13 @@ interface ToolCard {
   features: string[];
 }
 
-const tools: ToolCard[] = [
-  {
-    title: "Processamento de Imagem",
-    description: "Explore algoritmos de processamento e manipulação de imagens",
-    icon: "🖼️",
-    href: "/image-fft",
-    color: "blue",
-    features: ["FFT", "Filtros"],
-  },
-  {
-    title: "Aliasing",
-    description: "Entenda e experimente frequência de amostragem",
-    icon: "✨",
-    href: "/aliasing",
-    color: "green",
-    features: ["Análise Visual"],
-  },
-  {
-    title: "Compressão de Dados",
-    description: "Aprenda sobre algoritmos de compressão e codificação",
-    icon: "🗜️",
-    href: "/compress",
-    color: "orange",
-    features: ["JPEG", "WEBP", "FRACTAL", "DCT"],
-  },
-  {
-    title: "Segmentação de Imagens",
-    description: "Ferramenta interativa para segmentação inteligente e manual",
-    icon: "🎯",
-    href: "/segmentation",
-    color: "purple",
-    features: ["Seleção inteligente", "Export"],
-  },
-  {
-    title: "Vetorial vs Matricial",
-    description: "Compare a qualidade de imagens vetoriais e matriciais",
-    icon: "🎨",
-    href: "/vector",
-    color: "pink",
-    features: ["Zoom Interativo", "Comparação Visual", "Qualidade"],
-  },
-];
+interface SectionGridProps {
+  id: string;
+  title: string;
+  tools: ToolCard[];
+  className?: string;
+}
+
 const getColorClasses = (color: string) => {
   switch (color) {
     case "purple":
@@ -70,27 +35,27 @@ const getColorClasses = (color: string) => {
   }
 };
 
-export default function SectionsComponent() {
+export default function SectionGrid({ id, title, tools, className = "" }: SectionGridProps) {
   return (
     <section
-      id="multimidia"
-      className="py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-b from-slate-900 to-black"
+      id={id}
+      className={`py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-b from-slate-900 to-black ${className}`}
     >
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16 px-2">
           <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-            Multimídia
+            {title}
           </h2>
         </div>
 
         {/* Tools Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 mb-12 sm:mb-16">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-12 sm:mb-16">
           {tools.map((tool, index) => (
             <Link
               key={index}
               href={tool.href}
-              className={`group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-white/15 min-h-[320px] sm:min-h-[380px] lg:min-h-[400px] flex flex-col ${getColorClasses(
+              className={`group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-white/15 min-h-[320px] sm:min-h-[380px] lg:min-h-[400px] flex flex-col w-full sm:w-[420px] lg:w-[380px] xl:w-[400px] ${getColorClasses(
                 tool.color
               )}`}
             >

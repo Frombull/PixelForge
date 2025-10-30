@@ -37,8 +37,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
+    ".next/types/**/*.ts",
+    "src/app/a-star/route.js"],
   "exclude": [
     "node_modules",
     "dist"

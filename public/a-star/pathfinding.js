@@ -11,8 +11,10 @@ class Node {
 }
 
 function heuristic(a, b) {
-  // Distância Manhattan
-  return abs(a.x - b.x) + abs(a.y - b.y);
+  // Distância Euclidiana (melhor para movimento diagonal)
+  let dx = abs(a.x - b.x);
+  let dy = abs(a.y - b.y);
+  return sqrt(dx * dx + dy * dy);
 }
 
 function getNeighbors(node, cols, rows, grid) {
@@ -20,13 +22,35 @@ function getNeighbors(node, cols, rows, grid) {
   let x = node.x;
   let y = node.y;
 
-  // Vizinhos: cima, baixo, esquerda, direita
-  if (x > 0 && grid[x - 1][y] !== 1) neighbors.push({ x: x - 1, y: y });
-  if (x < cols - 1 && grid[x + 1][y] !== 1)
-    neighbors.push({ x: x + 1, y: y });
-  if (y > 0 && grid[x][y - 1] !== 1) neighbors.push({ x: x, y: y - 1 });
-  if (y < rows - 1 && grid[x][y + 1] !== 1)
-    neighbors.push({ x: x, y: y + 1 });
+  // Direções: [dx, dy, custo]
+  // Movimentos cardinais (custo 1) e diagonais (custo √2 ≈ 1.414)
+  const directions = [
+    [-1, 0, 1],    // esquerda
+    [1, 0, 1],     // direita
+    [0, -1, 1],    // cima
+    [0, 1, 1],     // baixo
+    [-1, -1, 1.414], // diagonal superior esquerda
+    [1, -1, 1.414],  // diagonal superior direita
+    [-1, 1, 1.414],  // diagonal inferior esquerda
+    [1, 1, 1.414]    // diagonal inferior direita
+  ];
+
+  for (let [dx, dy, cost] of directions) {
+    let newX = x + dx;
+    let newY = y + dy;
+
+    // Verificar limites e se não é parede
+    if (newX >= 0 && newX < cols && newY >= 0 && newY < rows && grid[newX][newY] !== 1) {
+      // Para movimento diagonal, verificar se os lados adjacentes não são paredes
+      // (evitar "cortar cantos")
+      if (dx !== 0 && dy !== 0) {
+        if (grid[x + dx][y] === 1 || grid[x][y + dy] === 1) {
+          continue; // Não permitir diagonal se houver parede nos lados
+        }
+      }
+      neighbors.push({ x: newX, y: newY, cost: cost });
+    }
+  }
 
   return neighbors;
 }
@@ -88,7 +112,7 @@ function* aStarGenerator(start, end, cols, rows, grid) {
       if (inClosed) continue;
 
       let neighbor = new Node(neighborPos.x, neighborPos.y);
-      let tentativeG = current.g + 1;
+      let tentativeG = current.g + neighborPos.cost;
 
       // Verificar se já está na openSet
       let existingNode = openSet.find(

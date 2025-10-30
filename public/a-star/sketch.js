@@ -1,5 +1,5 @@
 let cols, rows;
-let cellSize = 30;
+let cellSize = 32;
 let grid = [];
 let start, end;
 let path = [];

@@ -65,7 +65,7 @@ export const aiTools: ToolCard[] = [
     title: "A*",
     description: "A*",
     icon: "🧠",
-    href: "/ai/a-star",
+    href: "/a-star",
     color: "blue",
     features: ["Algoritmo de Busca"],
   },

@@ -10,6 +10,24 @@
   <body>
     <main>
     </main>
+    <div id="sidebar">
+      <h3>Controles</h3>
+      
+      <div class="control-group">
+        <label>Algoritmo:</label>
+        <select id="algorithm">
+          <option value="astar">A*</option>
+          <option value="bfs">BFS</option>
+        </select>
+      </div>
+      
+      <div class="button-group">
+        <button id="playBtn">▶ Play</button>
+        <button id="clearPathBtn">Limpar Caminho</button>
+        <button id="clearWallsBtn">Limpar Paredes</button>
+      </div>
+    </div>
+    <script src="/a-star/pathfinding.js"></script>
     <script src="/a-star/sketch.js"></script>
   </body>
 </html>

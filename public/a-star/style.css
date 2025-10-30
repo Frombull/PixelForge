@@ -1,7 +1,106 @@
 html, body {
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
 }
+
 canvas {
   display: block;
+}
+
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+canvas {
+  -webkit-touch-callout: none;
+}
+
+#sidebar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+}
+
+#sidebar h3 {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.control-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1001;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.button-group button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#playBtn {
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+}
+
+#playBtn:hover {
+  background: #45a049;
+}
+
+#clearPathBtn {
+  background: #2196F3;
+  color: white;
+}
+
+#clearPathBtn:hover {
+  background: #0b7dda;
+}
+
+#clearWallsBtn {
+  background: #f44336;
+  color: white;
+}
+
+#clearWallsBtn:hover {
+  background: #da190b;
 }

@@ -24,10 +24,13 @@ canvas {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: white;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   min-width: 200px;
   z-index: 1000;
 }
@@ -35,7 +38,9 @@ canvas {
 #sidebar h3 {
   margin: 0 0 15px 0;
   font-size: 18px;
-  color: #333;
+  color: #000;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .control-group {
@@ -46,20 +51,25 @@ canvas {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
-  color: #555;
+  color: #222;
+  font-weight: 500;
 }
 
 .control-group select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 6px;
   font-size: 14px;
-  background: white;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   cursor: pointer;
   pointer-events: auto;
   position: relative;
   z-index: 1001;
+  color: #000;
+  font-weight: 500;
 }
 
 .button-group {
@@ -70,37 +80,106 @@ canvas {
 
 .button-group button {
   padding: 10px 15px;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 #playBtn {
-  background: #4CAF50;
+  background: rgba(76, 175, 80, 0.8);
   color: white;
   font-weight: bold;
 }
 
 #playBtn:hover {
-  background: #45a049;
+  background: rgba(76, 175, 80, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
 }
 
 #clearPathBtn {
-  background: #2196F3;
+  background: rgba(33, 150, 243, 0.8);
   color: white;
 }
 
 #clearPathBtn:hover {
-  background: #0b7dda;
+  background: rgba(33, 150, 243, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
 #clearWallsBtn {
-  background: #f44336;
+  background: rgba(244, 67, 54, 0.8);
   color: white;
 }
 
 #clearWallsBtn:hover {
-  background: #da190b;
+  background: rgba(244, 67, 54, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+}
+
+#visualOptionsBtn {
+  background: rgba(156, 39, 176, 0.8);
+  color: white;
+}
+
+#visualOptionsBtn:hover {
+  background: rgba(156, 39, 176, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+}
+
+.visual-options {
+  max-height: 200px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  margin-top: 15px;
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.visual-options.collapsed {
+  max-height: 0;
+  margin-top: 0;
+  opacity: 0;
+  padding: 0;
+  border: none;
+}
+
+.visual-options .control-group {
+  margin-bottom: 15px;
+}
+
+.visual-options .control-group:last-child {
+  margin-bottom: 0;
+}
+
+.visual-options input[type="range"] {
+  width: calc(100% - 50px);
+  margin-right: 10px;
+  vertical-align: middle;
+  cursor: pointer;
+  accent-color: rgba(156, 39, 176, 0.8);
+}
+
+.visual-options span {
+  display: inline-block;
+  min-width: 40px;
+  font-size: 12px;
+  color: #000;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.visual-options label {
+  font-size: 13px;
+  margin-bottom: 8px;
 }

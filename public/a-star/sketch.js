@@ -1,5 +1,6 @@
 let cols, rows;
-let cellSize = 30;
+let cellSize = 40;
+let gridStrokeWeight = 0.5;
 let grid = [];
 let start, end;
 let path = [];
@@ -7,6 +8,21 @@ let openSet = [];
 let closedSet = [];
 let isRunning = false;
 let pathfindingGenerator = null;
+let simulationSpeed = 20;
+let lastStepTime = 0;
+
+// Estatísticas da execução
+let stats = {
+  algorithm: '',
+  pathLength: 0,
+  nodesExplored: 0,
+  nodesInFrontier: 0,
+  diagonalMoves: 0,
+  cardinalMoves: 0,
+  totalCost: 0,
+  executionTime: 0,
+  startTime: 0
+};
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -34,9 +50,60 @@ function setup() {
   document
     .getElementById("clearWallsBtn")
     .addEventListener("click", clearWalls);
+  document
+    .getElementById("visualOptionsBtn")
+    .addEventListener("click", toggleVisualOptions);
+
+  // Configurar slider de velocidade
+  document.getElementById("speedSlider").addEventListener("input", (e) => {
+    simulationSpeed = parseInt(e.target.value);
+    document.getElementById("speedValue").textContent = simulationSpeed;
+  });
+
+  // Configurar controles visuais
+  document.getElementById("gridStroke").addEventListener("input", (e) => {
+    gridStrokeWeight = parseFloat(e.target.value);
+    document.getElementById("gridStrokeValue").textContent = gridStrokeWeight;
+  });
+
+  document.getElementById("gridZoom").addEventListener("input", (e) => {
+    let newCellSize = parseInt(e.target.value);
+    document.getElementById("gridZoomValue").textContent = newCellSize + "px";
+
+    // Atualizar cellSize e recalcular grid
+    cellSize = newCellSize;
+    let oldCols = cols;
+    let oldRows = rows;
+    cols = floor(width / cellSize);
+    rows = floor(height / cellSize);
+
+    // Recriar grid mantendo paredes existentes
+    let newGrid = [];
+    for (let i = 0; i < cols; i++) {
+      newGrid[i] = [];
+      for (let j = 0; j < rows; j++) {
+        newGrid[i][j] = (i < oldCols && j < oldRows && grid[i] && grid[i][j]) ? grid[i][j] : 0;
+      }
+    }
+    grid = newGrid;
+
+    // Ajustar posições de start e end se necessário
+    start.x = min(start.x, cols - 1);
+    start.y = min(start.y, rows - 1);
+    end.x = min(end.x, cols - 1);
+    end.y = min(end.y, rows - 1);
+
+    // Limpar caminho ao mudar zoom
+    clearPath();
+  });
 
   // Menu de contexto
   document.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+
+function toggleVisualOptions() {
+  let panel = document.getElementById("visualOptions");
+  panel.classList.toggle("collapsed");
 }
 
 function draw() {
@@ -69,7 +136,7 @@ function draw() {
       }
 
       stroke(200);
-      strokeWeight(1);
+      strokeWeight(gridStrokeWeight);
       rect(x, y, cellSize, cellSize);
     }
   }
@@ -86,27 +153,58 @@ function draw() {
       vertex(x, y);
     }
     endShape();
+
+    // Desenhar pontos do caminho
+    fill(0, 0, 255);
+    noStroke();
+    for (let cell of path) {
+      let x = cell.x * cellSize + cellSize / 2;
+      let y = cell.y * cellSize + cellSize / 2;
+      circle(x, y, 8);
+    }
   }
 
-  // Executar próximo passo do algoritmo
+  // Desenhar painel de estatísticas
+  drawStatsPanel();
+
+  // Executar próximo passo do algoritmo baseado na velocidade (passos por segundo)
   if (isRunning && pathfindingGenerator) {
-    let result = pathfindingGenerator.next();
+    let currentTime = millis();
+    let stepInterval = 1000 / simulationSpeed; // Intervalo em ms entre cada passo
 
-    if (!result.done && result.value) {
-      openSet = result.value.openSet || [];
-      closedSet = result.value.closedSet || [];
-    } else if (result.done && result.value) {
-      // Algoritmo terminou
-      isRunning = false;
-      openSet = result.value.openSet || [];
-      closedSet = result.value.closedSet || [];
-      path = result.value.path || [];
+    // Verificar se é hora de executar o próximo passo
+    if (currentTime - lastStepTime >= stepInterval) {
+      lastStepTime = currentTime;
 
-      if (path.length === 0) {
-        console.log("Nenhum caminho encontrado!");
-        alert("Nenhum caminho encontrado!");
-      } else {
-        console.log(`Caminho encontrado com ${path.length} passos`);
+      let result = pathfindingGenerator.next();
+
+      if (!result.done && result.value) {
+        openSet = result.value.openSet || [];
+        closedSet = result.value.closedSet || [];
+
+        // Atualizar estatísticas em tempo real
+        stats.nodesExplored = closedSet.length;
+        stats.nodesInFrontier = openSet.length;
+      } else if (result.done && result.value) {
+        // Algoritmo terminou
+        isRunning = false;
+        openSet = result.value.openSet || [];
+        closedSet = result.value.closedSet || [];
+        path = result.value.path || [];
+
+        // Calcular estatísticas finais
+        stats.executionTime = millis() - stats.startTime;
+        stats.nodesExplored = closedSet.length;
+        stats.nodesInFrontier = openSet.length;
+
+        if (path.length === 0) {
+          console.log("Nenhum caminho encontrado!");
+          alert("Nenhum caminho encontrado!");
+          stats.pathLength = 0;
+        } else {
+          console.log(`Caminho encontrado com ${path.length} passos`);
+          calculatePathStats();
+        }
       }
     }
   }
@@ -174,9 +272,71 @@ function windowResized() {
   grid = newGrid;
 }
 
+// Calcular estatísticas do caminho
+function calculatePathStats() {
+  stats.pathLength = path.length;
+  stats.diagonalMoves = 0;
+  stats.cardinalMoves = 0;
+  stats.totalCost = 0;
+
+  for (let i = 1; i < path.length; i++) {
+    let dx = abs(path[i].x - path[i - 1].x);
+    let dy = abs(path[i].y - path[i - 1].y);
+
+    if (dx === 1 && dy === 1) {
+      stats.diagonalMoves++;
+      stats.totalCost += 1.414;
+    } else {
+      stats.cardinalMoves++;
+      stats.totalCost += 1;
+    }
+  }
+}
+
+// Desenhar painel de estatísticas
+function drawStatsPanel() {
+  let panelHeight = 200;
+  let padding = 15;
+  let x = 10;
+  let y = height - panelHeight - 35;
+
+
+
+  // Conteúdo
+  textStyle(NORMAL);
+  textSize(13);
+  noStroke();
+  let lineHeight = 20;
+  let startY = y + padding + 35;
+
+  if (stats.algorithm) {
+    fill(60);
+    text(`${stats.algorithm}`, x + padding, startY);
+
+    fill(40);
+    text(`Nós explorados: ${stats.nodesExplored}`, x + padding, startY + lineHeight);
+    text(`Nós na fronteira: ${stats.nodesInFrontier}`, x + padding, startY + lineHeight * 2);
+
+    if (path.length > 0) {
+      text(`Tamanho do caminho: ${stats.pathLength}`, x + padding, startY + lineHeight * 3);
+      text(`Movimentos cardinais: ${stats.cardinalMoves}`, x + padding, startY + lineHeight * 4);
+      text(`Movimentos diagonais: ${stats.diagonalMoves}`, x + padding, startY + lineHeight * 5);
+
+      fill(0, 100, 200);
+      text(`Custo total: ${stats.totalCost.toFixed(2)}`, x + padding, startY + lineHeight * 6);
+
+      fill(100);
+      text(`Tempo: ${stats.executionTime.toFixed(0)}ms`, x + padding, startY + lineHeight * 7);
+    } else if (!isRunning && stats.nodesExplored > 0) {
+      fill(200, 0, 0);
+      text(`Nenhum caminho encontrado`, x + padding, startY + lineHeight * 3);
+    }
+  }
+}
+
 // Botões
 function runPathfinding() {
-  if (isRunning) 
+  if (isRunning)
     return;
 
   let algorithm = document.getElementById("algorithm").value;
@@ -186,6 +346,18 @@ function runPathfinding() {
   path = [];
   openSet = [];
   closedSet = [];
+  lastStepTime = 0; // Resetar timer
+
+  // Resetar estatísticas
+  stats.algorithm = algorithm === "astar" ? "A*" : "BFS";
+  stats.pathLength = 0;
+  stats.nodesExplored = 0;
+  stats.nodesInFrontier = 0;
+  stats.diagonalMoves = 0;
+  stats.cardinalMoves = 0;
+  stats.totalCost = 0;
+  stats.executionTime = 0;
+  stats.startTime = millis();
 
   if (algorithm === "astar") {
     pathfindingGenerator = aStarGenerator(start, end, cols, rows, grid);
@@ -202,6 +374,15 @@ function clearPath() {
   closedSet = [];
   isRunning = false;
   pathfindingGenerator = null;
+
+  // Manter o algoritmo mas resetar outras estatísticas
+  stats.pathLength = 0;
+  stats.nodesExplored = 0;
+  stats.nodesInFrontier = 0;
+  stats.diagonalMoves = 0;
+  stats.cardinalMoves = 0;
+  stats.totalCost = 0;
+  stats.executionTime = 0;
 }
 
 function clearWalls() {
@@ -217,4 +398,14 @@ function clearWalls() {
   closedSet = [];
   isRunning = false;
   pathfindingGenerator = null;
+
+  // Resetar estatísticas completamente
+  stats.algorithm = '';
+  stats.pathLength = 0;
+  stats.nodesExplored = 0;
+  stats.nodesInFrontier = 0;
+  stats.diagonalMoves = 0;
+  stats.cardinalMoves = 0;
+  stats.totalCost = 0;
+  stats.executionTime = 0;
 }

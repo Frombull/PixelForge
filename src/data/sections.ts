@@ -57,7 +57,7 @@ export const multimediaTools: ToolCard[] = [
     href: "/vector",
     color: "pink",
     features: ["Zoom Interativo", "Comparação Visual", "Qualidade"],
-  },
+  }
 ];
 
 export const aiTools: ToolCard[] = [
@@ -67,6 +67,14 @@ export const aiTools: ToolCard[] = [
     icon: "🧠",
     href: "/a-star",
     color: "blue",
-    features: ["Algoritmo de Busca"],
+    features: ["Algoritmos de Busca"],
   },
+  {
+    title: "Boids*",
+    description: "Boids",
+    icon: "🔺",
+    href: "/boids",
+    color: "blue",
+    features: ["-"],
+  }
 ];

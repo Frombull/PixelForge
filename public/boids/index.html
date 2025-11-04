@@ -1,15 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="/boids/style.css">
     <meta charset="utf-8" />
-
+    <title>Boids | Flocking</title>
   </head>
   <body>
-    <main>
-    </main>
+    <div class="container">
+      <div class="controls-panel">
+        <h2>Boids | Flocking</h2>
+        
+        <div class="control-group">
+          <label for="speedSlider">
+            <span class="label-text">Velocidade Máxima</span>
+            <span class="value-display" id="speedValue">3.0</span>
+          </label>
+          <input type="range" id="speedSlider" min="1" max="8" step="0.5" value="3">
+        </div>
+
+        <div class="control-group">
+          <label for="separationSlider">
+            <span class="label-text">Separação</span>
+            <span class="value-display" id="separationValue">1.5</span>
+          </label>
+          <input type="range" id="separationSlider" min="0" max="3" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-group">
+          <label for="alignmentSlider">
+            <span class="label-text">Alinhamento</span>
+            <span class="value-display" id="alignmentValue">1.0</span>
+          </label>
+          <input type="range" id="alignmentSlider" min="0" max="3" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-group">
+          <label for="cohesionSlider">
+            <span class="label-text">Coesão</span>
+            <span class="value-display" id="cohesionValue">1.0</span>
+          </label>
+          <input type="range" id="cohesionSlider" min="0" max="3" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-group">
+          <label for="sizeSlider">
+            <span class="label-text">Tamanho dos Boids</span>
+            <span class="value-display" id="sizeValue">3.0</span>
+          </label>
+          <input type="range" id="sizeSlider" min="1" max="8" step="0.5" value="3">
+        </div>
+
+        <div class="info-box">
+          <p><strong>Boids ativos:</strong> <span id="boidCount">100</span> / 500</p>
+        </div>
+
+        <button id="resetBtn" class="reset-button">Reset</button>
+      </div>
+
+      <div id="canvas-container"></div>
+    </div>
+    
     <script src="/boids/sketch.js"></script>
   </body>
 </html>

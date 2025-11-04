@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 
 export async function GET() {
-  const filePath = path.join(process.cwd(), 'public', 'a-star/index.html');
+  const filePath = path.join(process.cwd(), 'public', 'boids/index.html');
   const htmlContent = fs.readFileSync(filePath, 'utf8');
   
   return new NextResponse(htmlContent, {

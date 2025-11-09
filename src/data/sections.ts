@@ -15,6 +15,20 @@ export const graphicsTools: ToolCard[] = [
       "Animações",
     ],
   },
+  {
+    title: "Cubo 3D",
+    description:
+      "Explore um cubo 3D interativo com espectro de cores usando Three.js",
+    icon: "🎲",
+    href: "/cube",
+    color: "pink",
+    features: [
+      "Rotação 3D",
+      "Espectro de Cores",
+      "Controles Interativos",
+      "Wireframe",
+    ],
+  },
 ];
 
 export const multimediaTools: ToolCard[] = [

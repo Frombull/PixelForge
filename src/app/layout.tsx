@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Pixel Forge - Explore Computação Gráfica",
+  title: "Pixel Forge",
   description:
-    "Uma plataforma para aprender e experimentar conceitos de computação gráfica e multimídia através de ferramentas visuais e interativas.",
+    "Uma plataforma para aprender e experimentar conceitos de computação gráfica e multimídia e IA de maneira e interativa.",
   icons: {
     icon: "./images/anvil.svg",
   },

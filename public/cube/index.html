@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubo 3D | Color Spectrum</title>
+    <link rel="stylesheet" type="text/css" href="/cube/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls-panel">
+        <h2>Cubo 3D | Espectro de Cores</h2>
+        
+        <div class="info-box">
+          <p><strong>Controles:</strong></p>
+          <p>🖱️ Arraste para rotacionar</p>
+          <p>🔄 Scroll para zoom</p>
+          <p>⌨️ Clique direito para mover</p>
+        </div>
+
+        <div class="control-group">
+          <label for="rotationSpeed">
+            <span class="label-text">Velocidade de Rotação</span>
+            <span class="value-display" id="rotationValue">0.5</span>
+          </label>
+          <input type="range" id="rotationSpeed" min="0" max="2" step="0.1" value="0.5">
+        </div>
+
+        <div class="control-group">
+          <label>
+            <input type="checkbox" id="autoRotate" checked>
+            <span class="label-text">Rotação Automática</span>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <label>
+            <input type="checkbox" id="wireframe">
+            <span class="label-text">Modo Wireframe</span>
+          </label>
+        </div>
+
+        <button id="resetBtn" class="reset-button">Reset Câmera</button>
+      </div>
+
+      <div id="canvas-container"></div>
+    </div>
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="/cube/scene.js"></script>
+  </body>
+</html>

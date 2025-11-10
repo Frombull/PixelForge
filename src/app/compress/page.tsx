@@ -35,11 +35,10 @@ export default function CompressPage() {
   const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadLennaImage(); // TODO: Lenna isnt used anymore
+    loadSampleImage(); 
   }, []);
 
-  // TODO: Lenna isnt used anymore
-  const loadLennaImage = async () => { 
+  const loadSampleImage = async () => { 
     try {
       const response = await fetch("/images/mandrill.png");
       const blob = await response.blob();

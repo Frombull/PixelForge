@@ -8,10 +8,10 @@ scene.background = new THREE.Color(0x000000);
 
 // Normal Camera
 const camera = new THREE.PerspectiveCamera(
-  75,
+  60,
   window.innerWidth / window.innerHeight,
   0.01,
-  1000
+  500
 );
 camera.position.set(5, 5, 5);
 
@@ -104,7 +104,7 @@ scene.add(cube);
 const edges = new THREE.EdgesGeometry(geometry);
 const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
 const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
-edgeLines.visible = true;
+edgeLines.visible = false;
 cube.add(edgeLines);
 
 // Wireframe

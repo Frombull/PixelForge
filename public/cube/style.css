@@ -135,6 +135,11 @@ input[type="range"]::-moz-range-thumb:hover {
   color: #ff6b9d;
 }
 
+/* Icon size */
+.info-box i {
+  font-size: 22px;
+}
+
 .reset-button {
   width: 100%;
   padding: 14px;

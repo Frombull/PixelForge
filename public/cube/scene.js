@@ -1,5 +1,5 @@
-import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from 'three';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -162,6 +162,10 @@ showVerticesCheckbox.addEventListener('change', (e) => {
 resetBtn.addEventListener('click', () => {
   camera.position.set(0, 0, 5);
   controls.reset();
+});
+
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
 });
 
 // Window resize

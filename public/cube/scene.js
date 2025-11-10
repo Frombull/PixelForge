@@ -5,14 +5,26 @@ import * as THREE from 'three';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-// Camera
+
+// Normal Camera
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
-  0.1,
+  0.01,
   1000
 );
-camera.position.z = 5;
+camera.position.set(5, 5, 5);
+
+
+// Orthographic camera
+const aspect = window.innerWidth / window.innerHeight;
+const orthoCamera = new THREE.OrthographicCamera(
+  -3 * aspect, 3 * aspect, 3, -3, 0.01, 1000
+);
+orthoCamera.position.set(5, 5, 5);
+
+let currentCamera = camera;
+
 
 // Renderer
 const container = document.getElementById('canvas-container');
@@ -118,10 +130,14 @@ const vertexInfo = [
 vertexInfo.forEach((info) => {
   const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
   const sphereMaterial = new THREE.MeshBasicMaterial({ 
-    color: new THREE.Color(info.color[0], info.color[1], info.color[2])
+    color: new THREE.Color(info.color[0], info.color[1], info.color[2]),
+    wireframe: false
   });
   const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
   sphere.position.set(info.pos[0], info.pos[1], info.pos[2]);
+  
+  sphere.userData.material = sphereMaterial;
+  
   labelGroup.add(sphere);
 });
 
@@ -140,6 +156,7 @@ const autoRotateCheckbox = document.getElementById('autoRotate');
 const showEdgesCheckbox = document.getElementById('showEdges');
 const wireframeCheckbox = document.getElementById('wireframe');
 const showVerticesCheckbox = document.getElementById('showVertices');
+const orthoCameraCheckbox = document.getElementById('orthoCamera');
 const resetBtn = document.getElementById('resetBtn');
 
 autoRotateCheckbox.addEventListener('change', (e) => {
@@ -153,14 +170,37 @@ showEdgesCheckbox.addEventListener('change', (e) => {
 wireframeCheckbox.addEventListener('change', (e) => {
   wireframe.visible = e.target.checked;
   material.wireframe = e.target.checked;
+
+  labelGroup.children.forEach((sphere) => {
+    if (sphere.userData.material) {
+      sphere.userData.material.wireframe = e.target.checked;
+    }
+  });
 });
 
 showVerticesCheckbox.addEventListener('change', (e) => {
   labelGroup.visible = e.target.checked;
 });
 
+orthoCameraCheckbox.addEventListener('change', (e) => {
+  if (e.target.checked) {
+    // Copy camera position to eachother
+    orthoCamera.position.copy(camera.position);
+    orthoCamera.quaternion.copy(camera.quaternion);
+    currentCamera = orthoCamera;
+    controls.object = orthoCamera;
+  } else {
+    // Copy camera position to eachother
+    camera.position.copy(orthoCamera.position);
+    camera.quaternion.copy(orthoCamera.quaternion);
+    currentCamera = camera;
+    controls.object = camera;
+  }
+  controls.update();
+});
+
 resetBtn.addEventListener('click', () => {
-  camera.position.set(0, 0, 5);
+  camera.position.set(5, 5, 5);
   controls.reset();
 });
 
@@ -172,11 +212,23 @@ document.addEventListener('contextmenu', (e) => {
 window.addEventListener('resize', () => {
   const width = container.clientWidth;
   const height = container.clientHeight;
+  const aspect = width / height;
   
-  camera.aspect = width / height;
+  camera.aspect = aspect;
   camera.updateProjectionMatrix();
   
+  orthoCamera.left = -3 * aspect;
+  orthoCamera.right = 3 * aspect;
+  orthoCamera.top = 3;
+  orthoCamera.bottom = -3;
+  orthoCamera.updateProjectionMatrix();
+  
   renderer.setSize(width, height);
+});
+
+controls.addEventListener('start', () => {
+  controls.autoRotate = false;
+  autoRotateCheckbox.checked = false;
 });
 
 // Animation loop
@@ -185,7 +237,7 @@ function animate() {
   
   controls.update();
   
-  renderer.render(scene, camera);
+  renderer.render(scene, currentCamera);
 }
 
 animate();

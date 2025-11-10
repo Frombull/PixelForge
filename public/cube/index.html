@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espectro de Cores | Cubo</title>
+  <link rel="stylesheet" type="text/css" href="/cube/style.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="controls-panel">
+      <h2>Espaço de Cor RGB</h2>
+
+      <div class="info-box">
+        <p><strong>Controles:</strong></p>
+        <p><i class="ph-fill ph-mouse-left-click "></i> Mouse - Rotacionar</p>
+        <p><i class="ph-fill ph-mouse-scroll"></i> Scroll - zoom</p>
+        <p><i class="ph-fill ph-mouse-right-click"></i> Clique direito - mover</p>
+      </div>
+
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="autoRotate" checked>
+          <span class="label-text">Rotação Automática</span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="showEdges" checked>
+          <span class="label-text">Mostrar Arestas</span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="wireframe">
+          <span class="label-text">Modo Wireframe</span>
+        </label>
+      </div>
+
+      <div class="control-group">
+        <label>
+          <input type="checkbox" id="showVertices" checked>
+          <span class="label-text">Mostrar Vertices</span>
+        </label>
+      </div>
+
+
+      <button id="resetBtn" class="reset-button">Resetar Câmera</button>
+    </div>
+
+    <div id="canvas-container"></div>
+  </div>
+
+  <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  <script type="module" src="/cube/scene.js"></script>
+</body>
+
+</html>

@@ -5,14 +5,23 @@ import * as THREE from 'three';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-// Camera
+// Normal Camera
 const camera = new THREE.PerspectiveCamera(
-  75,
+  60,
   window.innerWidth / window.innerHeight,
-  0.1,
-  1000
+  0.01,
+  500
 );
-camera.position.z = 5;
+camera.position.set(5, 5, 5);
+
+// Orthographic camera
+const aspect = window.innerWidth / window.innerHeight;
+const orthoCamera = new THREE.OrthographicCamera(
+  -3 * aspect, 3 * aspect, 3, -3, 0.01, 1000
+);
+orthoCamera.position.set(5, 5, 5);
+
+let currentCamera = camera;
 
 // Renderer
 const container = document.getElementById('canvas-container');
@@ -26,7 +35,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.5;
+controls.autoRotateSpeed = 0.6;
 
 // Zoom
 controls.minDistance = 1;
@@ -92,7 +101,7 @@ scene.add(cube);
 const edges = new THREE.EdgesGeometry(geometry);
 const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 });
 const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
-edgeLines.visible = true;
+edgeLines.visible = false;
 cube.add(edgeLines);
 
 // Wireframe
@@ -102,7 +111,7 @@ wireframe.visible = false;
 cube.add(wireframe);
 
 // vertex markers
-const labelGroup = new THREE.Group();
+const vertexSpheres = new THREE.Group();
 const vertexInfo = [
   { pos: [-1, -1, -1], color: [0, 0, 0], label: 'Black (0,0,0)' },
   { pos: [ 1, -1, -1], color: [1, 0, 0], label: 'Red (1,0,0)' },
@@ -118,14 +127,18 @@ const vertexInfo = [
 vertexInfo.forEach((info) => {
   const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
   const sphereMaterial = new THREE.MeshBasicMaterial({ 
-    color: new THREE.Color(info.color[0], info.color[1], info.color[2])
+    color: new THREE.Color(info.color[0], info.color[1], info.color[2]),
   });
   const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
   sphere.position.set(info.pos[0], info.pos[1], info.pos[2]);
-  labelGroup.add(sphere);
+  
+  sphere.userData.material = sphereMaterial;
+  
+  vertexSpheres.add(sphere);
 });
 
-scene.add(labelGroup);
+scene.add(vertexSpheres);
+vertexSpheres.visible = false;
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -136,31 +149,51 @@ pointLight.position.set(5, 5, 5);
 scene.add(pointLight);
 
 // Controls setup
-const autoRotateCheckbox = document.getElementById('autoRotate');
 const showEdgesCheckbox = document.getElementById('showEdges');
 const wireframeCheckbox = document.getElementById('wireframe');
 const showVerticesCheckbox = document.getElementById('showVertices');
+const orthoCameraCheckbox = document.getElementById('orthoCamera');
 const resetBtn = document.getElementById('resetBtn');
-
-autoRotateCheckbox.addEventListener('change', (e) => {
-  controls.autoRotate = e.target.checked;
-});
 
 showEdgesCheckbox.addEventListener('change', (e) => {
   edgeLines.visible = e.target.checked;
 });
 
 wireframeCheckbox.addEventListener('change', (e) => {
+  // Hide spheres when enabling wireframe view
+  if (!wireframe.visible) {
+    vertexSpheres.visible = !e.target.checked;
+    showVerticesCheckbox.checked = false;
+  }
+  
   wireframe.visible = e.target.checked;
   material.wireframe = e.target.checked;
 });
 
 showVerticesCheckbox.addEventListener('change', (e) => {
-  labelGroup.visible = e.target.checked;
+  vertexSpheres.visible = e.target.checked;
+});
+
+orthoCameraCheckbox.addEventListener('change', (e) => {
+  if (e.target.checked) {
+    // Copy camera position to eachother
+    orthoCamera.position.copy(camera.position);
+    orthoCamera.quaternion.copy(camera.quaternion);
+    currentCamera = orthoCamera;
+    controls.object = orthoCamera;
+  } else {
+    // Copy camera position to eachother
+    camera.position.copy(orthoCamera.position);
+    camera.quaternion.copy(orthoCamera.quaternion);
+    currentCamera = camera;
+    controls.object = camera;
+  }
+  controls.update();
 });
 
 resetBtn.addEventListener('click', () => {
-  camera.position.set(0, 0, 5);
+  camera.position.set(5, 5, 5);
+  controls.autoRotate = true;
   controls.reset();
 });
 
@@ -172,11 +205,22 @@ document.addEventListener('contextmenu', (e) => {
 window.addEventListener('resize', () => {
   const width = container.clientWidth;
   const height = container.clientHeight;
+  const aspect = width / height;
   
-  camera.aspect = width / height;
+  camera.aspect = aspect;
   camera.updateProjectionMatrix();
   
+  orthoCamera.left = -3 * aspect;
+  orthoCamera.right = 3 * aspect;
+  orthoCamera.top = 3;
+  orthoCamera.bottom = -3;
+  orthoCamera.updateProjectionMatrix();
+  
   renderer.setSize(width, height);
+});
+
+controls.addEventListener('start', () => {
+  controls.autoRotate = false;
 });
 
 // Animation loop
@@ -185,7 +229,7 @@ function animate() {
   
   controls.update();
   
-  renderer.render(scene, camera);
+  renderer.render(scene, currentCamera);
 }
 
 animate();

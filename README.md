@@ -16,7 +16,7 @@ Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do 
 ### Computação Gráfica
 * Canvas 2D
 * Canvas 3D (WIP)
-* Visualização do Espectro de Cores RGB em 3D
+* Espectro de Cores RGB em 3D
 
 ### Multimídia
 * Filtros FFT (Passa-Baixa / Passa-Alta)

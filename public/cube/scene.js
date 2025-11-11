@@ -35,7 +35,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.5;
+controls.autoRotateSpeed = 0.6;
 
 // Zoom
 controls.minDistance = 1;
@@ -111,7 +111,7 @@ wireframe.visible = false;
 cube.add(wireframe);
 
 // vertex markers
-const labelGroup = new THREE.Group();
+const vertexSpheres = new THREE.Group();
 const vertexInfo = [
   { pos: [-1, -1, -1], color: [0, 0, 0], label: 'Black (0,0,0)' },
   { pos: [ 1, -1, -1], color: [1, 0, 0], label: 'Red (1,0,0)' },
@@ -128,17 +128,17 @@ vertexInfo.forEach((info) => {
   const sphereGeometry = new THREE.SphereGeometry(0.08, 16, 16);
   const sphereMaterial = new THREE.MeshBasicMaterial({ 
     color: new THREE.Color(info.color[0], info.color[1], info.color[2]),
-    wireframe: false
   });
   const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
   sphere.position.set(info.pos[0], info.pos[1], info.pos[2]);
   
   sphere.userData.material = sphereMaterial;
   
-  labelGroup.add(sphere);
+  vertexSpheres.add(sphere);
 });
 
-scene.add(labelGroup);
+scene.add(vertexSpheres);
+vertexSpheres.visible = false;
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -149,34 +149,29 @@ pointLight.position.set(5, 5, 5);
 scene.add(pointLight);
 
 // Controls setup
-const autoRotateCheckbox = document.getElementById('autoRotate');
 const showEdgesCheckbox = document.getElementById('showEdges');
 const wireframeCheckbox = document.getElementById('wireframe');
 const showVerticesCheckbox = document.getElementById('showVertices');
 const orthoCameraCheckbox = document.getElementById('orthoCamera');
 const resetBtn = document.getElementById('resetBtn');
 
-autoRotateCheckbox.addEventListener('change', (e) => {
-  controls.autoRotate = e.target.checked;
-});
-
 showEdgesCheckbox.addEventListener('change', (e) => {
   edgeLines.visible = e.target.checked;
 });
 
 wireframeCheckbox.addEventListener('change', (e) => {
+  // Hide spheres when enabling wireframe view
+  if (!wireframe.visible) {
+    vertexSpheres.visible = !e.target.checked;
+    showVerticesCheckbox.checked = false;
+  }
+  
   wireframe.visible = e.target.checked;
   material.wireframe = e.target.checked;
-
-  labelGroup.children.forEach((sphere) => {
-    if (sphere.userData.material) {
-      sphere.userData.material.wireframe = e.target.checked;
-    }
-  });
 });
 
 showVerticesCheckbox.addEventListener('change', (e) => {
-  labelGroup.visible = e.target.checked;
+  vertexSpheres.visible = e.target.checked;
 });
 
 orthoCameraCheckbox.addEventListener('change', (e) => {
@@ -198,6 +193,7 @@ orthoCameraCheckbox.addEventListener('change', (e) => {
 
 resetBtn.addEventListener('click', () => {
   camera.position.set(5, 5, 5);
+  controls.autoRotate = true;
   controls.reset();
 });
 
@@ -225,7 +221,6 @@ window.addEventListener('resize', () => {
 
 controls.addEventListener('start', () => {
   controls.autoRotate = false;
-  autoRotateCheckbox.checked = false;
 });
 
 // Animation loop

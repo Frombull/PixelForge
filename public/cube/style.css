@@ -40,6 +40,30 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  left: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4d4d8;
+  border-radius: 6px;
+  transition: all 0.1s ease;
+  text-decoration: none;
+}
+
+.back-button:hover {
+  color: #ffffff;
+  transform: translateX(-2px);
+}
+
+.back-button:active {
+  transform: translateX(-2px) scale(0.9);
 }
 
 .sidebar-header h1 {
@@ -285,5 +309,9 @@ html, body {
   .control-item input[type="checkbox"] {
     width: 18px;
     height: 18px;
+  }
+  
+  .info-box {
+    display: none;
   }
 }

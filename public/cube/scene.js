@@ -42,9 +42,13 @@ controls.dampingFactor = 0.05;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.6;
 
-// Zoom
+// Perspective camera Zoom
 controls.minDistance = 1;
 controls.maxDistance = 5;
+
+// Orthographic camera zoom
+controls.minZoom = 1;
+controls.maxZoom = 3;
 
 // Mobile touch controls
 controls.touches = {

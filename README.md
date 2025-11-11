@@ -2,85 +2,63 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="NextJS">
+  <img src="https://img.shields.io/badge/three.js-000000?style=for-the-badge&logo=three.js&logoColor=white" alt="ThreeJS">
   <img src="https://img.shields.io/badge/p5.js-ED225D?style=for-the-badge&logo=p5.js&logoColor=white" alt="p5.js">
   <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
 </p>
 
 
-## 📖 Sobre o Projeto
-
-Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do Inatel, o projeto foi desenvolvido para ensino de conceitos fundamentais de **Computação Gráfica** e **Multimídia**. Nele, estudantes podem visualizar e experimentar com conceitos vistos em sala de aula, de maneira interativa!
+Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do Inatel, o projeto foi desenvolvido para ensino de conceitos fundamentais de **Computação Gráfica**, **Multimídia** e **Inteligência Computacional**. Nele, estudantes podem visualizar e experimentar com conceitos vistos em sala de aula, de maneira interativa!
 
 
-## 🚀 Rodando o projeto
+## Algumas features
 
-### Pré-requisitos
-- Node.js
+### Computação Gráfica
+* Canvas 2D
+* Canvas 3D (WIP)
+* Visualização do Espectro de Cores RGB em 3D
 
-### Instalação
+### Multimídia
+* Filtros FFT (Passa-Baixa / Passa-Alta)
+* Aliasing
+* Compressão JPEG
+* Segmentação de Imagem
+* Vetorial vs Matricial
 
-1. **Clone o repositório**
-   ```bash
-   git clone https://github.com/Frombull/PixelForge.git
-   cd PixelForge
-   ```
-
-2. **Instale as dependências**
-   ```bash
-   npm install
-   ```
-
-3. **Compile o TypeScript**
-   ```bash
-   npx tsc
-
-   ou
-
-   > task: run build task
-   ```
-
-4. **Execute um servidor local**
-   ```bash
-   # Usando Python 3
-   python -m http.server 8000
-   
-   # Ou usando Node.js
-   npx serve .
-   
-   # Ou usando Live Server (VS Code)
-   # Instale a extensão Live Server e clique em "Go Live"
-   ```
-
-5. **Acessando a aplicação**
-   - Abra o navegador e vá para `http://localhost:3000`
+### Inteligência Computacional
+* **Pathfinding:**
+    * A*
+    * Busca em Largura [ BFS ]
+    * Dijkstra
+* **Boids / Flocking**
 
 
-### Atalhos do canvas2D
+## Atalhos do canvas2D
 - `C` - Criação de polígonos
 - `T` - Translação
 - `R` - Rotação
 - `S` - Escala
-- `X` - Espelhamento no eixo X
-- `Y` - Espelhamento no eixo Y
+- `X` - Espelhar no eixo X
+- `Y` - Espelhar no eixo Y
 - `B` - Curvas de Bézier
 - `A` - Animação
 
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
-- **[TypeScript](https://www.typescriptlang.org/)**: Linguagem principal com tipagem estática
+- **[Next.JS](https://nextjs.org/)**: Framework para criação de aplicativos web
+- **[Threejs](https://threejs.org/)**: Biblioteca WebGL baseada em JavaScript para gráficos 3D
 - **[p5.js](https://p5js.org/)**: Biblioteca para gráficos e animações
-- **[@jaames/iro](https://iro.js.org/)**: Seletor de cores interativo
-- **Next.JS**: 
+- **[@jaames/iro](https://iro.js.org/)**: Seletor de cores
 
 
-## 🙏 Agradecimentos
+## ❤️ Agradecimentos
 - Prof. Me. Cysneiros, orientador do projeto
-- Meu amigo Torres, por abandonar seu grupo antigo da Fetin em pro desse projeto :D
+- Meu grande migorr Vitor Torres, por abandonar seu grupo antigo da Fetin para se juntar ao meu
 
 
 ---
 
 <p align="center">
-  Desenvolvido com ❤️ para a Fetin 2025 - Inatel
+  Desenvolvido para a Fetin 2025 - Inatel
 </p>

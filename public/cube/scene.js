@@ -41,6 +41,12 @@ controls.autoRotateSpeed = 0.6;
 controls.minDistance = 1;
 controls.maxDistance = 5;
 
+// Mobile touch controls
+controls.touches = {
+  ONE: THREE.TOUCH.ROTATE,
+  TWO: THREE.TOUCH.DOLLY_PAN
+};
+
 // 8 vertices of the cube in RGB space
 const vertices = new Float32Array([
   -1, -1, -1,  // 0: Black   (0,0,0)

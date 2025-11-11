@@ -6,71 +6,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Espectro de Cores | Cubo</title>
   <link rel="stylesheet" type="text/css" href="/cube/style.css">
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 
 <body>
   <div class="container">
-    <div class="controls-panel">
-      <h2>Espaço de Cor RGB</h2>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h1>Espaço de Cor RGB</h1>
+      </div>
 
+      <div class="sidebar-content">
+        <!-- Visualization Controls -->
+        <div class="controls-section">
+          <h3 class="section-title">Visualização</h3>
+          
+          <label class="control-item">
+            <span class="control-label">Rotação Automática</span>
+            <input type="checkbox" id="autoRotate" checked>
+          </label>
+
+          <label class="control-item">
+            <span class="control-label">Mostrar Arestas</span>
+            <input type="checkbox" id="showEdges">
+          </label>
+
+          <label class="control-item">
+            <span class="control-label">Modo Wireframe</span>
+            <input type="checkbox" id="wireframe">
+          </label>
+
+          <label class="control-item">
+            <span class="control-label">Mostrar Vértices</span>
+            <input type="checkbox" id="showVertices" checked>
+          </label>
+
+          <label class="control-item">
+            <span class="control-label">Câmera Ortográfica</span>
+            <input type="checkbox" id="orthoCamera">
+          </label>
+        </div>
+      </div>
+
+      <!-- Reset Button -->
+      <div class="sidebar-footer">
+        <button id="resetBtn" class="reset-button">Resetar Câmera</button>
+      </div>
+
+      <!-- Info Box -->
       <div class="info-box">
-        <p><strong>Controles:</strong></p>
-        <p><i class="ph-fill ph-mouse-left-click "></i> Mouse - Rotacionar</p>
-        <p><i class="ph-fill ph-mouse-scroll"></i> Scroll - zoom</p>
-        <p><i class="ph-fill ph-mouse-right-click"></i> Clique direito - mover</p>
+        <h3 class="info-title">Controles</h3>
+        <div class="info-item">
+          <div class="info-icon">🖱️</div>
+          <span>Botão Esquerdo - Rodar</span>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">🖱️</div>
+          <span>Scroll - Zoom</span>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">🖱️</div>
+          <span>Botão Direito - Pan</span>
+        </div>
       </div>
-
-      <div class="control-group">
-        <label>
-          <input type="checkbox" id="autoRotate" checked>
-          <span class="label-text">Rotação Automática</span>
-        </label>
-      </div>
-
-      <div class="control-group">
-        <label>
-          <input type="checkbox" id="showEdges">
-          <span class="label-text">Arestas</span>
-        </label>
-      </div>
-
-      <div class="control-group">
-        <label>
-          <input type="checkbox" id="wireframe">
-          <span class="label-text">Modo Wireframe</span>
-        </label>
-      </div>
-
-      <div class="control-group">
-        <label>
-          <input type="checkbox" id="showVertices" checked>
-          <span class="label-text">Vertices</span>
-        </label>
-      </div>
-
-      <div class="control-group">
-        <label>
-          <input type="checkbox" id="orthoCamera">
-          <span class="label-text">Câmera Ortográfica</span>
-        </label>
-      </div>
-
-
-      <button id="resetBtn" class="reset-button">Resetar Câmera</button>
     </div>
 
     <div id="canvas-container"></div>
   </div>
 
   <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-        }
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
       }
-    </script>
+    }
+  </script>
   <script type="module" src="/cube/scene.js"></script>
 </body>
 

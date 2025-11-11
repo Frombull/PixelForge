@@ -5,7 +5,6 @@ import * as THREE from 'three';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
-
 // Normal Camera
 const camera = new THREE.PerspectiveCamera(
   60,
@@ -15,7 +14,6 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(5, 5, 5);
 
-
 // Orthographic camera
 const aspect = window.innerWidth / window.innerHeight;
 const orthoCamera = new THREE.OrthographicCamera(
@@ -24,7 +22,6 @@ const orthoCamera = new THREE.OrthographicCamera(
 orthoCamera.position.set(5, 5, 5);
 
 let currentCamera = camera;
-
 
 // Renderer
 const container = document.getElementById('canvas-container');

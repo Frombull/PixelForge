@@ -5,30 +5,35 @@ import * as THREE from 'three';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
+// Renderer
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+// Get proper container dimensions
+const containerWidth = container.clientWidth;
+const containerHeight = container.clientHeight;
+const aspect = containerWidth / containerHeight;
+
+renderer.setSize(containerWidth, containerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+container.appendChild(renderer.domElement);
+
 // Normal Camera
 const camera = new THREE.PerspectiveCamera(
   60,
-  window.innerWidth / window.innerHeight,
+  aspect,
   0.01,
   500
 );
 camera.position.set(5, 5, 5);
 
 // Orthographic camera
-const aspect = window.innerWidth / window.innerHeight;
 const orthoCamera = new THREE.OrthographicCamera(
   -3 * aspect, 3 * aspect, 3, -3, 0.01, 1000
 );
 orthoCamera.position.set(5, 5, 5);
 
 let currentCamera = camera;
-
-// Renderer
-const container = document.getElementById('canvas-container');
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-container.appendChild(renderer.domElement);
 
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);

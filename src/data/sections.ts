@@ -2,9 +2,9 @@ import { ToolCard } from "@/components/SectionGrid";
 
 export const graphicsTools: ToolCard[] = [
   {
-    title: "Canvas Interativo",
+    title: "Canvas 2D",
     description:
-      "Desenhe e manipule formas geométricas com ferramentas interativas",
+      "Desenhe e manipule formas geométricas com ferramentas interativas em 2D",
     icon: "🎨",
     href: "/canvas",
     color: "purple",
@@ -16,15 +16,26 @@ export const graphicsTools: ToolCard[] = [
     ],
   },
   {
-    title: "Cubo 3D",
+    title: "Canvas 3D (WIP)",
+    description: "Work In Progress",
+    icon: "🎨",
+    href: "/canvas-3d",
+    color: "purple",
+    features: [
+      "Transformações 3D",
+    ],
+  },
+  {
+    title: "Cubo espectro de cores RGB",
     description:
-      "Espectro de cores RGB em um Cubo",
+      "Vizualize o espectro de cores RGB em um Cubo",
     icon: "🎲",
     href: "/cube",
     color: "pink",
     features: [
       "Espectro de Cores",
-      "RGB"
+      "RGB",
+      "Câmera Ortogonal"
     ],
   },
 ];
@@ -74,16 +85,16 @@ export const multimediaTools: ToolCard[] = [
 
 export const aiTools: ToolCard[] = [
   {
-    title: "A*",
-    description: "A*",
+    title: "Pathfinding (WIP)",
+    description: "Work In Progress",
     icon: "🧠",
     href: "/a-star",
     color: "blue",
-    features: ["Algoritmos de Busca"],
+    features: ["Algoritmos de Busca", "A*", "BFS"],
   },
   {
-    title: "Boids*",
-    description: "Boids",
+    title: "Boids* (WIP)",
+    description: "Work In Progress",
     icon: "🔺",
     href: "/boids",
     color: "blue",

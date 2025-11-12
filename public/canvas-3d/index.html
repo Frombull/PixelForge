@@ -43,6 +43,12 @@
               </svg>
               Translate
           </button>
+          <button class="btn-tool" id="btn-rotate">
+              <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+              </svg>
+              Rotate
+          </button>
           <button class="btn-tool" id="btn-scale">
               <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"></path>
@@ -88,6 +94,20 @@
       <div class="input-group">
           <label>Z:</label>
           <input type="number" id="pos-z" step="0.1">
+      </div>
+      
+      <div class="panel-header" style="margin-top: 15px;">Rotação (graus)</div>
+      <div class="input-group">
+          <label>X:</label>
+          <input type="number" id="rot-x" step="1">
+      </div>
+      <div class="input-group">
+          <label>Y:</label>
+          <input type="number" id="rot-y" step="1">
+      </div>
+      <div class="input-group">
+          <label>Z:</label>
+          <input type="number" id="rot-z" step="1">
       </div>
       
       <div class="panel-header" style="margin-top: 15px;">Escala</div>

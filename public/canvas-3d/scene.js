@@ -12,12 +12,15 @@ let dragAxis = null;
 let dragPlane = null;
 let objectStartPos = new THREE.Vector3();
 let objectStartScale = new THREE.Vector3();
+let objectStartRotation = new THREE.Euler();
 let intersectionStart = new THREE.Vector3();
+let rotationStartAngle = 0;
 
 // Position panel elements
 let positionPanel;
 let posXInput, posYInput, posZInput;
 let scaleXInput, scaleYInput, scaleZInput;
+let rotXInput, rotYInput, rotZInput;
 let isUpdatingInputs = false;
 
 // Color picker elements
@@ -102,6 +105,9 @@ function init() {
     scaleXInput = document.getElementById('scale-x');
     scaleYInput = document.getElementById('scale-y');
     scaleZInput = document.getElementById('scale-z');
+    rotXInput = document.getElementById('rot-x');
+    rotYInput = document.getElementById('rot-y');
+    rotZInput = document.getElementById('rot-z');
     
     // Color picker initialization
     initColorPicker();
@@ -129,6 +135,19 @@ function init() {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 onScaleInputChange();
+            }
+        });
+    });
+    
+    // Rotation input listeners
+    rotXInput.addEventListener('change', onRotationInputChange);
+    rotYInput.addEventListener('change', onRotationInputChange);
+    rotZInput.addEventListener('change', onRotationInputChange);
+    
+    [rotXInput, rotYInput, rotZInput].forEach(input => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                onRotationInputChange();
             }
         });
     });
@@ -342,6 +361,84 @@ function createTranslateGizmo(position) {
     return gizmoGroup;
 }
 
+// Rotate gizmos
+function createRotateGizmo(position) {
+    const gizmoGroup = new THREE.Group();
+    gizmoGroup.position.copy(position);
+    
+    const radius = 1.5;
+    const tubeRadius = 0.03;
+    const segments = 64;
+    
+    // X axis ring, red
+    const xGroup = new THREE.Group();
+    xGroup.userData.axis = 'x';
+    xGroup.userData.isGizmo = true;
+    
+    const xMat = new THREE.MeshBasicMaterial({ 
+        color: 0xff0000,
+        depthTest: false,
+        depthWrite: false
+    });
+    
+    const xRing = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tubeRadius, 16, segments),
+        xMat
+    );
+    xRing.rotation.y = Math.PI / 2;
+    xRing.userData.axis = 'x';
+    xRing.userData.isGizmo = true;
+    xRing.renderOrder = 999;
+    
+    xGroup.add(xRing);
+    
+    // Y axis ring, green
+    const yGroup = new THREE.Group();
+    yGroup.userData.axis = 'y';
+    yGroup.userData.isGizmo = true;
+    
+    const yMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00ff00,
+        depthTest: false,
+        depthWrite: false
+    });
+    
+    const yRing = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tubeRadius, 16, segments),
+        yMat
+    );
+    yRing.rotation.x = Math.PI / 2;
+    yRing.userData.axis = 'y';
+    yRing.userData.isGizmo = true;
+    yRing.renderOrder = 999;
+    
+    yGroup.add(yRing);
+    
+    // Z axis ring, blue
+    const zGroup = new THREE.Group();
+    zGroup.userData.axis = 'z';
+    zGroup.userData.isGizmo = true;
+    
+    const zMat = new THREE.MeshBasicMaterial({ 
+        color: 0x0000ff,
+        depthTest: false,
+        depthWrite: false
+    });
+    
+    const zRing = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tubeRadius, 16, segments),
+        zMat
+    );
+    zRing.userData.axis = 'z';
+    zRing.userData.isGizmo = true;
+    zRing.renderOrder = 999;
+    
+    zGroup.add(zRing);
+    
+    gizmoGroup.add(xGroup, yGroup, zGroup);
+    return gizmoGroup;
+}
+
 // Scale gizmos 
 function createScaleGizmo(position) {
     const gizmoGroup = new THREE.Group();
@@ -456,8 +553,10 @@ function updateGizmo() {
     if (selectedObject) {
         if (currentMode === 'translate') {
             gizmo = createTranslateGizmo(selectedObject.position);
-        } else {
+        } else if (currentMode === 'scale') {
             gizmo = createScaleGizmo(selectedObject.position);
+        } else if (currentMode === 'rotate') {
+            gizmo = createRotateGizmo(selectedObject.position);
         }
         scene.add(gizmo);
         
@@ -481,6 +580,11 @@ function updatePositionPanel() {
     scaleXInput.value = selectedObject.scale.x.toFixed(2);
     scaleYInput.value = selectedObject.scale.y.toFixed(2);
     scaleZInput.value = selectedObject.scale.z.toFixed(2);
+    
+    // Convert radians to degrees for display
+    rotXInput.value = (selectedObject.rotation.x * 180 / Math.PI).toFixed(2);
+    rotYInput.value = (selectedObject.rotation.y * 180 / Math.PI).toFixed(2);
+    rotZInput.value = (selectedObject.rotation.z * 180 / Math.PI).toFixed(2);
 }
 
 function onPositionInputChange() {
@@ -521,10 +625,29 @@ function onScaleInputChange() {
     }, 50);
 }
 
+function onRotationInputChange() {
+    if (!selectedObject) return;
+    
+    isUpdatingInputs = true;
+    
+    // DEG to RAD
+    const x = (parseFloat(rotXInput.value) || 0) * Math.PI / 180;
+    const y = (parseFloat(rotYInput.value) || 0) * Math.PI / 180;
+    const z = (parseFloat(rotZInput.value) || 0) * Math.PI / 180;
+    
+    selectedObject.rotation.set(x, y, z);
+    
+    // Reset flag after a delay
+    setTimeout(() => {
+        isUpdatingInputs = false;
+    }, 50);
+}
+
 function setMode(mode) {
     currentMode = mode;
     document.getElementById('btn-translate').classList.toggle('active', mode === 'translate');
     document.getElementById('btn-scale').classList.toggle('active', mode === 'scale');
+    document.getElementById('btn-rotate').classList.toggle('active', mode === 'rotate');
     updateGizmo();
 }
 
@@ -551,6 +674,7 @@ function onMouseDown(event) {
                 dragAxis = intersect.object.userData.axis;
                 objectStartPos.copy(selectedObject.position);
                 objectStartScale.copy(selectedObject.scale);
+                objectStartRotation.copy(selectedObject.rotation);
                 intersectionStart.copy(intersect.point);
                 
                 // Disable OrbitControls while dragging gizmo
@@ -636,6 +760,26 @@ function onMouseMove(event) {
             } else if (dragAxis === 'z') {
                 selectedObject.scale.z = Math.max(0.1, objectStartScale.z * scaleFactor);
             }
+        } else if (currentMode === 'rotate') {
+            // Calculate rotation based on mouse movement
+            const delta = new THREE.Vector3().subVectors(intersection, intersectionStart);
+            
+            // Calculate rotation angle based on movement perpendicular to axis
+            let rotationAngle = 0;
+            
+            if (dragAxis === 'x') {
+                // For X axis, use Y and Z movement
+                rotationAngle = (delta.y + delta.z) * 2;
+                selectedObject.rotation.x = objectStartRotation.x + rotationAngle;
+            } else if (dragAxis === 'y') {
+                // For Y axis, use X and Z movement
+                rotationAngle = (delta.x + delta.z) * 2;
+                selectedObject.rotation.y = objectStartRotation.y + rotationAngle;
+            } else if (dragAxis === 'z') {
+                // For Z axis, use X and Y movement
+                rotationAngle = (delta.x + delta.y) * 2;
+                selectedObject.rotation.z = objectStartRotation.z + rotationAngle;
+            }
         }
         
         if (gizmo) {
@@ -692,18 +836,58 @@ function checkGizmoHover() {
 function highlightGizmo(gizmoObject) {
     const axis = gizmoObject.userData.axis;
     
-    // Scale perpendicular to the axis direction
-    if (axis === 'x') {
-        gizmoObject.scale.set(1, 1.2, 1.2); // Grow in Y and Z
-    } else if (axis === 'y') {
-        gizmoObject.scale.set(1.2, 1, 1.2); // Grow in X and Z
-    } else if (axis === 'z') {
-        gizmoObject.scale.set(1.2, 1.2, 1); // Grow in X and Y
+    if (currentMode === 'rotate') {
+        // For rotate mode, add a transparent disc instead of scaling
+        if (!gizmoObject.userData.highlightDisc) {
+            const radius = 1.5;
+            const discGeometry = new THREE.CircleGeometry(radius, 64);
+            const discMaterial = new THREE.MeshBasicMaterial({
+                color: axis === 'x' ? 0xff0000 : axis === 'y' ? 0x00ff00 : 0x0000ff,
+                transparent: true,
+                opacity: 0.15,
+                side: THREE.DoubleSide,
+                depthTest: false,
+                depthWrite: false
+            });
+            const disc = new THREE.Mesh(discGeometry, discMaterial);
+            disc.renderOrder = 998; // Behind the ring
+            
+            // Orient the disc based on axis
+            if (axis === 'x') {
+                disc.rotation.y = Math.PI / 2;
+            } else if (axis === 'y') {
+                disc.rotation.x = Math.PI / 2;
+            }
+            // Z axis disc is already in correct orientation
+            
+            gizmoObject.add(disc);
+            gizmoObject.userData.highlightDisc = disc;
+        }
+    } else {
+        // For translate and scale modes, use the original scaling behavior
+        if (axis === 'x') {
+            gizmoObject.scale.set(1, 1.2, 1.2); // Grow in Y and Z
+        } else if (axis === 'y') {
+            gizmoObject.scale.set(1.2, 1, 1.2); // Grow in X and Z
+        } else if (axis === 'z') {
+            gizmoObject.scale.set(1.2, 1.2, 1); // Grow in X and Y
+        }
     }
 }
 
 function resetGizmoScale(gizmoObject) {
-    gizmoObject.scale.set(1, 1, 1);
+    if (currentMode === 'rotate') {
+        // Remove the highlight disc if it exists
+        if (gizmoObject.userData.highlightDisc) {
+            gizmoObject.remove(gizmoObject.userData.highlightDisc);
+            gizmoObject.userData.highlightDisc.geometry.dispose();
+            gizmoObject.userData.highlightDisc.material.dispose();
+            gizmoObject.userData.highlightDisc = null;
+        }
+    } else {
+        // Reset scale for translate and scale modes
+        gizmoObject.scale.set(1, 1, 1);
+    }
 }
 
 function onMouseUp() {
@@ -779,6 +963,10 @@ document.getElementById('btn-translate').addEventListener('click', () => {
 
 document.getElementById('btn-scale').addEventListener('click', () => {
     setMode('scale');
+});
+
+document.getElementById('btn-rotate').addEventListener('click', () => {
+    setMode('rotate');
 });
 
 document.getElementById('btn-reset-camera').addEventListener('click', () => {

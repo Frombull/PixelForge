@@ -18,11 +18,12 @@ export default function HeroSection() {
         {/* Subtitle */}
         <p className="text-base md:text-2xl lg:text-3xl text-white/90 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-2">
           Plataforma educacional interativa para
-          <span className="font-semibold text-purple-300">
-            {" "}
-            Computação Gráfica{" "}
-          </span>
-          e <span className="font-semibold text-blue-300">Multimídia</span>
+          <span className="font-semibold text-purple-300"> Computação Gráfica</span>
+          ,
+          <span className="font-semibold text-blue-300"> Multimídia </span>
+          e
+          <span className="font-semibold text-green-300"> Inteligência Computacional</span>
+          .
         </p>
 
         {/* CTA Buttons */}

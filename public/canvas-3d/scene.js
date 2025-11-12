@@ -875,10 +875,14 @@ function checkGizmoHover() {
     const gizmoIntersects = raycaster.intersectObjects(gizmo.children, true);
     
     if (gizmoIntersects.length > 0) {
-        const intersect = gizmoIntersects[0];
-        if (intersect.object.userData.isGizmo) {
+        // Filter out highlight discs from intersections
+        const validIntersect = gizmoIntersects.find(intersect => 
+            intersect.object.userData.isGizmo && !intersect.object.userData.isHighlightDisc
+        );
+        
+        if (validIntersect) {
             // Find the axis group (parent)
-            let axisGroup = intersect.object;
+            let axisGroup = validIntersect.object;
             while (axisGroup.parent && axisGroup.parent !== gizmo) {
                 axisGroup = axisGroup.parent;
             }
@@ -894,6 +898,13 @@ function checkGizmoHover() {
                 hoveredGizmo = axisGroup;
                 highlightGizmo(hoveredGizmo);
                 renderer.domElement.style.cursor = 'pointer';
+            }
+        } else {
+            // No valid hover (only hit highlight disc)
+            if (hoveredGizmo) {
+                resetGizmoScale(hoveredGizmo);
+                hoveredGizmo = null;
+                renderer.domElement.style.cursor = 'default';
             }
         }
     } else {
@@ -924,6 +935,9 @@ function highlightGizmo(gizmoObject) {
             });
             const disc = new THREE.Mesh(discGeometry, discMaterial);
             disc.renderOrder = 998; // Behind the ring
+            
+            // Mark disc as non-interactive for raycasting
+            disc.userData.isHighlightDisc = true;
             
             // Orient the disc based on axis
             if (axis === 'x') {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let scene, camera, renderer;
+let scene, camera, renderer, controls;
 let objects = [];
 let selectedObject = null;
 let gizmo = null;
@@ -9,7 +10,6 @@ let currentMode = 'translate';
 let isDragging = false;
 let dragAxis = null;
 let dragPlane = null;
-let dragStart = new THREE.Vector3();
 let objectStartPos = new THREE.Vector3();
 let objectStartScale = new THREE.Vector3();
 let intersectionStart = new THREE.Vector3();
@@ -50,28 +50,58 @@ function init() {
     
     // Grid
     const gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
-    gridHelper.position.y = -0.001;
     scene.add(gridHelper);
     
-    // World axis
+    // World axis  
     const axesHelper = new THREE.AxesHelper(5);
+    axesHelper.material.depthTest = false;        // Disabled to avoid z-fighting with grid
     scene.add(axesHelper);
+    
+    // OrbitControls (Blender style)
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false;
+    controls.minDistance = 2;
+    controls.maxDistance = 10;
+    
+    // Blender-style controls
+    controls.mouseButtons = {
+        LEFT: null,                   // Disable left click for orbit
+        MIDDLE: THREE.MOUSE.ROTATE,   // Middle mouse to rotate
+        RIGHT: THREE.MOUSE.ROTATE     // Right mouse to rotate (same as middle)
+    };
+    
+    // Enable pan with Shift + Middle mouse
+    controls.enablePan = true;
+    controls.panSpeed = 1.0;
+    controls.keyPanSpeed = 7.0;
     
     // Event listeners
     renderer.domElement.addEventListener('mousedown', onMouseDown);
     renderer.domElement.addEventListener('mousemove', onMouseMove);
     renderer.domElement.addEventListener('mouseup', onMouseUp);
     renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
-    renderer.domElement.addEventListener('wheel', onWheel);
     window.addEventListener('resize', onWindowResize);
+    window.addEventListener('keydown', onKeyDown);
     
-    setupCameraControls();
+    // Blender-style: Shift + Middle mouse for pan
+    renderer.domElement.addEventListener('mousedown', (e) => {
+        if (e.button === 1) { // Middle mouse
+            if (e.shiftKey) {
+                controls.mouseButtons.MIDDLE = THREE.MOUSE.PAN;
+            } else {
+                controls.mouseButtons.MIDDLE = THREE.MOUSE.ROTATE;
+            }
+        }
+    });
     
     animate();
 }
 
 function animate() {
     requestAnimationFrame(animate);
+    controls.update();
     renderer.render(scene, camera);
 }
 
@@ -120,7 +150,11 @@ function createTranslateGizmo(position) {
     const coneRadius = 0.08;
     
     // X
-    const xMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const xMat = new THREE.MeshBasicMaterial({ 
+        color: 0xff0000,
+        depthTest: false,
+        depthWrite: false
+    });
     const xCyl = new THREE.Mesh(
         new THREE.CylinderGeometry(arrowRadius, arrowRadius, arrowLength, 8),
         xMat
@@ -129,6 +163,7 @@ function createTranslateGizmo(position) {
     xCyl.position.x = arrowLength / 2;
     xCyl.userData.axis = 'x';
     xCyl.userData.isGizmo = true;
+    xCyl.renderOrder = 999;
     
     const xCone = new THREE.Mesh(
         new THREE.ConeGeometry(coneRadius, coneHeight, 8),
@@ -138,9 +173,14 @@ function createTranslateGizmo(position) {
     xCone.position.x = arrowLength;
     xCone.userData.axis = 'x';
     xCone.userData.isGizmo = true;
+    xCone.renderOrder = 999;
     
     // Y
-    const yMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const yMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00ff00,
+        depthTest: false,
+        depthWrite: false
+    });
     const yCyl = new THREE.Mesh(
         new THREE.CylinderGeometry(arrowRadius, arrowRadius, arrowLength, 8),
         yMat
@@ -148,6 +188,7 @@ function createTranslateGizmo(position) {
     yCyl.position.y = arrowLength / 2;
     yCyl.userData.axis = 'y';
     yCyl.userData.isGizmo = true;
+    yCyl.renderOrder = 999;
     
     const yCone = new THREE.Mesh(
         new THREE.ConeGeometry(coneRadius, coneHeight, 8),
@@ -156,9 +197,14 @@ function createTranslateGizmo(position) {
     yCone.position.y = arrowLength;
     yCone.userData.axis = 'y';
     yCone.userData.isGizmo = true;
+    yCone.renderOrder = 999;
     
     // Z
-    const zMat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    const zMat = new THREE.MeshBasicMaterial({ 
+        color: 0x0000ff,
+        depthTest: false,
+        depthWrite: false
+    });
     const zCyl = new THREE.Mesh(
         new THREE.CylinderGeometry(arrowRadius, arrowRadius, arrowLength, 8),
         zMat
@@ -167,6 +213,7 @@ function createTranslateGizmo(position) {
     zCyl.position.z = arrowLength / 2;
     zCyl.userData.axis = 'z';
     zCyl.userData.isGizmo = true;
+    zCyl.renderOrder = 999;
     
     const zCone = new THREE.Mesh(
         new THREE.ConeGeometry(coneRadius, coneHeight, 8),
@@ -176,6 +223,7 @@ function createTranslateGizmo(position) {
     zCone.position.z = arrowLength;
     zCone.userData.axis = 'z';
     zCone.userData.isGizmo = true;
+    zCone.renderOrder = 999;
     
     gizmoGroup.add(xCyl, xCone, yCyl, yCone, zCyl, zCone);
     return gizmoGroup;
@@ -191,7 +239,11 @@ function createScaleGizmo(position) {
     const cubeSize = 0.15;
     
     // X
-    const xMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const xMat = new THREE.MeshBasicMaterial({ 
+        color: 0xff0000,
+        depthTest: false,
+        depthWrite: false
+    });
     const xLine = new THREE.Mesh(
         new THREE.CylinderGeometry(lineRadius, lineRadius, lineLength, 8),
         xMat
@@ -200,6 +252,7 @@ function createScaleGizmo(position) {
     xLine.position.x = lineLength / 2;
     xLine.userData.axis = 'x';
     xLine.userData.isGizmo = true;
+    xLine.renderOrder = 999;
     
     const xCube = new THREE.Mesh(
         new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize),
@@ -208,9 +261,14 @@ function createScaleGizmo(position) {
     xCube.position.x = lineLength;
     xCube.userData.axis = 'x';
     xCube.userData.isGizmo = true;
+    xCube.renderOrder = 999;
     
     // Y
-    const yMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const yMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00ff00,
+        depthTest: false,
+        depthWrite: false
+    });
     const yLine = new THREE.Mesh(
         new THREE.CylinderGeometry(lineRadius, lineRadius, lineLength, 8),
         yMat
@@ -218,6 +276,7 @@ function createScaleGizmo(position) {
     yLine.position.y = lineLength / 2;
     yLine.userData.axis = 'y';
     yLine.userData.isGizmo = true;
+    yLine.renderOrder = 999;
     
     const yCube = new THREE.Mesh(
         new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize),
@@ -226,9 +285,14 @@ function createScaleGizmo(position) {
     yCube.position.y = lineLength;
     yCube.userData.axis = 'y';
     yCube.userData.isGizmo = true;
+    yCube.renderOrder = 999;
     
     // Z
-    const zMat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    const zMat = new THREE.MeshBasicMaterial({ 
+        color: 0x0000ff,
+        depthTest: false,
+        depthWrite: false
+    });
     const zLine = new THREE.Mesh(
         new THREE.CylinderGeometry(lineRadius, lineRadius, lineLength, 8),
         zMat
@@ -237,6 +301,7 @@ function createScaleGizmo(position) {
     zLine.position.z = lineLength / 2;
     zLine.userData.axis = 'z';
     zLine.userData.isGizmo = true;
+    zLine.renderOrder = 999;
     
     const zCube = new THREE.Mesh(
         new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize),
@@ -245,6 +310,7 @@ function createScaleGizmo(position) {
     zCube.position.z = lineLength;
     zCube.userData.axis = 'z';
     zCube.userData.isGizmo = true;
+    zCube.renderOrder = 999;
     
     gizmoGroup.add(xLine, xCube, yLine, yCube, zLine, zCube);
     return gizmoGroup;
@@ -275,6 +341,11 @@ function setMode(mode) {
 
 // Event handlers
 function onMouseDown(event) {
+    // Ignore right mouse button for selection
+    if (event.button === 2) {
+        return;
+    }
+    
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -292,6 +363,9 @@ function onMouseDown(event) {
                 objectStartPos.copy(selectedObject.position);
                 objectStartScale.copy(selectedObject.scale);
                 intersectionStart.copy(intersect.point);
+                
+                // Disable OrbitControls while dragging gizmo
+                controls.enabled = false;
                 
                 // Drag plane
                 createDragPlane(dragAxis);
@@ -350,9 +424,20 @@ function onMouseMove(event) {
                 selectedObject.position.z = objectStartPos.z + delta.z;
             }
         } else if (currentMode === 'scale') {
-            const delta = intersection.sub(selectedObject.position).length() - 
-                          intersectionStart.sub(selectedObject.position).length();
-            const scaleFactor = 1 + delta * 0.5;
+            // Calculate movement along the specific axis
+            const delta = new THREE.Vector3().subVectors(intersection, intersectionStart);
+            let axisMovement = 0;
+            
+            if (dragAxis === 'x') {
+                axisMovement = delta.x;
+            } else if (dragAxis === 'y') {
+                axisMovement = delta.y;
+            } else if (dragAxis === 'z') {
+                axisMovement = delta.z;
+            }
+            
+            // Scale factor based on axis movement
+            const scaleFactor = 1 + axisMovement;
             
             if (dragAxis === 'x') {
                 selectedObject.scale.x = Math.max(0.1, objectStartScale.x * scaleFactor);
@@ -373,59 +458,41 @@ function onMouseUp() {
     isDragging = false;
     dragAxis = null;
     dragPlane = null;
-}
-
-// Camera controls
-let isRotating = false;
-let lastMousePos = { x: 0, y: 0 };
-
-function setupCameraControls() {
-    renderer.domElement.addEventListener('mousedown', (e) => {
-        if (e.button === 2) {
-            isRotating = true;
-            lastMousePos = { x: e.clientX, y: e.clientY };
-        }
-    });
-    
-    renderer.domElement.addEventListener('mousemove', (e) => {
-        if (isRotating) {
-            const deltaX = e.clientX - lastMousePos.x;
-            const deltaY = e.clientY - lastMousePos.y;
-            
-            const radius = camera.position.length();
-            const theta = Math.atan2(camera.position.x, camera.position.z);
-            const phi = Math.acos(camera.position.y / radius);
-            
-            const newTheta = theta - deltaX * 0.01;
-            const newPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi - deltaY * 0.01));
-            
-            camera.position.x = radius * Math.sin(newPhi) * Math.sin(newTheta);
-            camera.position.y = radius * Math.cos(newPhi);
-            camera.position.z = radius * Math.sin(newPhi) * Math.cos(newTheta);
-            camera.lookAt(0, 0, 0);
-            
-            lastMousePos = { x: e.clientX, y: e.clientY };
-        }
-    });
-    
-    document.addEventListener('mouseup', () => {
-        isRotating = false;
-    });
-}
-
-function onWheel(event) {
-    event.preventDefault();
-    const zoomSpeed = 0.1;
-    const direction = event.deltaY > 0 ? 1 : -1;
-    const newLength = camera.position.length() * (1 + direction * zoomSpeed);
-    const clampedLength = Math.max(3, Math.min(20, newLength));
-    camera.position.multiplyScalar(clampedLength / camera.position.length());
+    controls.enabled = true;
 }
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / (window.innerHeight - 60);
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight - 60);
+}
+
+function onKeyDown(event) {
+    // F key - Focus on selected object
+    if (event.key === 'f' || event.key === 'F') {
+        if (selectedObject) {
+            focusOnObject(selectedObject);
+        }
+    }
+}
+
+function focusOnObject(object) {
+    const targetPosition = object.position.clone();
+    controls.target.copy(targetPosition);
+    
+    // Calculate camera position to maintain current viewing angle
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    const distance = camera.position.distanceTo(controls.target);
+    
+    camera.position.copy(targetPosition).sub(direction.multiplyScalar(distance));
+    controls.update();
+}
+
+function resetCamera() {
+    camera.position.set(6, 6, 6);
+    controls.target.set(0, 0, 0);
+    controls.update();
 }
 
 // Buttons event listeners
@@ -443,6 +510,15 @@ document.getElementById('btn-translate').addEventListener('click', () => {
 
 document.getElementById('btn-scale').addEventListener('click', () => {
     setMode('scale');
+});
+
+document.getElementById('btn-reset-camera').addEventListener('click', () => {
+    resetCamera();
+});
+
+// Disable right-click context menu on toolbar
+document.getElementById('toolbar').addEventListener('contextmenu', (e) => {
+    e.preventDefault();
 });
 
 init();

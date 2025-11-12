@@ -13,8 +13,14 @@ let dragPlane = null;
 let objectStartPos = new THREE.Vector3();
 let objectStartScale = new THREE.Vector3();
 let objectStartRotation = new THREE.Euler();
+let objectStartQuaternion = new THREE.Quaternion();
 let intersectionStart = new THREE.Vector3();
 let rotationStartAngle = 0;
+
+// Track world-space rotations separately
+let worldRotationX = 0;
+let worldRotationY = 0;
+let worldRotationZ = 0;
 
 // Position panel elements
 let positionPanel;
@@ -581,10 +587,10 @@ function updatePositionPanel() {
     scaleYInput.value = selectedObject.scale.y.toFixed(2);
     scaleZInput.value = selectedObject.scale.z.toFixed(2);
     
-    // Convert radians to degrees for display
-    rotXInput.value = (selectedObject.rotation.x * 180 / Math.PI).toFixed(2);
-    rotYInput.value = (selectedObject.rotation.y * 180 / Math.PI).toFixed(2);
-    rotZInput.value = (selectedObject.rotation.z * 180 / Math.PI).toFixed(2);
+    // Display world-space rotations in degrees
+    rotXInput.value = (worldRotationX * 180 / Math.PI).toFixed(2);
+    rotYInput.value = (worldRotationY * 180 / Math.PI).toFixed(2);
+    rotZInput.value = (worldRotationZ * 180 / Math.PI).toFixed(2);
 }
 
 function onPositionInputChange() {
@@ -631,11 +637,18 @@ function onRotationInputChange() {
     isUpdatingInputs = true;
     
     // DEG to RAD
-    const x = (parseFloat(rotXInput.value) || 0) * Math.PI / 180;
-    const y = (parseFloat(rotYInput.value) || 0) * Math.PI / 180;
-    const z = (parseFloat(rotZInput.value) || 0) * Math.PI / 180;
+    worldRotationX = (parseFloat(rotXInput.value) || 0) * Math.PI / 180;
+    worldRotationY = (parseFloat(rotYInput.value) || 0) * Math.PI / 180;
+    worldRotationZ = (parseFloat(rotZInput.value) || 0) * Math.PI / 180;
     
-    selectedObject.rotation.set(x, y, z);
+    // Apply rotations in world space using quaternions
+    selectedObject.quaternion.identity();
+    
+    const quatX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), worldRotationX);
+    const quatY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), worldRotationY);
+    const quatZ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), worldRotationZ);
+    
+    selectedObject.quaternion.multiply(quatX).multiply(quatY).multiply(quatZ);
     
     // Reset flag after a delay
     setTimeout(() => {
@@ -675,6 +688,7 @@ function onMouseDown(event) {
                 objectStartPos.copy(selectedObject.position);
                 objectStartScale.copy(selectedObject.scale);
                 objectStartRotation.copy(selectedObject.rotation);
+                objectStartQuaternion.copy(selectedObject.quaternion);
                 intersectionStart.copy(intersect.point);
                 
                 // Disable OrbitControls while dragging gizmo
@@ -691,6 +705,12 @@ function onMouseDown(event) {
     const intersects = raycaster.intersectObjects(objects);
     if (intersects.length > 0) {
         selectedObject = intersects[0].object;
+        
+        // Reset world rotation tracking for newly selected object
+        worldRotationX = 0;
+        worldRotationY = 0;
+        worldRotationZ = 0;
+        
         updateGizmo();
     } else {
         selectedObject = null;
@@ -700,13 +720,27 @@ function onMouseDown(event) {
 
 function createDragPlane(axis) {
     const normal = new THREE.Vector3();
-    if (axis === 'x') {
-        normal.set(0, 1, 0);
-    } else if (axis === 'y') {
-        normal.set(1, 0, 1).normalize();
+    
+    if (currentMode === 'rotate') {
+        // For rotation, use plane perpendicular to rotation axis
+        if (axis === 'x') {
+            normal.set(1, 0, 0); // YZ plane
+        } else if (axis === 'y') {
+            normal.set(0, 1, 0); // XZ plane
+        } else {
+            normal.set(0, 0, 1); // XY plane
+        }
     } else {
-        normal.set(1, 0, 0);
+        // For translate and scale
+        if (axis === 'x') {
+            normal.set(0, 1, 0);
+        } else if (axis === 'y') {
+            normal.set(1, 0, 1).normalize();
+        } else {
+            normal.set(1, 0, 0);
+        }
     }
+    
     dragPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(
         normal,
         selectedObject.position
@@ -761,24 +795,63 @@ function onMouseMove(event) {
                 selectedObject.scale.z = Math.max(0.1, objectStartScale.z * scaleFactor);
             }
         } else if (currentMode === 'rotate') {
-            // Calculate rotation based on mouse movement
-            const delta = new THREE.Vector3().subVectors(intersection, intersectionStart);
+            // Calculate rotation based on angular movement around the axis
+            const objectPos = selectedObject.position;
             
-            // Calculate rotation angle based on movement perpendicular to axis
+            // Vectors from object center to start and current intersection points
+            const startVec = new THREE.Vector3().subVectors(intersectionStart, objectPos);
+            const currentVec = new THREE.Vector3().subVectors(intersection, objectPos);
+            
             let rotationAngle = 0;
             
+            // Reset to initial quaternion
+            selectedObject.quaternion.copy(objectStartQuaternion);
+            
             if (dragAxis === 'x') {
-                // For X axis, use Y and Z movement
-                rotationAngle = (delta.y + delta.z) * 2;
-                selectedObject.rotation.x = objectStartRotation.x + rotationAngle;
+                // Project vectors onto YZ plane
+                const start2D = new THREE.Vector2(startVec.y, startVec.z);
+                const current2D = new THREE.Vector2(currentVec.y, currentVec.z);
+                
+                // Calculate angle between vectors
+                rotationAngle = Math.atan2(current2D.y, current2D.x) - Math.atan2(start2D.y, start2D.x);
+                
+                // Apply rotation around world X axis using quaternion
+                const worldAxis = new THREE.Vector3(1, 0, 0);
+                const rotationQuat = new THREE.Quaternion().setFromAxisAngle(worldAxis, rotationAngle);
+                selectedObject.quaternion.premultiply(rotationQuat);
+                
+                // Update world rotation tracking
+                worldRotationX += rotationAngle;
             } else if (dragAxis === 'y') {
-                // For Y axis, use X and Z movement
-                rotationAngle = (delta.x + delta.z) * 2;
-                selectedObject.rotation.y = objectStartRotation.y + rotationAngle;
+                // Project vectors onto XZ plane
+                const start2D = new THREE.Vector2(startVec.x, startVec.z);
+                const current2D = new THREE.Vector2(currentVec.x, currentVec.z);
+                
+                // Calculate angle between vectors (inverted for correct direction)
+                rotationAngle = Math.atan2(start2D.y, start2D.x) - Math.atan2(current2D.y, current2D.x);
+                
+                // Apply rotation around world Y axis using quaternion
+                const worldAxis = new THREE.Vector3(0, 1, 0);
+                const rotationQuat = new THREE.Quaternion().setFromAxisAngle(worldAxis, rotationAngle);
+                selectedObject.quaternion.premultiply(rotationQuat);
+                
+                // Update world rotation tracking
+                worldRotationY += rotationAngle;
             } else if (dragAxis === 'z') {
-                // For Z axis, use X and Y movement
-                rotationAngle = (delta.x + delta.y) * 2;
-                selectedObject.rotation.z = objectStartRotation.z + rotationAngle;
+                // Project vectors onto XY plane
+                const start2D = new THREE.Vector2(startVec.x, startVec.y);
+                const current2D = new THREE.Vector2(currentVec.x, currentVec.y);
+                
+                // Calculate angle between vectors
+                rotationAngle = Math.atan2(current2D.y, current2D.x) - Math.atan2(start2D.y, start2D.x);
+                
+                // Apply rotation around world Z axis using quaternion
+                const worldAxis = new THREE.Vector3(0, 0, 1);
+                const rotationQuat = new THREE.Quaternion().setFromAxisAngle(worldAxis, rotationAngle);
+                selectedObject.quaternion.premultiply(rotationQuat);
+                
+                // Update world rotation tracking
+                worldRotationZ += rotationAngle;
             }
         }
         

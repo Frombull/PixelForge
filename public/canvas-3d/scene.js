@@ -194,6 +194,34 @@ function addCylinder() {
     objects.push(mesh);
 }
 
+function addZFightingDemo() {
+    const position = new THREE.Vector3(0, 0.5, 0);
+    
+    // First cube red
+    const geometry1 = new THREE.BoxGeometry(1.00001, 1, 1);
+    const material1 = new THREE.MeshStandardMaterial({
+        color: 0xff0000,
+        metalness: 0.3,
+        roughness: 0.7
+    });
+    const mesh1 = new THREE.Mesh(geometry1, material1);
+    mesh1.position.copy(position);
+    scene.add(mesh1);
+    objects.push(mesh1);
+    
+    // Second cube blue
+    const geometry2 = new THREE.BoxGeometry(1, 1, 1);
+    const material2 = new THREE.MeshStandardMaterial({
+        color: 0x0000ff,
+        metalness: 0.3,
+        roughness: 0.7
+    });
+    const mesh2 = new THREE.Mesh(geometry2, material2);
+    mesh2.position.copy(position);
+    scene.add(mesh2);
+    objects.push(mesh2);
+}
+
 // Translate gizmos
 function createTranslateGizmo(position) {
     const gizmoGroup = new THREE.Group();
@@ -726,6 +754,10 @@ document.getElementById('addCube').addEventListener('click', () => {
 
 document.getElementById('addCylinder').addEventListener('click', () => {
     addCylinder();
+});
+
+document.getElementById('addZFighting').addEventListener('click', () => {
+    addZFightingDemo();
 });
 
 document.getElementById('btn-translate').addEventListener('click', () => {

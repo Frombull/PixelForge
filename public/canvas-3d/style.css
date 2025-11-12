@@ -58,6 +58,14 @@ button {
     transform: translateY(-1px);
 }
 
+.btn-warning {
+    background: #f59e0b;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
 .btn-tool {
     background: #4a4a5e;
     color: #ccc;

@@ -104,3 +104,59 @@ button {
     width: 20px;
     height: 20px;
 }
+
+#position-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(45, 45, 68, 0.95);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.panel-header {
+    color: #10b981;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #444;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.input-group label {
+    color: #ccc;
+    font-size: 13px;
+    font-weight: 500;
+    width: 30px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 6px 10px;
+    background: #1a1a2e;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: white;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+    border-color: #10b981;
+}
+
+.input-group input::-webkit-inner-spin-button,
+.input-group input::-webkit-outer-spin-button {
+    opacity: 1;
+}

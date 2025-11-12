@@ -14,6 +14,11 @@ let objectStartPos = new THREE.Vector3();
 let objectStartScale = new THREE.Vector3();
 let intersectionStart = new THREE.Vector3();
 
+// Position panel elements
+let positionPanel;
+let posXInput, posYInput, posZInput;
+let isUpdatingInputs = false;
+
 // Raycaster
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -57,7 +62,7 @@ function init() {
     axesHelper.material.depthTest = false;        // Disabled to avoid z-fighting with grid
     scene.add(axesHelper);
     
-    // OrbitControls (Blender style)
+    // OrbitControls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -65,17 +70,36 @@ function init() {
     controls.minDistance = 2;
     controls.maxDistance = 10;
     
-    // Blender-style controls
     controls.mouseButtons = {
         LEFT: null,                   // Disable left click for orbit
         MIDDLE: THREE.MOUSE.ROTATE,   // Middle mouse to rotate
         RIGHT: THREE.MOUSE.ROTATE     // Right mouse to rotate (same as middle)
     };
     
-    // Enable pan with Shift + Middle mouse
+    // Pan with Shift + Middle mouse
     controls.enablePan = true;
     controls.panSpeed = 1.0;
     controls.keyPanSpeed = 7.0;
+    
+    // Position panel
+    positionPanel = document.getElementById('position-panel');
+    posXInput = document.getElementById('pos-x');
+    posYInput = document.getElementById('pos-y');
+    posZInput = document.getElementById('pos-z');
+    
+    // Position input listeners
+    posXInput.addEventListener('change', onPositionInputChange);
+    posYInput.addEventListener('change', onPositionInputChange);
+    posZInput.addEventListener('change', onPositionInputChange);
+    
+    // Update on Enter key
+    [posXInput, posYInput, posZInput].forEach(input => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                onPositionInputChange();
+            }
+        });
+    });
     
     // Event listeners
     renderer.domElement.addEventListener('mousedown', onMouseDown);
@@ -85,7 +109,7 @@ function init() {
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', onKeyDown);
     
-    // Blender-style: Shift + Middle mouse for pan
+    // Shift + Middle mouse for pan
     renderer.domElement.addEventListener('mousedown', (e) => {
         if (e.button === 1) { // Middle mouse
             if (e.shiftKey) {
@@ -102,6 +126,12 @@ function init() {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    
+    // Update position panel if object is selected and no input is focused
+    if (selectedObject && !isUpdatingInputs && document.activeElement.type !== 'number') {
+        updatePositionPanel();
+    }
+    
     renderer.render(scene, camera);
 }
 
@@ -329,7 +359,43 @@ function updateGizmo() {
             gizmo = createScaleGizmo(selectedObject.position);
         }
         scene.add(gizmo);
+        
+        // Show position panel
+        positionPanel.style.display = 'block';
+        updatePositionPanel();
+    } else {
+        // Hide position panel
+        positionPanel.style.display = 'none';
     }
+}
+
+function updatePositionPanel() {
+    if (!selectedObject) return;
+    
+    posXInput.value = selectedObject.position.x.toFixed(2);
+    posYInput.value = selectedObject.position.y.toFixed(2);
+    posZInput.value = selectedObject.position.z.toFixed(2);
+}
+
+function onPositionInputChange() {
+    if (!selectedObject) return;
+    
+    isUpdatingInputs = true;
+    
+    const x = parseFloat(posXInput.value) || 0;
+    const y = parseFloat(posYInput.value) || 0;
+    const z = parseFloat(posZInput.value) || 0;
+    
+    selectedObject.position.set(x, y, z);
+    
+    if (gizmo) {
+        gizmo.position.copy(selectedObject.position);
+    }
+    
+    // Reset flag after a delay
+    setTimeout(() => {
+        isUpdatingInputs = false;
+    }, 50);
 }
 
 function setMode(mode) {
@@ -374,7 +440,7 @@ function onMouseDown(event) {
         }
     }
     
-    // Obejct click
+    // Object click
     const intersects = raycaster.intersectObjects(objects);
     if (intersects.length > 0) {
         selectedObject = intersects[0].object;

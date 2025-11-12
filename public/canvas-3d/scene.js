@@ -777,4 +777,9 @@ document.getElementById('toolbar').addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });
 
+// Close instructions button
+document.getElementById('close-instructions').addEventListener('click', () => {
+    document.getElementById('instructions').classList.add('hidden');
+});
+
 init();

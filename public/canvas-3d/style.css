@@ -99,12 +99,41 @@ button {
     font-size: 13px;
     line-height: 1.6;
     backdrop-filter: blur(10px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+#instructions.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
 }
 
 #instructions strong {
     display: block;
     margin-bottom: 2px;
     font-size: 14px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: transparent;
+    border: none;
+    color: #ccc;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 20px;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #ff4444;
+    background: transparent;
+    transform: none;
 }
 
 .icon {

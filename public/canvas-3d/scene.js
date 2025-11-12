@@ -19,6 +19,9 @@ let positionPanel;
 let posXInput, posYInput, posZInput;
 let isUpdatingInputs = false;
 
+// Hover state
+let hoveredGizmo = null;
+
 // Raycaster
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -132,6 +135,11 @@ function animate() {
         updatePositionPanel();
     }
     
+    // Check for gizmo hover
+    if (!isDragging) {
+        checkGizmoHover();
+    }
+    
     renderer.render(scene, camera);
 }
 
@@ -179,7 +187,11 @@ function createTranslateGizmo(position) {
     const coneHeight = 0.2;
     const coneRadius = 0.08;
     
-    // X
+    // X axis group
+    const xGroup = new THREE.Group();
+    xGroup.userData.axis = 'x';
+    xGroup.userData.isGizmo = true;
+    
     const xMat = new THREE.MeshBasicMaterial({ 
         color: 0xff0000,
         depthTest: false,
@@ -205,7 +217,13 @@ function createTranslateGizmo(position) {
     xCone.userData.isGizmo = true;
     xCone.renderOrder = 999;
     
-    // Y
+    xGroup.add(xCyl, xCone);
+    
+    // Y axis group
+    const yGroup = new THREE.Group();
+    yGroup.userData.axis = 'y';
+    yGroup.userData.isGizmo = true;
+    
     const yMat = new THREE.MeshBasicMaterial({ 
         color: 0x00ff00,
         depthTest: false,
@@ -229,7 +247,13 @@ function createTranslateGizmo(position) {
     yCone.userData.isGizmo = true;
     yCone.renderOrder = 999;
     
-    // Z
+    yGroup.add(yCyl, yCone);
+    
+    // Z axis group
+    const zGroup = new THREE.Group();
+    zGroup.userData.axis = 'z';
+    zGroup.userData.isGizmo = true;
+    
     const zMat = new THREE.MeshBasicMaterial({ 
         color: 0x0000ff,
         depthTest: false,
@@ -255,7 +279,9 @@ function createTranslateGizmo(position) {
     zCone.userData.isGizmo = true;
     zCone.renderOrder = 999;
     
-    gizmoGroup.add(xCyl, xCone, yCyl, yCone, zCyl, zCone);
+    zGroup.add(zCyl, zCone);
+    
+    gizmoGroup.add(xGroup, yGroup, zGroup);
     return gizmoGroup;
 }
 
@@ -268,7 +294,11 @@ function createScaleGizmo(position) {
     const lineRadius = 0.03;
     const cubeSize = 0.15;
     
-    // X
+    // X axis group
+    const xGroup = new THREE.Group();
+    xGroup.userData.axis = 'x';
+    xGroup.userData.isGizmo = true;
+    
     const xMat = new THREE.MeshBasicMaterial({ 
         color: 0xff0000,
         depthTest: false,
@@ -293,7 +323,13 @@ function createScaleGizmo(position) {
     xCube.userData.isGizmo = true;
     xCube.renderOrder = 999;
     
-    // Y
+    xGroup.add(xLine, xCube);
+    
+    // Y axis group
+    const yGroup = new THREE.Group();
+    yGroup.userData.axis = 'y';
+    yGroup.userData.isGizmo = true;
+    
     const yMat = new THREE.MeshBasicMaterial({ 
         color: 0x00ff00,
         depthTest: false,
@@ -317,7 +353,13 @@ function createScaleGizmo(position) {
     yCube.userData.isGizmo = true;
     yCube.renderOrder = 999;
     
-    // Z
+    yGroup.add(yLine, yCube);
+    
+    // Z axis group
+    const zGroup = new THREE.Group();
+    zGroup.userData.axis = 'z';
+    zGroup.userData.isGizmo = true;
+    
     const zMat = new THREE.MeshBasicMaterial({ 
         color: 0x0000ff,
         depthTest: false,
@@ -342,7 +384,9 @@ function createScaleGizmo(position) {
     zCube.userData.isGizmo = true;
     zCube.renderOrder = 999;
     
-    gizmoGroup.add(xLine, xCube, yLine, yCube, zLine, zCube);
+    zGroup.add(zLine, zCube);
+    
+    gizmoGroup.add(xGroup, yGroup, zGroup);
     return gizmoGroup;
 }
 
@@ -467,11 +511,12 @@ function createDragPlane(axis) {
 }
 
 function onMouseMove(event) {
-    if (!isDragging || !selectedObject || !dragAxis) return;
-    
+    // Update mouse position for raycasting
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    if (!isDragging || !selectedObject || !dragAxis) return;
     
     raycaster.setFromCamera(mouse, camera);
     
@@ -520,11 +565,76 @@ function onMouseMove(event) {
     }
 }
 
+function checkGizmoHover() {
+    if (!gizmo) {
+        if (hoveredGizmo) {
+            resetGizmoScale(hoveredGizmo);
+            hoveredGizmo = null;
+            renderer.domElement.style.cursor = 'default';
+        }
+        return;
+    }
+    
+    raycaster.setFromCamera(mouse, camera);
+    const gizmoIntersects = raycaster.intersectObjects(gizmo.children, true);
+    
+    if (gizmoIntersects.length > 0) {
+        const intersect = gizmoIntersects[0];
+        if (intersect.object.userData.isGizmo) {
+            // Find the axis group (parent)
+            let axisGroup = intersect.object;
+            while (axisGroup.parent && axisGroup.parent !== gizmo) {
+                axisGroup = axisGroup.parent;
+            }
+            
+            // New hover
+            if (hoveredGizmo !== axisGroup) {
+                // Reset previous
+                if (hoveredGizmo) {
+                    resetGizmoScale(hoveredGizmo);
+                }
+                
+                // Set new hover
+                hoveredGizmo = axisGroup;
+                highlightGizmo(hoveredGizmo);
+                renderer.domElement.style.cursor = 'pointer';
+            }
+        }
+    } else {
+        // No hover
+        if (hoveredGizmo) {
+            resetGizmoScale(hoveredGizmo);
+            hoveredGizmo = null;
+            renderer.domElement.style.cursor = 'default';
+        }
+    }
+}
+
+function highlightGizmo(gizmoObject) {
+    const axis = gizmoObject.userData.axis;
+    
+    // Scale perpendicular to the axis direction
+    if (axis === 'x') {
+        gizmoObject.scale.set(1, 1.2, 1.2); // Grow in Y and Z
+    } else if (axis === 'y') {
+        gizmoObject.scale.set(1.2, 1, 1.2); // Grow in X and Z
+    } else if (axis === 'z') {
+        gizmoObject.scale.set(1.2, 1.2, 1); // Grow in X and Y
+    }
+}
+
+function resetGizmoScale(gizmoObject) {
+    gizmoObject.scale.set(1, 1, 1);
+}
+
 function onMouseUp() {
     isDragging = false;
     dragAxis = null;
     dragPlane = null;
     controls.enabled = true;
+    
+    // Reset cursor after dragging
+    renderer.domElement.style.cursor = 'default';
 }
 
 function onWindowResize() {

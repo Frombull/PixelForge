@@ -1,0 +1,106 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: #1a1a2e;
+}
+
+#toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #2d2d44;
+    padding: 15px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.divider {
+    width: 1px;
+    height: 30px;
+    background: #444;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-add:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn-tool {
+    background: #4a4a5e;
+    color: #ccc;
+}
+
+.btn-tool:hover {
+    background: #5a5a6e;
+}
+
+.btn-tool.active {
+    background: #10b981;
+    color: white;
+}
+
+#canvas-container {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#instructions {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    backdrop-filter: blur(10px);
+}
+
+#instructions strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #10b981;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}

@@ -41,7 +41,7 @@ function init() {
         0.1,
         1000
     );
-    camera.position.set(6, 6, 6);
+    camera.position.set(3, 3, 3);
     camera.lookAt(0, 0, 0);
     
     // Renderer
@@ -671,8 +671,18 @@ function onMouseUp() {
     dragPlane = null;
     controls.enabled = true;
     
-    // Reset cursor after dragging
-    renderer.domElement.style.cursor = 'default';
+    // Check if mouse is still over gizmo after releasing
+    if (gizmo) {
+        raycaster.setFromCamera(mouse, camera);
+        const gizmoIntersects = raycaster.intersectObjects(gizmo.children, true);
+        if (gizmoIntersects.length > 0 && gizmoIntersects[0].object.userData.isGizmo) {
+            renderer.domElement.style.cursor = 'pointer';
+        } else {
+            renderer.domElement.style.cursor = 'default';
+        }
+    } else {
+        renderer.domElement.style.cursor = 'default';
+    }
 }
 
 function onWindowResize() {

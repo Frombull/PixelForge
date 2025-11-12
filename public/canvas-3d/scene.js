@@ -20,6 +20,15 @@ let posXInput, posYInput, posZInput;
 let scaleXInput, scaleYInput, scaleZInput;
 let isUpdatingInputs = false;
 
+// Color picker elements
+let colorPicker;
+let colorRInput, colorGInput, colorBInput;
+let colorHInput, colorSInput, colorVInput;
+let colorAlphaInput, alphaValueSpan;
+let colorHexInput;
+let currentColorMode = 'rgb';
+let isUpdatingColor = false;
+
 // Hover state
 let hoveredGizmo = null;
 
@@ -93,6 +102,9 @@ function init() {
     scaleXInput = document.getElementById('scale-x');
     scaleYInput = document.getElementById('scale-y');
     scaleZInput = document.getElementById('scale-z');
+    
+    // Color picker initialization
+    initColorPicker();
     
     // Position input listeners
     posXInput.addEventListener('change', onPositionInputChange);
@@ -452,6 +464,7 @@ function updateGizmo() {
         // Show position panel
         positionPanel.style.display = 'block';
         updatePositionPanel();
+        updateColorPickerFromObject();
     } else {
         // Hide position panel
         positionPanel.style.display = 'none';
@@ -781,5 +794,225 @@ document.getElementById('toolbar').addEventListener('contextmenu', (e) => {
 document.getElementById('close-instructions').addEventListener('click', () => {
     document.getElementById('instructions').classList.add('hidden');
 });
+
+// Color picker functions
+function initColorPicker() {
+    // Get elements
+    colorRInput = document.getElementById('color-r');
+    colorGInput = document.getElementById('color-g');
+    colorBInput = document.getElementById('color-b');
+    colorHInput = document.getElementById('color-h');
+    colorSInput = document.getElementById('color-s');
+    colorVInput = document.getElementById('color-v');
+    colorAlphaInput = document.getElementById('color-alpha');
+    alphaValueSpan = document.getElementById('alpha-value');
+    colorHexInput = document.getElementById('color-hex');
+    
+    // Initialize iro.js color picker
+    colorPicker = new iro.ColorPicker('#color-picker-container', {
+        width: 180,
+        color: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#444',
+        layout: [
+            {
+                component: iro.ui.Box,
+            },
+            {
+                component: iro.ui.Slider,
+                options: {
+                    sliderType: 'hue'
+                }
+            }
+        ]
+    });
+    
+    // Color picker change event
+    colorPicker.on('color:change', (color) => {
+        if (isUpdatingColor) return;
+        updateColorInputs(color);
+        applyColorToObject(color);
+    });
+    
+    // Collapsible color section
+    const colorHeader = document.getElementById('color-header');
+    const colorSection = document.getElementById('color-section');
+    
+    colorHeader.addEventListener('click', () => {
+        const isExpanded = colorSection.classList.contains('expanded');
+        if (isExpanded) {
+            colorSection.classList.remove('expanded');
+            colorSection.classList.add('collapsed');
+            colorHeader.classList.remove('open');
+        } else {
+            colorSection.classList.remove('collapsed');
+            colorSection.classList.add('expanded');
+            colorHeader.classList.add('open');
+        }
+    });
+    
+    // Color mode tabs
+    const colorTabs = document.querySelectorAll('.color-tab');
+    colorTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const mode = tab.dataset.mode;
+            switchColorMode(mode);
+        });
+    });
+    
+    // RGB inputs
+    [colorRInput, colorGInput, colorBInput].forEach(input => {
+        input.addEventListener('change', onRGBInputChange);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') onRGBInputChange();
+        });
+    });
+    
+    // HSV inputs
+    [colorHInput, colorSInput, colorVInput].forEach(input => {
+        input.addEventListener('change', onHSVInputChange);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') onHSVInputChange();
+        });
+    });
+    
+    // Alpha input
+    colorAlphaInput.addEventListener('input', onAlphaInputChange);
+    
+    // Hex input
+    colorHexInput.addEventListener('change', onHexInputChange);
+    colorHexInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') onHexInputChange();
+    });
+}
+
+function switchColorMode(mode) {
+    currentColorMode = mode;
+    
+    // Update tabs
+    document.querySelectorAll('.color-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+    });
+    
+    // Show/hide inputs
+    document.getElementById('rgb-inputs').style.display = mode === 'rgb' ? 'block' : 'none';
+    document.getElementById('hsv-inputs').style.display = mode === 'hsv' ? 'block' : 'none';
+}
+
+function updateColorInputs(color) {
+    isUpdatingColor = true;
+    
+    // RGB
+    colorRInput.value = color.rgb.r;
+    colorGInput.value = color.rgb.g;
+    colorBInput.value = color.rgb.b;
+    
+    // HSV
+    colorHInput.value = Math.round(color.hsv.h);
+    colorSInput.value = Math.round(color.hsv.s);
+    colorVInput.value = Math.round(color.hsv.v);
+    
+    // Hex
+    colorHexInput.value = color.hexString;
+    
+    setTimeout(() => {
+        isUpdatingColor = false;
+    }, 50);
+}
+
+function onRGBInputChange() {
+    if (!selectedObject) return;
+    
+    const r = Math.max(0, Math.min(255, parseInt(colorRInput.value) || 0));
+    const g = Math.max(0, Math.min(255, parseInt(colorGInput.value) || 0));
+    const b = Math.max(0, Math.min(255, parseInt(colorBInput.value) || 0));
+    
+    isUpdatingColor = true;
+    colorPicker.color.rgb = { r, g, b };
+    applyColorToObject(colorPicker.color);
+    
+    setTimeout(() => {
+        isUpdatingColor = false;
+    }, 50);
+}
+
+function onHSVInputChange() {
+    if (!selectedObject) return;
+    
+    const h = Math.max(0, Math.min(360, parseInt(colorHInput.value) || 0));
+    const s = Math.max(0, Math.min(100, parseInt(colorSInput.value) || 0));
+    const v = Math.max(0, Math.min(100, parseInt(colorVInput.value) || 0));
+    
+    isUpdatingColor = true;
+    colorPicker.color.hsv = { h, s, v };
+    applyColorToObject(colorPicker.color);
+    
+    setTimeout(() => {
+        isUpdatingColor = false;
+    }, 50);
+}
+
+function onAlphaInputChange() {
+    if (!selectedObject) return;
+    
+    const alpha = parseInt(colorAlphaInput.value) / 100;
+    alphaValueSpan.textContent = colorAlphaInput.value + '%';
+    
+    if (selectedObject.material) {
+        selectedObject.material.transparent = alpha < 1;
+        selectedObject.material.opacity = alpha;
+        selectedObject.material.needsUpdate = true;
+    }
+}
+
+function onHexInputChange() {
+    if (!selectedObject) return;
+    
+    let hex = colorHexInput.value.trim();
+    if (!hex.startsWith('#')) {
+        hex = '#' + hex;
+    }
+    
+    // Validate hex
+    if (/^#[0-9A-F]{6}$/i.test(hex)) {
+        isUpdatingColor = true;
+        colorPicker.color.hexString = hex;
+        applyColorToObject(colorPicker.color);
+        
+        setTimeout(() => {
+            isUpdatingColor = false;
+        }, 50);
+    }
+}
+
+function applyColorToObject(color) {
+    if (!selectedObject || !selectedObject.material) return;
+    
+    const alpha = parseInt(colorAlphaInput.value) / 100;
+    selectedObject.material.color.setHex(parseInt(color.hexString.substring(1), 16));
+    selectedObject.material.transparent = alpha < 1;
+    selectedObject.material.opacity = alpha;
+    selectedObject.material.needsUpdate = true;
+}
+
+function updateColorPickerFromObject() {
+    if (!selectedObject || !selectedObject.material) return;
+    
+    isUpdatingColor = true;
+    
+    const color = selectedObject.material.color;
+    const hex = '#' + color.getHexString();
+    colorPicker.color.hexString = hex;
+    
+    const alpha = Math.round((selectedObject.material.opacity || 1) * 100);
+    colorAlphaInput.value = alpha;
+    alphaValueSpan.textContent = alpha + '%';
+    
+    updateColorInputs(colorPicker.color);
+    
+    setTimeout(() => {
+        isUpdatingColor = false;
+    }, 50);
+}
 
 init();

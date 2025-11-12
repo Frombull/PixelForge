@@ -196,3 +196,95 @@ button {
 .input-group input::-webkit-outer-spin-button {
     opacity: 1;
 }
+
+/* Color Picker Styles */
+.panel-header.collapsible {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+
+.panel-header.collapsible:hover {
+    color: #14d89a;
+}
+
+.chevron {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s;
+}
+
+.panel-header.collapsible.open .chevron {
+    transform: rotate(180deg);
+}
+
+#color-section {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+#color-section.collapsed {
+    max-height: 0;
+}
+
+#color-section.expanded {
+    max-height: 600px;
+}
+
+#color-picker-container {
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.color-mode-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.color-tab {
+    flex: 1;
+    padding: 6px 12px;
+    background: #1a1a2e;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.color-tab:hover {
+    background: #252540;
+    border-color: #555;
+}
+
+.color-tab.active {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.color-inputs {
+    margin-bottom: 10px;
+}
+
+#color-alpha {
+    flex: 1;
+    margin-right: 8px;
+}
+
+#alpha-value {
+    color: #ccc;
+    font-size: 12px;
+    min-width: 40px;
+    text-align: right;
+}
+
+#color-hex {
+    text-transform: uppercase;
+}

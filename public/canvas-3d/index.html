@@ -103,8 +103,65 @@
           <label>Z:</label>
           <input type="number" id="scale-z" step="0.1" min="0.1">
       </div>
+
+      <div class="panel-header collapsible" id="color-header" style="margin-top: 15px;">
+          <span>Cor</span>
+          <svg class="chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+      </div>
+      <div id="color-section" class="collapsed">
+          <div id="color-picker-container"></div>
+          
+          <div class="color-mode-tabs">
+              <button class="color-tab active" data-mode="rgb">RGB</button>
+              <button class="color-tab" data-mode="hsv">HSV</button>
+          </div>
+          
+          <div id="rgb-inputs" class="color-inputs">
+              <div class="input-group">
+                  <label>R:</label>
+                  <input type="number" id="color-r" min="0" max="255" step="1">
+              </div>
+              <div class="input-group">
+                  <label>G:</label>
+                  <input type="number" id="color-g" min="0" max="255" step="1">
+              </div>
+              <div class="input-group">
+                  <label>B:</label>
+                  <input type="number" id="color-b" min="0" max="255" step="1">
+              </div>
+          </div>
+          
+          <div id="hsv-inputs" class="color-inputs" style="display: none;">
+              <div class="input-group">
+                  <label>H:</label>
+                  <input type="number" id="color-h" min="0" max="360" step="1">
+              </div>
+              <div class="input-group">
+                  <label>S:</label>
+                  <input type="number" id="color-s" min="0" max="100" step="1">
+              </div>
+              <div class="input-group">
+                  <label>V:</label>
+                  <input type="number" id="color-v" min="0" max="100" step="1">
+              </div>
+          </div>
+          
+          <div class="input-group">
+              <label>A:</label>
+              <input type="range" id="color-alpha" min="0" max="100" step="1" value="100">
+              <span id="alpha-value">100%</span>
+          </div>
+          
+          <div class="input-group">
+              <label>Hex:</label>
+              <input type="text" id="color-hex" maxlength="7" placeholder="#ffffff">
+          </div>
+      </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
   <script type="importmap">
     {
       "imports": {

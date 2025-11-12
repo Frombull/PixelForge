@@ -17,6 +17,7 @@ let intersectionStart = new THREE.Vector3();
 // Position panel elements
 let positionPanel;
 let posXInput, posYInput, posZInput;
+let scaleXInput, scaleYInput, scaleZInput;
 let isUpdatingInputs = false;
 
 // Hover state
@@ -89,17 +90,33 @@ function init() {
     posXInput = document.getElementById('pos-x');
     posYInput = document.getElementById('pos-y');
     posZInput = document.getElementById('pos-z');
+    scaleXInput = document.getElementById('scale-x');
+    scaleYInput = document.getElementById('scale-y');
+    scaleZInput = document.getElementById('scale-z');
     
     // Position input listeners
     posXInput.addEventListener('change', onPositionInputChange);
     posYInput.addEventListener('change', onPositionInputChange);
     posZInput.addEventListener('change', onPositionInputChange);
     
+    // Scale input listeners
+    scaleXInput.addEventListener('change', onScaleInputChange);
+    scaleYInput.addEventListener('change', onScaleInputChange);
+    scaleZInput.addEventListener('change', onScaleInputChange);
+    
     // Update on Enter key
     [posXInput, posYInput, posZInput].forEach(input => {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 onPositionInputChange();
+            }
+        });
+    });
+    
+    [scaleXInput, scaleYInput, scaleZInput].forEach(input => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                onScaleInputChange();
             }
         });
     });
@@ -419,6 +436,10 @@ function updatePositionPanel() {
     posXInput.value = selectedObject.position.x.toFixed(2);
     posYInput.value = selectedObject.position.y.toFixed(2);
     posZInput.value = selectedObject.position.z.toFixed(2);
+    
+    scaleXInput.value = selectedObject.scale.x.toFixed(2);
+    scaleYInput.value = selectedObject.scale.y.toFixed(2);
+    scaleZInput.value = selectedObject.scale.z.toFixed(2);
 }
 
 function onPositionInputChange() {
@@ -435,6 +456,23 @@ function onPositionInputChange() {
     if (gizmo) {
         gizmo.position.copy(selectedObject.position);
     }
+    
+    // Reset flag after a delay
+    setTimeout(() => {
+        isUpdatingInputs = false;
+    }, 50);
+}
+
+function onScaleInputChange() {
+    if (!selectedObject) return;
+    
+    isUpdatingInputs = true;
+    
+    const x = Math.max(0.1, parseFloat(scaleXInput.value) || 1);
+    const y = Math.max(0.1, parseFloat(scaleYInput.value) || 1);
+    const z = Math.max(0.1, parseFloat(scaleZInput.value) || 1);
+    
+    selectedObject.scale.set(x, y, z);
     
     // Reset flag after a delay
     setTimeout(() => {

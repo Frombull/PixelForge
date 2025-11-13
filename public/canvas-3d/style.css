@@ -406,3 +406,66 @@ button {
     opacity: 1;
     pointer-events: auto;
 }
+
+.settings-input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.settings-input-group input {
+    flex: 1;
+}
+
+.settings-slider-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.settings-slider-group input[type="range"] {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: #1a1a2e;
+    outline: none;
+    cursor: pointer;
+}
+
+.settings-slider-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.settings-slider-group input[type="range"]::-webkit-slider-thumb:hover {
+    background: #14d89a;
+}
+
+.settings-slider-group input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #10b981;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s;
+}
+
+.settings-slider-group input[type="range"]::-moz-range-thumb:hover {
+    background: #14d89a;
+}
+
+.settings-reset-btn {
+    padding: 6px 10px;
+    margin: 0;
+    min-width: 32px;
+    height: 32px;
+}

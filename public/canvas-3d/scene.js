@@ -1235,6 +1235,10 @@ const snapSizeInput = document.getElementById('snap-size');
 const snapSizeItem = document.querySelector('.snap-size-item');
 const bgColorInput = document.getElementById('bg-color');
 const gridColorInput = document.getElementById('grid-color');
+const nearClipInput = document.getElementById('near-clip');
+const nearClipValue = document.getElementById('near-clip-value');
+const farClipInput = document.getElementById('far-clip');
+const farClipValue = document.getElementById('far-clip-value');
 
 // Toggle settings menu
 settingsBtn.addEventListener('click', (e) => {
@@ -1308,11 +1312,57 @@ gridColorInput.addEventListener('input', (e) => {
     }
 });
 
+// Change near clip plane (slider)
+nearClipInput.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value > 0 && value < camera.far) {
+        camera.near = value;
+        camera.updateProjectionMatrix();
+        nearClipValue.textContent = value.toFixed(2);
+    }
+});
+
+// Change far clip plane (slider)
+farClipInput.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value > camera.near) {
+        camera.far = value;
+        camera.updateProjectionMatrix();
+        farClipValue.textContent = value;
+    }
+});
+
+// Default values for reset
+const defaultValues = {
+    nearClip: 0.01,
+    farClip: 100,
+    snapSize: 0.5
+};
+
 // Reset buttons
 document.querySelectorAll('.reset-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         const resetTarget = btn.dataset.reset;
+        
+        // Settings menu resets
+        if (resetTarget === 'near-clip') {
+            camera.near = defaultValues.nearClip;
+            camera.updateProjectionMatrix();
+            nearClipInput.value = defaultValues.nearClip;
+            nearClipValue.textContent = defaultValues.nearClip.toFixed(2);
+            return;
+        } else if (resetTarget === 'far-clip') {
+            camera.far = defaultValues.farClip;
+            camera.updateProjectionMatrix();
+            farClipInput.value = defaultValues.farClip;
+            farClipValue.textContent = defaultValues.farClip;
+            return;
+        } else if (resetTarget === 'snap-size') {
+            gridSize = defaultValues.snapSize;
+            snapSizeInput.value = defaultValues.snapSize;
+            return;
+        }
         
         if (!selectedObject) return;
         

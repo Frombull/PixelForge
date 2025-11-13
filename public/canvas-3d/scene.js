@@ -59,7 +59,7 @@ function init() {
     // Camera
     camera = new THREE.PerspectiveCamera(
         70,
-        window.innerWidth / (window.innerHeight - 60),
+        window.innerWidth / (window.innerHeight - 44),
         0.01,
         100
     );
@@ -68,7 +68,7 @@ function init() {
     
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight - 60);
+    renderer.setSize(window.innerWidth, window.innerHeight - 44);
     container.appendChild(renderer.domElement);
     
     // Lights
@@ -1096,9 +1096,9 @@ function onMouseUp() {
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / (window.innerHeight - 60);
+    camera.aspect = window.innerWidth / (window.innerHeight - 44);
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight - 60);
+    renderer.setSize(window.innerWidth, window.innerHeight - 44);
 }
 
 function onKeyDown(event) {

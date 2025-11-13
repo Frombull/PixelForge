@@ -79,18 +79,18 @@ function init() {
     scene.add(directionalLight);
     
     // Grid
-    gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+    gridHelper = new THREE.GridHelper(40, 40, 0xbbbbbb, 0xdddddd);
     scene.add(gridHelper);
     
     // World axis  
     const axesHelper = new THREE.AxesHelper(5);
-    axesHelper.material.depthTest = false;        // Disabled to avoid z-fighting with grid
+    axesHelper.material.depthTest = false;        // Avoid z-fight with grid
     scene.add(axesHelper);
     
     // OrbitControls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.dampingFactor = 0.1;
     controls.screenSpacePanning = false;
     controls.minDistance = 2;
     controls.maxDistance = 10;
@@ -209,11 +209,7 @@ function addCube() {
         roughness: 0.7
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(
-        (Math.random() - 0.5) * 4,
-        0.5,
-        (Math.random() - 0.5) * 4
-    );
+    mesh.position.set(0.5, 0.5, 0.5);
     scene.add(mesh);
     objects.push(mesh);
 }
@@ -226,11 +222,7 @@ function addCylinder() {
         roughness: 0.7
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(
-        (Math.random() - 0.5) * 4,
-        0.5,
-        (Math.random() - 0.5) * 4
-    );
+    mesh.position.set(1.5, 0.5, 1.5);
     scene.add(mesh);
     objects.push(mesh);
 }
@@ -1110,7 +1102,7 @@ function deleteSelectedObject() {
 }
 
 function resetCamera() {
-    camera.position.set(6, 6, 6);
+    camera.position.set(3, 3, 3);
     controls.target.set(0, 0, 0);
     controls.update();
 }

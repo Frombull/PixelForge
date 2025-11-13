@@ -25,6 +25,13 @@
               </svg>
               Add Cilindro
           </button>
+          <button class="btn-add btn-warning" id="addZFighting">
+              <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <rect x="7" y="7" width="10" height="10"></rect>
+              </svg>
+              Z-Fighting
+          </button>
       </div>
       
       <div class="divider"></div>
@@ -35,6 +42,12 @@
                   <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"></path>
               </svg>
               Translate
+          </button>
+          <button class="btn-tool" id="btn-rotate">
+              <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"></path>
+              </svg>
+              Rotate
           </button>
           <button class="btn-tool" id="btn-scale">
               <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -55,18 +68,165 @@
               Reset Camera
           </button>
       </div>
+      
+      <div style="margin-left: auto;">
+          <button class="btn-tool" id="btn-settings">
+              Configurações
+          </button>
+      </div>
+  </div>
+  
+  <div id="settings-menu" class="settings-menu hidden">
+      <div class="settings-item">
+          <label class="settings-label">
+              <input type="checkbox" id="toggle-grid" checked>
+              <span>Mostrar Grid</span>
+          </label>
+      </div>
+      <div class="settings-item">
+          <label class="settings-label">
+              <input type="checkbox" id="toggle-snap">
+              <span>Snap to Grid</span>
+          </label>
+          <input class="snap-size-item" type="number" id="snap-size" value="0.5" min="0.1" step="0.1">
+      </div>
+      <div class="settings-item">
+          <label class="settings-label">
+              <span>Cor do Background</span>
+          </label>
+          <input type="color" id="bg-color" value="#ffffff">
+      </div>
+      <div class="settings-item">
+          <label class="settings-label">
+              <span>Cor do Grid</span>
+          </label>
+          <input type="color" id="grid-color" value="#bbbbbb">
+      </div>
   </div>
 
   <div id="canvas-container"></div>
 
   <div id="instructions">
+      <button id="close-instructions" class="close-btn">×</button>
       <strong>Controles</strong>
       - Rodar câmera: Botão do meio / Botão direito<br>
       - Pan: Shift + Botão do meio<br>
       - Zoom: Mouse scroll<br>
-      - Focar objeto: F (com objeto selecionado)
+      - Focar objeto: F<br>
+      <strong>Keybinds</strong>
+      - T: Translate | R: Rotate | S: Scale | DEL: Delete<br>
   </div>
 
+  <div id="position-panel" style="display: none;">
+      <div class="panel-header">Posição</div>
+      <div class="input-group">
+          <label>X:</label>
+          <input type="number" id="pos-x" step="0.1">
+          <button class="reset-btn" data-reset="pos-x" title="Reset X">↺</button>
+      </div>
+      <div class="input-group">
+          <label>Y:</label>
+          <input type="number" id="pos-y" step="0.1">
+          <button class="reset-btn" data-reset="pos-y" title="Reset Y">↺</button>
+      </div>
+      <div class="input-group">
+          <label>Z:</label>
+          <input type="number" id="pos-z" step="0.1">
+          <button class="reset-btn" data-reset="pos-z" title="Reset Z">↺</button>
+      </div>
+      
+      <div class="panel-header" style="margin-top: 15px;">Rotação (graus)</div>
+      <div class="input-group">
+          <label>X:</label>
+          <input type="number" id="rot-x" step="1">
+          <button class="reset-btn" data-reset="rot-x" title="Reset X">↺</button>
+      </div>
+      <div class="input-group">
+          <label>Y:</label>
+          <input type="number" id="rot-y" step="1">
+          <button class="reset-btn" data-reset="rot-y" title="Reset Y">↺</button>
+      </div>
+      <div class="input-group">
+          <label>Z:</label>
+          <input type="number" id="rot-z" step="1">
+          <button class="reset-btn" data-reset="rot-z" title="Reset Z">↺</button>
+      </div>
+      
+      <div class="panel-header" style="margin-top: 15px;">Escala</div>
+      <div class="input-group">
+          <label>X:</label>
+          <input type="number" id="scale-x" step="0.1" min="0.1">
+          <button class="reset-btn" data-reset="scale-x" title="Reset X">↺</button>
+      </div>
+      <div class="input-group">
+          <label>Y:</label>
+          <input type="number" id="scale-y" step="0.1" min="0.1">
+          <button class="reset-btn" data-reset="scale-y" title="Reset Y">↺</button>
+      </div>
+      <div class="input-group">
+          <label>Z:</label>
+          <input type="number" id="scale-z" step="0.1" min="0.1">
+          <button class="reset-btn" data-reset="scale-z" title="Reset Z">↺</button>
+      </div>
+
+      <div class="panel-header collapsible" id="color-header" style="margin-top: 15px;">
+          <span>Cor</span>
+          <svg class="chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+      </div>
+      <div id="color-section" class="collapsed">
+          <div id="color-picker-container"></div>
+          
+          <div class="color-mode-tabs">
+              <button class="color-tab active" data-mode="rgb">RGB</button>
+              <button class="color-tab" data-mode="hsv">HSV</button>
+          </div>
+          
+          <div id="rgb-inputs" class="color-inputs">
+              <div class="input-group">
+                  <label>R:</label>
+                  <input type="number" id="color-r" min="0" max="255" step="1">
+              </div>
+              <div class="input-group">
+                  <label>G:</label>
+                  <input type="number" id="color-g" min="0" max="255" step="1">
+              </div>
+              <div class="input-group">
+                  <label>B:</label>
+                  <input type="number" id="color-b" min="0" max="255" step="1">
+              </div>
+          </div>
+          
+          <div id="hsv-inputs" class="color-inputs" style="display: none;">
+              <div class="input-group">
+                  <label>H:</label>
+                  <input type="number" id="color-h" min="0" max="360" step="1">
+              </div>
+              <div class="input-group">
+                  <label>S:</label>
+                  <input type="number" id="color-s" min="0" max="100" step="1">
+              </div>
+              <div class="input-group">
+                  <label>V:</label>
+                  <input type="number" id="color-v" min="0" max="100" step="1">
+              </div>
+          </div>
+          
+          <div class="input-group">
+              <label>A:</label>
+              <input type="range" id="color-alpha" min="0" max="100" step="1" value="100">
+              <span id="alpha-value">100%</span>
+          </div>
+          
+          <div class="input-group">
+              <label>Hex:</label>
+              <input type="text" id="color-hex" maxlength="7" placeholder="#ffffff">
+          </div>
+      </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
   <script type="importmap">
     {
       "imports": {

@@ -9,6 +9,8 @@ let currentMode = 'translate';
 let gridHelper = null;
 let snapToGrid = false;
 let gridSize = 0.5;
+let isPerspective = true;
+let perspectiveCamera, orthographicCamera;
 
 let isDragging = false;
 let dragAxis = null;
@@ -56,15 +58,32 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
     
-    // Camera
-    camera = new THREE.PerspectiveCamera(
+    // Cameras
+    const aspect = window.innerWidth / (window.innerHeight - 44);
+    
+    perspectiveCamera = new THREE.PerspectiveCamera(
         70,
-        window.innerWidth / (window.innerHeight - 44),
+        aspect,
         0.01,
         100
     );
-    camera.position.set(3, 3, 3);
-    camera.lookAt(0, 0, 0);
+    perspectiveCamera.position.set(3, 3, 3);
+    perspectiveCamera.lookAt(0, 0, 0);
+    
+    const frustumSize = 5;
+    orthographicCamera = new THREE.OrthographicCamera(
+        frustumSize * aspect / -2,
+        frustumSize * aspect / 2,
+        frustumSize / 2,
+        frustumSize / -2,
+        0.01,
+        100
+    );
+    orthographicCamera.position.set(3, 3, 3);
+    orthographicCamera.lookAt(0, 0, 0);
+    
+    // Set initial camera
+    camera = perspectiveCamera;
     
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -106,6 +125,10 @@ function init() {
     controls.enablePan = true;
     controls.panSpeed = 1.0;
     controls.keyPanSpeed = 7.0;
+
+    // Orthographic camera zoom
+    controls.maxZoom = 2;
+    controls.minZoom = 0.8;
     
     // Position panel
     positionPanel = document.getElementById('position-panel');
@@ -1096,9 +1119,54 @@ function onMouseUp() {
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / (window.innerHeight - 44);
-    camera.updateProjectionMatrix();
+    const aspect = window.innerWidth / (window.innerHeight - 44);
+    
+    if (isPerspective) {
+        perspectiveCamera.aspect = aspect;
+        perspectiveCamera.updateProjectionMatrix();
+    } else {
+        const frustumSize = 5;
+        orthographicCamera.left = frustumSize * aspect / -2;
+        orthographicCamera.right = frustumSize * aspect / 2;
+        orthographicCamera.top = frustumSize / 2;
+        orthographicCamera.bottom = frustumSize / -2;
+        orthographicCamera.updateProjectionMatrix();
+    }
+    
     renderer.setSize(window.innerWidth, window.innerHeight - 44);
+}
+
+function toggleCameraType() {
+    isPerspective = !isPerspective;
+    
+    // Store current camera state
+    const currentPosition = camera.position.clone();
+    const currentTarget = controls.target.clone();
+    
+    // Switch camera
+    if (isPerspective) {
+        camera = perspectiveCamera;
+    } else {
+        camera = orthographicCamera;
+    }
+    
+    // Restore position and target
+    camera.position.copy(currentPosition);
+    camera.lookAt(currentTarget);
+    
+    // Update controls
+    controls.object = camera;
+    controls.target.copy(currentTarget);
+    controls.update();
+    
+    // Update button state
+    const btn = document.getElementById('btn-toggle-camera');
+    if (btn) {
+        btn.classList.toggle('active', !isPerspective);
+    }
+    
+    // Trigger resize to update projection
+    onWindowResize();
 }
 
 function onKeyDown(event) {
@@ -1183,6 +1251,7 @@ function deleteSelectedObject() {
 
 function resetCamera() {
     camera.position.set(3, 3, 3);
+    camera.lookAt(0, 0, 0);
     controls.target.set(0, 0, 0);
     controls.update();
 }
@@ -1214,6 +1283,10 @@ document.getElementById('btn-rotate').addEventListener('click', () => {
 
 document.getElementById('btn-reset-camera').addEventListener('click', () => {
     resetCamera();
+});
+
+document.getElementById('btn-toggle-camera').addEventListener('click', () => {
+    toggleCameraType();
 });
 
 // Disable right-click context menu on toolbar
@@ -1316,8 +1389,10 @@ gridColorInput.addEventListener('input', (e) => {
 nearClipInput.addEventListener('input', (e) => {
     const value = parseFloat(e.target.value);
     if (value > 0 && value < camera.far) {
-        camera.near = value;
-        camera.updateProjectionMatrix();
+        perspectiveCamera.near = value;
+        orthographicCamera.near = value;
+        perspectiveCamera.updateProjectionMatrix();
+        orthographicCamera.updateProjectionMatrix();
         nearClipValue.textContent = value.toFixed(2);
     }
 });
@@ -1326,8 +1401,10 @@ nearClipInput.addEventListener('input', (e) => {
 farClipInput.addEventListener('input', (e) => {
     const value = parseFloat(e.target.value);
     if (value > camera.near) {
-        camera.far = value;
-        camera.updateProjectionMatrix();
+        perspectiveCamera.far = value;
+        orthographicCamera.far = value;
+        perspectiveCamera.updateProjectionMatrix();
+        orthographicCamera.updateProjectionMatrix();
         farClipValue.textContent = value;
     }
 });
@@ -1347,14 +1424,18 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
         
         // Settings menu resets
         if (resetTarget === 'near-clip') {
-            camera.near = defaultValues.nearClip;
-            camera.updateProjectionMatrix();
+            perspectiveCamera.near = defaultValues.nearClip;
+            orthographicCamera.near = defaultValues.nearClip;
+            perspectiveCamera.updateProjectionMatrix();
+            orthographicCamera.updateProjectionMatrix();
             nearClipInput.value = defaultValues.nearClip;
             nearClipValue.textContent = defaultValues.nearClip.toFixed(2);
             return;
         } else if (resetTarget === 'far-clip') {
-            camera.far = defaultValues.farClip;
-            camera.updateProjectionMatrix();
+            perspectiveCamera.far = defaultValues.farClip;
+            orthographicCamera.far = defaultValues.farClip;
+            perspectiveCamera.updateProjectionMatrix();
+            orthographicCamera.updateProjectionMatrix();
             farClipInput.value = defaultValues.farClip;
             farClipValue.textContent = defaultValues.farClip;
             return;
@@ -1448,6 +1529,7 @@ function initColorPicker() {
         color: '#ffffff',
         borderWidth: 1,
         borderColor: '#444',
+        padding: 0,
         layout: [
             {
                 component: iro.ui.Box,

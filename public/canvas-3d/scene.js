@@ -6,6 +6,9 @@ let objects = [];
 let selectedObject = null;
 let gizmo = null;
 let currentMode = 'translate';
+let gridHelper = null;
+let snapToGrid = false;
+let gridSize = 0.5;
 
 let isDragging = false;
 let dragAxis = null;
@@ -76,7 +79,7 @@ function init() {
     scene.add(directionalLight);
     
     // Grid
-    const gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
+    gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
     scene.add(gridHelper);
     
     // World axis  
@@ -599,9 +602,21 @@ function onPositionInputChange() {
     
     isUpdatingInputs = true;
     
-    const x = parseFloat(posXInput.value) || 0;
-    const y = parseFloat(posYInput.value) || 0;
-    const z = parseFloat(posZInput.value) || 0;
+    let x = parseFloat(posXInput.value) || 0;
+    let y = parseFloat(posYInput.value) || 0;
+    let z = parseFloat(posZInput.value) || 0;
+    
+    // Apply snap to grid if enabled
+    if (snapToGrid) {
+        x = Math.round(x / gridSize) * gridSize;
+        y = Math.round(y / gridSize) * gridSize;
+        z = Math.round(z / gridSize) * gridSize;
+        
+        // Update inputs with snapped values
+        posXInput.value = x.toFixed(2);
+        posYInput.value = y.toFixed(2);
+        posZInput.value = z.toFixed(2);
+    }
     
     selectedObject.position.set(x, y, z);
     
@@ -770,12 +785,23 @@ function onMouseMove(event) {
         if (currentMode === 'translate') {
             const delta = intersection.sub(intersectionStart);
             
+            let newX = objectStartPos.x + delta.x;
+            let newY = objectStartPos.y + delta.y;
+            let newZ = objectStartPos.z + delta.z;
+            
+            // Apply snap to grid if enabled
+            if (snapToGrid) {
+                newX = Math.round(newX / gridSize) * gridSize;
+                newY = Math.round(newY / gridSize) * gridSize;
+                newZ = Math.round(newZ / gridSize) * gridSize;
+            }
+            
             if (dragAxis === 'x') {
-                selectedObject.position.x = objectStartPos.x + delta.x;
+                selectedObject.position.x = newX;
             } else if (dragAxis === 'y') {
-                selectedObject.position.y = objectStartPos.y + delta.y;
+                selectedObject.position.y = newY;
             } else if (dragAxis === 'z') {
-                selectedObject.position.z = objectStartPos.z + delta.z;
+                selectedObject.position.z = newZ;
             }
         } else if (currentMode === 'scale') {
             // Calculate movement along the specific axis
@@ -1126,6 +1152,78 @@ document.getElementById('toolbar').addEventListener('contextmenu', (e) => {
 // Close instructions button
 document.getElementById('close-instructions').addEventListener('click', () => {
     document.getElementById('instructions').classList.add('hidden');
+});
+
+// Settings menu
+const settingsBtn = document.getElementById('btn-settings');
+const settingsMenu = document.getElementById('settings-menu');
+const toggleGridCheckbox = document.getElementById('toggle-grid');
+const toggleSnapCheckbox = document.getElementById('toggle-snap');
+const snapSizeInput = document.getElementById('snap-size');
+const snapSizeItem = document.querySelector('.snap-size-item');
+const bgColorInput = document.getElementById('bg-color');
+
+// Toggle settings menu
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    settingsMenu.classList.toggle('hidden');
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+        settingsMenu.classList.add('hidden');
+    }
+});
+
+// Prevent menu from closing when clicking inside
+settingsMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
+
+// Toggle grid visibility
+toggleGridCheckbox.addEventListener('change', (e) => {
+    if (gridHelper) {
+        gridHelper.visible = e.target.checked;
+    }
+});
+
+// Toggle snap to grid
+toggleSnapCheckbox.addEventListener('change', (e) => {
+    snapToGrid = e.target.checked;
+    
+    // Enable/disable snap size input
+    if (snapToGrid) {
+        snapSizeItem.classList.add('enabled');
+    } else {
+        snapSizeItem.classList.remove('enabled');
+    }
+});
+
+// Change snap size
+snapSizeInput.addEventListener('change', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value > 0) {
+        gridSize = value;
+    } else {
+        snapSizeInput.value = gridSize;
+    }
+});
+
+snapSizeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const value = parseFloat(snapSizeInput.value);
+        if (value > 0) {
+            gridSize = value;
+        } else {
+            snapSizeInput.value = gridSize;
+        }
+    }
+});
+
+// Change background color
+bgColorInput.addEventListener('input', (e) => {
+    scene.background = new THREE.Color(e.target.value);
 });
 
 // Reset buttons

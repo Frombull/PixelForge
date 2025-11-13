@@ -1154,6 +1154,7 @@ const toggleSnapCheckbox = document.getElementById('toggle-snap');
 const snapSizeInput = document.getElementById('snap-size');
 const snapSizeItem = document.querySelector('.snap-size-item');
 const bgColorInput = document.getElementById('bg-color');
+const gridColorInput = document.getElementById('grid-color');
 
 // Toggle settings menu
 settingsBtn.addEventListener('click', (e) => {
@@ -1216,6 +1217,15 @@ snapSizeInput.addEventListener('keydown', (e) => {
 // Change background color
 bgColorInput.addEventListener('input', (e) => {
     scene.background = new THREE.Color(e.target.value);
+});
+
+// Change grid color
+gridColorInput.addEventListener('input', (e) => {
+    if (gridHelper) {
+        const newColor = new THREE.Color(e.target.value);
+        gridHelper.material.color.copy(newColor);
+        gridHelper.material.needsUpdate = true;
+    }
 });
 
 // Reset buttons

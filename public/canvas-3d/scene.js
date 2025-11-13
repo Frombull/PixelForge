@@ -43,6 +43,7 @@ let isUpdatingColor = false;
 
 // Hover state
 let hoveredGizmo = null;
+let hoveredObject = null;
 
 // Raycaster
 const raycaster = new THREE.Raycaster();
@@ -59,8 +60,8 @@ function init() {
     camera = new THREE.PerspectiveCamera(
         70,
         window.innerWidth / (window.innerHeight - 60),
-        0.1,
-        1000
+        0.01,
+        100
     );
     camera.position.set(3, 3, 3);
     camera.lookAt(0, 0, 0);
@@ -92,7 +93,7 @@ function init() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
     controls.screenSpacePanning = false;
-    controls.minDistance = 2;
+    controls.minDistance = 1;
     controls.maxDistance = 10;
     
     controls.mouseButtons = {
@@ -196,6 +197,7 @@ function animate() {
     // Check for gizmo hover
     if (!isDragging) {
         checkGizmoHover();
+        checkObjectHover();
     }
     
     renderer.render(scene, camera);
@@ -719,6 +721,12 @@ function onMouseDown(event) {
     if (intersects.length > 0) {
         selectedObject = intersects[0].object;
         
+        // Remove highlight from newly selected object
+        if (hoveredObject === selectedObject) {
+            removeObjectHighlight(hoveredObject);
+            hoveredObject = null;
+        }
+        
         // Reset world rotation tracking for newly selected object
         worldRotationX = 0;
         worldRotationY = 0;
@@ -1001,6 +1009,72 @@ function resetGizmoScale(gizmoObject) {
     }
 }
 
+function checkObjectHover() {
+    // Don't check object hover if we're hovering over a gizmo
+    if (hoveredGizmo) {
+        if (hoveredObject) {
+            removeObjectHighlight(hoveredObject);
+            hoveredObject = null;
+        }
+        return;
+    }
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(objects);
+    
+    if (intersects.length > 0) {
+        const object = intersects[0].object;
+        
+        // New hover
+        if (hoveredObject !== object) {
+            // Reset previous
+            if (hoveredObject) {
+                removeObjectHighlight(hoveredObject);
+            }
+            
+            // Set new hover
+            hoveredObject = object;
+            addObjectHighlight(hoveredObject);
+        }
+    } else {
+        // No hover
+        if (hoveredObject) {
+            removeObjectHighlight(hoveredObject);
+            hoveredObject = null;
+        }
+    }
+}
+
+function addObjectHighlight(object) {
+    // Don't highlight if it's the selected object
+    if (object === selectedObject) return;
+    
+    // Create outline mesh silhouette
+    if (!object.userData.outlineMesh) {
+        const outlineMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffa500,
+            side: THREE.BackSide,
+            transparent: true,
+            opacity: 1
+        });
+        
+        const outlineMesh = new THREE.Mesh(object.geometry, outlineMaterial);
+        outlineMesh.scale.multiplyScalar(1.02);
+        outlineMesh.renderOrder = 0;
+        
+        object.add(outlineMesh);
+        object.userData.outlineMesh = outlineMesh;
+    }
+}
+
+function removeObjectHighlight(object) {
+    if (object.userData.outlineMesh) {
+        object.remove(object.userData.outlineMesh);
+        object.userData.outlineMesh.material.dispose();
+        object.userData.outlineMesh = null;
+    }
+}
+
 function onMouseUp() {
     isDragging = false;
     dragAxis = null;
@@ -1078,6 +1152,12 @@ function focusOnObject(object) {
 
 function deleteSelectedObject() {
     if (!selectedObject) return;
+    
+    // Remove highlight if this was the hovered object
+    if (hoveredObject === selectedObject) {
+        removeObjectHighlight(hoveredObject);
+        hoveredObject = null;
+    }
     
     // Remove from scene
     scene.remove(selectedObject);

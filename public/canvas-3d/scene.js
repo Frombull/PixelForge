@@ -169,6 +169,7 @@ function init() {
     // Shift + Middle mouse for pan
     renderer.domElement.addEventListener('mousedown', (e) => {
         if (e.button === 1) { // Middle mouse
+            e.preventDefault(); // Prevent MMB
             if (e.shiftKey) {
                 controls.mouseButtons.MIDDLE = THREE.MOUSE.PAN;
             } else {
@@ -671,6 +672,11 @@ function onMouseDown(event) {
         return;
     }
     
+    // Ignore middle mouse button for selection
+    if (event.button === 1) {
+        return;
+    }
+    
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -1004,10 +1010,37 @@ function onWindowResize() {
 }
 
 function onKeyDown(event) {
+    // Ignore if typing in an input field
+    if (document.activeElement.tagName === 'INPUT') {
+        return;
+    }
+    
     // F key - Focus on selected object
     if (event.key === 'f' || event.key === 'F') {
         if (selectedObject) {
             focusOnObject(selectedObject);
+        }
+    }
+    
+    // R
+    if (event.key === 'r' || event.key === 'R') {
+        setMode('rotate');
+    }
+    
+    // S
+    if (event.key === 's' || event.key === 'S') {
+        setMode('scale');
+    }
+    
+    // T
+    if (event.key === 't' || event.key === 'T') {
+        setMode('translate');
+    }
+    
+    // Delete
+    if (event.key === 'Delete' || event.key === 'Del') {
+        if (selectedObject) {
+            deleteSelectedObject();
         }
     }
 }
@@ -1023,6 +1056,31 @@ function focusOnObject(object) {
     
     camera.position.copy(targetPosition).sub(direction.multiplyScalar(distance));
     controls.update();
+}
+
+function deleteSelectedObject() {
+    if (!selectedObject) return;
+    
+    // Remove from scene
+    scene.remove(selectedObject);
+    
+    // Dispose geometry and material
+    if (selectedObject.geometry) {
+        selectedObject.geometry.dispose();
+    }
+    if (selectedObject.material) {
+        selectedObject.material.dispose();
+    }
+    
+    // Remove from objects array
+    const index = objects.indexOf(selectedObject);
+    if (index > -1) {
+        objects.splice(index, 1);
+    }
+    
+    // Clear selection
+    selectedObject = null;
+    updateGizmo();
 }
 
 function resetCamera() {
@@ -1069,6 +1127,77 @@ document.getElementById('toolbar').addEventListener('contextmenu', (e) => {
 document.getElementById('close-instructions').addEventListener('click', () => {
     document.getElementById('instructions').classList.add('hidden');
 });
+
+// Reset buttons
+document.querySelectorAll('.reset-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const resetTarget = btn.dataset.reset;
+        
+        if (!selectedObject) return;
+        
+        isUpdatingInputs = true;
+        
+        // Position resets
+        if (resetTarget === 'pos-x') {
+            selectedObject.position.x = 0;
+            posXInput.value = '0.00';
+        } else if (resetTarget === 'pos-y') {
+            selectedObject.position.y = 0;
+            posYInput.value = '0.00';
+        } else if (resetTarget === 'pos-z') {
+            selectedObject.position.z = 0;
+            posZInput.value = '0.00';
+        }
+        
+        // Rotation resets
+        else if (resetTarget === 'rot-x') {
+            worldRotationX = 0;
+            rotXInput.value = '0.00';
+            applyWorldRotations();
+        } else if (resetTarget === 'rot-y') {
+            worldRotationY = 0;
+            rotYInput.value = '0.00';
+            applyWorldRotations();
+        } else if (resetTarget === 'rot-z') {
+            worldRotationZ = 0;
+            rotZInput.value = '0.00';
+            applyWorldRotations();
+        }
+        
+        // Scale resets
+        else if (resetTarget === 'scale-x') {
+            selectedObject.scale.x = 1;
+            scaleXInput.value = '1.00';
+        } else if (resetTarget === 'scale-y') {
+            selectedObject.scale.y = 1;
+            scaleYInput.value = '1.00';
+        } else if (resetTarget === 'scale-z') {
+            selectedObject.scale.z = 1;
+            scaleZInput.value = '1.00';
+        }
+        
+        if (gizmo) {
+            gizmo.position.copy(selectedObject.position);
+        }
+        
+        setTimeout(() => {
+            isUpdatingInputs = false;
+        }, 50);
+    });
+});
+
+function applyWorldRotations() {
+    if (!selectedObject) return;
+    
+    selectedObject.quaternion.identity();
+    
+    const quatX = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), worldRotationX);
+    const quatY = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), worldRotationY);
+    const quatZ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), worldRotationZ);
+    
+    selectedObject.quaternion.multiply(quatX).multiply(quatY).multiply(quatZ);
+}
 
 // Color picker functions
 function initColorPicker() {

@@ -197,6 +197,26 @@ button {
     opacity: 1;
 }
 
+.reset-btn {
+    padding: 4px 8px;
+    margin-left: 5px;
+    background: #1a1a2e;
+    border: 1px solid #444;
+    border-radius: 50%;
+    color: #10b981;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 28px;
+}
+
+.reset-btn:hover {
+    background: #252540;
+    border-color: #10b981;
+    color: #14d89a;
+    transform: rotate(-180deg);
+}
+
 /* Color Picker Styles */
 .panel-header.collapsible {
     cursor: pointer;

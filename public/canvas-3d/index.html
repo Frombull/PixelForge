@@ -78,7 +78,10 @@
       - Rodar câmera: Botão do meio / Botão direito<br>
       - Pan: Shift + Botão do meio<br>
       - Zoom: Mouse scroll<br>
-      - Focar objeto: F (com objeto selecionado)
+      - Focar objeto: F (com objeto selecionado)<br>
+      <strong>Keybinds</strong>
+      - T: Modo Translate | R: Modo Rotate | S: Modo Scale<br>
+      - DEL: Deletar objeto selecionado
   </div>
 
   <div id="position-panel" style="display: none;">
@@ -86,42 +89,51 @@
       <div class="input-group">
           <label>X:</label>
           <input type="number" id="pos-x" step="0.1">
+          <button class="reset-btn" data-reset="pos-x" title="Reset X">↺</button>
       </div>
       <div class="input-group">
           <label>Y:</label>
           <input type="number" id="pos-y" step="0.1">
+          <button class="reset-btn" data-reset="pos-y" title="Reset Y">↺</button>
       </div>
       <div class="input-group">
           <label>Z:</label>
           <input type="number" id="pos-z" step="0.1">
+          <button class="reset-btn" data-reset="pos-z" title="Reset Z">↺</button>
       </div>
       
       <div class="panel-header" style="margin-top: 15px;">Rotação (graus)</div>
       <div class="input-group">
           <label>X:</label>
           <input type="number" id="rot-x" step="1">
+          <button class="reset-btn" data-reset="rot-x" title="Reset X">↺</button>
       </div>
       <div class="input-group">
           <label>Y:</label>
           <input type="number" id="rot-y" step="1">
+          <button class="reset-btn" data-reset="rot-y" title="Reset Y">↺</button>
       </div>
       <div class="input-group">
           <label>Z:</label>
           <input type="number" id="rot-z" step="1">
+          <button class="reset-btn" data-reset="rot-z" title="Reset Z">↺</button>
       </div>
       
       <div class="panel-header" style="margin-top: 15px;">Escala</div>
       <div class="input-group">
           <label>X:</label>
           <input type="number" id="scale-x" step="0.1" min="0.1">
+          <button class="reset-btn" data-reset="scale-x" title="Reset X">↺</button>
       </div>
       <div class="input-group">
           <label>Y:</label>
           <input type="number" id="scale-y" step="0.1" min="0.1">
+          <button class="reset-btn" data-reset="scale-y" title="Reset Y">↺</button>
       </div>
       <div class="input-group">
           <label>Z:</label>
           <input type="number" id="scale-z" step="0.1" min="0.1">
+          <button class="reset-btn" data-reset="scale-z" title="Reset Z">↺</button>
       </div>
 
       <div class="panel-header collapsible" id="color-header" style="margin-top: 15px;">

@@ -110,11 +110,11 @@ function init() {
     
     // Second renderer for culling visualization
     secondRenderer = new THREE.WebGLRenderer({ antialias: true });
-    secondRenderer.setSize(500, 400);
+    secondRenderer.setSize(800, 400);
     secondRenderer.domElement.style.position = 'fixed';
     secondRenderer.domElement.style.bottom = '12px';
     secondRenderer.domElement.style.right = '12px';
-    secondRenderer.domElement.style.border = '2px solid #8b5cf6';
+    secondRenderer.domElement.style.border = '1px solid #8b5cf6';
     secondRenderer.domElement.style.borderRadius = '4px';
     secondRenderer.domElement.style.display = 'none';
     secondRenderer.domElement.style.zIndex = '999';

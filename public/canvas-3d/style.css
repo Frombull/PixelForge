@@ -477,20 +477,3 @@ button {
     min-width: 24px;
     height: 24px;
 }
-
-/* Second Viewport Styles */
-#second-viewport {
-    position: fixed;
-    bottom: 12px;
-    right: 12px;
-    border: 2px solid #8b5cf6;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
-    z-index: 999;
-    background: #1a1625;
-}
-
-#second-viewport canvas {
-    display: block;
-    border-radius: 2px;
-}

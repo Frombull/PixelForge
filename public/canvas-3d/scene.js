@@ -12,6 +12,10 @@ let gridSize = 0.5;
 let isPerspective = true;
 let perspectiveCamera, orthographicCamera;
 
+// Second viewport
+let secondCamera, secondRenderer;
+let showSecondViewport = false;
+
 // Skew values for each object
 let skewValues = new Map();
 
@@ -93,6 +97,28 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight - 44);
     container.appendChild(renderer.domElement);
+    
+    // Second camera for culling visualization
+    secondCamera = new THREE.PerspectiveCamera(
+        70,
+        1, // Updated based on viewport size
+        0.01,
+        100
+    );
+    secondCamera.position.set(6, 6, 6);
+    secondCamera.lookAt(0, 0, 0);
+    
+    // Second renderer for culling visualization
+    secondRenderer = new THREE.WebGLRenderer({ antialias: true });
+    secondRenderer.setSize(500, 400);
+    secondRenderer.domElement.style.position = 'fixed';
+    secondRenderer.domElement.style.bottom = '12px';
+    secondRenderer.domElement.style.right = '12px';
+    secondRenderer.domElement.style.border = '2px solid #8b5cf6';
+    secondRenderer.domElement.style.borderRadius = '4px';
+    secondRenderer.domElement.style.display = 'none';
+    secondRenderer.domElement.style.zIndex = '999';
+    container.appendChild(secondRenderer.domElement);
     
     // Lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -250,6 +276,28 @@ function animate() {
     }
     
     renderer.render(scene, camera);
+    
+    // Render second viewport if enabled
+    if (showSecondViewport) {
+        // Create a helper to visualize the main camera frustum
+        updateCameraHelper();
+        secondRenderer.render(scene, secondCamera);
+    }
+}
+
+let cameraHelper = null;
+
+function updateCameraHelper() {
+    // Remove old helper
+    if (cameraHelper) {
+        scene.remove(cameraHelper);
+    }
+    
+    // Create new helper for the main camera
+    cameraHelper = new THREE.CameraHelper(camera);
+    cameraHelper.material.linewidth = 2;
+    scene.add(cameraHelper);
+    cameraHelper.update();
 }
 
 function addCube() {
@@ -1368,6 +1416,32 @@ function onWindowResize() {
     }
     
     renderer.setSize(window.innerWidth, window.innerHeight - 44);
+    
+    // Update second camera aspect ratio
+    secondCamera.aspect = 1;
+    secondCamera.updateProjectionMatrix();
+}
+
+function toggleSecondViewport() {
+    showSecondViewport = !showSecondViewport;
+    
+    if (showSecondViewport) {
+        secondRenderer.domElement.style.display = 'block';
+    } else {
+        secondRenderer.domElement.style.display = 'none';
+        
+        // Remove camera helper when viewport is hidden
+        if (cameraHelper) {
+            scene.remove(cameraHelper);
+            cameraHelper = null;
+        }
+    }
+    
+    // Update button state
+    const btn = document.getElementById('btn-toggle-culling');
+    if (btn) {
+        btn.classList.toggle('active', showSecondViewport);
+    }
 }
 
 function toggleCameraType() {
@@ -1542,6 +1616,10 @@ document.getElementById('btn-reset-camera').addEventListener('click', () => {
 
 document.getElementById('btn-toggle-camera').addEventListener('click', () => {
     toggleCameraType();
+});
+
+document.getElementById('btn-toggle-culling').addEventListener('click', () => {
+    toggleSecondViewport();
 });
 
 // Disable right-click context menu on toolbar

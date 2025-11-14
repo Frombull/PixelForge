@@ -9,6 +9,8 @@ let currentMode = 'translate';
 let gridHelper = null;
 let snapToGrid = false;
 let gridSize = 0.5;
+let isPerspective = true;
+let perspectiveCamera, orthographicCamera;
 
 let isDragging = false;
 let dragAxis = null;
@@ -43,6 +45,7 @@ let isUpdatingColor = false;
 
 // Hover state
 let hoveredGizmo = null;
+let hoveredObject = null;
 
 // Raycaster
 const raycaster = new THREE.Raycaster();
@@ -55,19 +58,36 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
     
-    // Camera
-    camera = new THREE.PerspectiveCamera(
+    // Cameras
+    const aspect = window.innerWidth / (window.innerHeight - 44);
+    
+    perspectiveCamera = new THREE.PerspectiveCamera(
         70,
-        window.innerWidth / (window.innerHeight - 60),
-        0.1,
-        1000
+        aspect,
+        0.01,
+        100
     );
-    camera.position.set(3, 3, 3);
-    camera.lookAt(0, 0, 0);
+    perspectiveCamera.position.set(3, 3, 3);
+    perspectiveCamera.lookAt(0, 0, 0);
+    
+    const frustumSize = 5;
+    orthographicCamera = new THREE.OrthographicCamera(
+        frustumSize * aspect / -2,
+        frustumSize * aspect / 2,
+        frustumSize / 2,
+        frustumSize / -2,
+        0.01,
+        100
+    );
+    orthographicCamera.position.set(3, 3, 3);
+    orthographicCamera.lookAt(0, 0, 0);
+    
+    // Set initial camera
+    camera = perspectiveCamera;
     
     // Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight - 60);
+    renderer.setSize(window.innerWidth, window.innerHeight - 44);
     container.appendChild(renderer.domElement);
     
     // Lights
@@ -92,7 +112,7 @@ function init() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
     controls.screenSpacePanning = false;
-    controls.minDistance = 2;
+    controls.minDistance = 1;
     controls.maxDistance = 10;
     
     controls.mouseButtons = {
@@ -105,6 +125,10 @@ function init() {
     controls.enablePan = true;
     controls.panSpeed = 1.0;
     controls.keyPanSpeed = 7.0;
+
+    // Orthographic camera zoom
+    controls.maxZoom = 2;
+    controls.minZoom = 0.8;
     
     // Position panel
     positionPanel = document.getElementById('position-panel');
@@ -196,6 +220,7 @@ function animate() {
     // Check for gizmo hover
     if (!isDragging) {
         checkGizmoHover();
+        checkObjectHover();
     }
     
     renderer.render(scene, camera);
@@ -719,6 +744,12 @@ function onMouseDown(event) {
     if (intersects.length > 0) {
         selectedObject = intersects[0].object;
         
+        // Remove highlight from newly selected object
+        if (hoveredObject === selectedObject) {
+            removeObjectHighlight(hoveredObject);
+            hoveredObject = null;
+        }
+        
         // Reset world rotation tracking for newly selected object
         worldRotationX = 0;
         worldRotationY = 0;
@@ -1001,6 +1032,72 @@ function resetGizmoScale(gizmoObject) {
     }
 }
 
+function checkObjectHover() {
+    // Don't check object hover if we're hovering over a gizmo
+    if (hoveredGizmo) {
+        if (hoveredObject) {
+            removeObjectHighlight(hoveredObject);
+            hoveredObject = null;
+        }
+        return;
+    }
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(objects);
+    
+    if (intersects.length > 0) {
+        const object = intersects[0].object;
+        
+        // New hover
+        if (hoveredObject !== object) {
+            // Reset previous
+            if (hoveredObject) {
+                removeObjectHighlight(hoveredObject);
+            }
+            
+            // Set new hover
+            hoveredObject = object;
+            addObjectHighlight(hoveredObject);
+        }
+    } else {
+        // No hover
+        if (hoveredObject) {
+            removeObjectHighlight(hoveredObject);
+            hoveredObject = null;
+        }
+    }
+}
+
+function addObjectHighlight(object) {
+    // Don't highlight if it's the selected object
+    if (object === selectedObject) return;
+    
+    // Create outline mesh silhouette
+    if (!object.userData.outlineMesh) {
+        const outlineMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffa500,
+            side: THREE.BackSide,
+            transparent: true,
+            opacity: 1
+        });
+        
+        const outlineMesh = new THREE.Mesh(object.geometry, outlineMaterial);
+        outlineMesh.scale.multiplyScalar(1.02);
+        outlineMesh.renderOrder = 0;
+        
+        object.add(outlineMesh);
+        object.userData.outlineMesh = outlineMesh;
+    }
+}
+
+function removeObjectHighlight(object) {
+    if (object.userData.outlineMesh) {
+        object.remove(object.userData.outlineMesh);
+        object.userData.outlineMesh.material.dispose();
+        object.userData.outlineMesh = null;
+    }
+}
+
 function onMouseUp() {
     isDragging = false;
     dragAxis = null;
@@ -1022,9 +1119,54 @@ function onMouseUp() {
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / (window.innerHeight - 60);
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight - 60);
+    const aspect = window.innerWidth / (window.innerHeight - 44);
+    
+    if (isPerspective) {
+        perspectiveCamera.aspect = aspect;
+        perspectiveCamera.updateProjectionMatrix();
+    } else {
+        const frustumSize = 5;
+        orthographicCamera.left = frustumSize * aspect / -2;
+        orthographicCamera.right = frustumSize * aspect / 2;
+        orthographicCamera.top = frustumSize / 2;
+        orthographicCamera.bottom = frustumSize / -2;
+        orthographicCamera.updateProjectionMatrix();
+    }
+    
+    renderer.setSize(window.innerWidth, window.innerHeight - 44);
+}
+
+function toggleCameraType() {
+    isPerspective = !isPerspective;
+    
+    // Store current camera state
+    const currentPosition = camera.position.clone();
+    const currentTarget = controls.target.clone();
+    
+    // Switch camera
+    if (isPerspective) {
+        camera = perspectiveCamera;
+    } else {
+        camera = orthographicCamera;
+    }
+    
+    // Restore position and target
+    camera.position.copy(currentPosition);
+    camera.lookAt(currentTarget);
+    
+    // Update controls
+    controls.object = camera;
+    controls.target.copy(currentTarget);
+    controls.update();
+    
+    // Update button state
+    const btn = document.getElementById('btn-toggle-camera');
+    if (btn) {
+        btn.classList.toggle('active', !isPerspective);
+    }
+    
+    // Trigger resize to update projection
+    onWindowResize();
 }
 
 function onKeyDown(event) {
@@ -1079,6 +1221,12 @@ function focusOnObject(object) {
 function deleteSelectedObject() {
     if (!selectedObject) return;
     
+    // Remove highlight if this was the hovered object
+    if (hoveredObject === selectedObject) {
+        removeObjectHighlight(hoveredObject);
+        hoveredObject = null;
+    }
+    
     // Remove from scene
     scene.remove(selectedObject);
     
@@ -1103,6 +1251,7 @@ function deleteSelectedObject() {
 
 function resetCamera() {
     camera.position.set(3, 3, 3);
+    camera.lookAt(0, 0, 0);
     controls.target.set(0, 0, 0);
     controls.update();
 }
@@ -1136,6 +1285,10 @@ document.getElementById('btn-reset-camera').addEventListener('click', () => {
     resetCamera();
 });
 
+document.getElementById('btn-toggle-camera').addEventListener('click', () => {
+    toggleCameraType();
+});
+
 // Disable right-click context menu on toolbar
 document.getElementById('toolbar').addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -1155,6 +1308,10 @@ const snapSizeInput = document.getElementById('snap-size');
 const snapSizeItem = document.querySelector('.snap-size-item');
 const bgColorInput = document.getElementById('bg-color');
 const gridColorInput = document.getElementById('grid-color');
+const nearClipInput = document.getElementById('near-clip');
+const nearClipValue = document.getElementById('near-clip-value');
+const farClipInput = document.getElementById('far-clip');
+const farClipValue = document.getElementById('far-clip-value');
 
 // Toggle settings menu
 settingsBtn.addEventListener('click', (e) => {
@@ -1228,11 +1385,65 @@ gridColorInput.addEventListener('input', (e) => {
     }
 });
 
+// Change near clip plane (slider)
+nearClipInput.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value > 0 && value < camera.far) {
+        perspectiveCamera.near = value;
+        orthographicCamera.near = value;
+        perspectiveCamera.updateProjectionMatrix();
+        orthographicCamera.updateProjectionMatrix();
+        nearClipValue.textContent = value.toFixed(2);
+    }
+});
+
+// Change far clip plane (slider)
+farClipInput.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    if (value > camera.near) {
+        perspectiveCamera.far = value;
+        orthographicCamera.far = value;
+        perspectiveCamera.updateProjectionMatrix();
+        orthographicCamera.updateProjectionMatrix();
+        farClipValue.textContent = value;
+    }
+});
+
+// Default values for reset
+const defaultValues = {
+    nearClip: 0.01,
+    farClip: 100,
+    snapSize: 0.5
+};
+
 // Reset buttons
 document.querySelectorAll('.reset-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         const resetTarget = btn.dataset.reset;
+        
+        // Settings menu resets
+        if (resetTarget === 'near-clip') {
+            perspectiveCamera.near = defaultValues.nearClip;
+            orthographicCamera.near = defaultValues.nearClip;
+            perspectiveCamera.updateProjectionMatrix();
+            orthographicCamera.updateProjectionMatrix();
+            nearClipInput.value = defaultValues.nearClip;
+            nearClipValue.textContent = defaultValues.nearClip.toFixed(2);
+            return;
+        } else if (resetTarget === 'far-clip') {
+            perspectiveCamera.far = defaultValues.farClip;
+            orthographicCamera.far = defaultValues.farClip;
+            perspectiveCamera.updateProjectionMatrix();
+            orthographicCamera.updateProjectionMatrix();
+            farClipInput.value = defaultValues.farClip;
+            farClipValue.textContent = defaultValues.farClip;
+            return;
+        } else if (resetTarget === 'snap-size') {
+            gridSize = defaultValues.snapSize;
+            snapSizeInput.value = defaultValues.snapSize;
+            return;
+        }
         
         if (!selectedObject) return;
         
@@ -1318,6 +1529,7 @@ function initColorPicker() {
         color: '#ffffff',
         borderWidth: 1,
         borderColor: '#444',
+        padding: 0,
         layout: [
             {
                 component: iro.ui.Box,

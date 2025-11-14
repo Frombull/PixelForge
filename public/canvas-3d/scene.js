@@ -12,6 +12,9 @@ let gridSize = 0.5;
 let isPerspective = true;
 let perspectiveCamera, orthographicCamera;
 
+// Skew values for each object
+let skewValues = new Map();
+
 let isDragging = false;
 let dragAxis = null;
 let dragPlane = null;
@@ -32,6 +35,7 @@ let positionPanel;
 let posXInput, posYInput, posZInput;
 let scaleXInput, scaleYInput, scaleZInput;
 let rotXInput, rotYInput, rotZInput;
+let skewXYInput, skewXZInput, skewYXInput, skewYZInput, skewZXInput, skewZYInput;
 let isUpdatingInputs = false;
 
 // Color picker elements
@@ -141,6 +145,12 @@ function init() {
     rotXInput = document.getElementById('rot-x');
     rotYInput = document.getElementById('rot-y');
     rotZInput = document.getElementById('rot-z');
+    skewXYInput = document.getElementById('skew-xy');
+    skewXZInput = document.getElementById('skew-xz');
+    skewYXInput = document.getElementById('skew-yx');
+    skewYZInput = document.getElementById('skew-yz');
+    skewZXInput = document.getElementById('skew-zx');
+    skewZYInput = document.getElementById('skew-zy');
     
     // Color picker initialization
     initColorPicker();
@@ -181,6 +191,22 @@ function init() {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 onRotationInputChange();
+            }
+        });
+    });
+    
+    // Skew input listeners
+    skewXYInput.addEventListener('change', onSkewInputChange);
+    skewXZInput.addEventListener('change', onSkewInputChange);
+    skewYXInput.addEventListener('change', onSkewInputChange);
+    skewYZInput.addEventListener('change', onSkewInputChange);
+    skewZXInput.addEventListener('change', onSkewInputChange);
+    skewZYInput.addEventListener('change', onSkewInputChange);
+    
+    [skewXYInput, skewXZInput, skewYXInput, skewYZInput, skewZXInput, skewZYInput].forEach(input => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                onSkewInputChange();
             }
         });
     });
@@ -237,6 +263,9 @@ function addCube() {
     mesh.position.set(0.5, 0.5, 0.5);
     scene.add(mesh);
     objects.push(mesh);
+    
+    // Initialize skew values for this object
+    skewValues.set(mesh, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
 }
 
 function addCylinder() {
@@ -250,6 +279,9 @@ function addCylinder() {
     mesh.position.set(1.5, 0.5, 1.5);
     scene.add(mesh);
     objects.push(mesh);
+    
+    // Initialize skew values for this object
+    skewValues.set(mesh, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
 }
 
 function addZFightingDemo() {
@@ -266,6 +298,7 @@ function addZFightingDemo() {
     mesh1.position.copy(position);
     scene.add(mesh1);
     objects.push(mesh1);
+    skewValues.set(mesh1, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
     
     // Second cube blue
     const geometry2 = new THREE.BoxGeometry(1, 1, 1);
@@ -278,6 +311,11 @@ function addZFightingDemo() {
     mesh2.position.copy(position);
     scene.add(mesh2);
     objects.push(mesh2);
+    skewValues.set(mesh2, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
+}
+
+function addSkewDemo() {
+    return;
 }
 
 // Translate gizmos
@@ -571,6 +609,110 @@ function createScaleGizmo(position) {
     return gizmoGroup;
 }
 
+// Skew gizmo
+function createSkewGizmo(position) {
+    const gizmoGroup = new THREE.Group();
+    gizmoGroup.position.copy(position);
+    
+    const lineLength = 1.5;
+    const lineRadius = 0.03;
+    const diamondSize = 0.12;
+    
+    // Helper function to create a diamond shape
+    function createDiamond(material) {
+        const geometry = new THREE.OctahedronGeometry(diamondSize, 0);
+        return new THREE.Mesh(geometry, material);
+    }
+    
+    // XY skew (X affected by Y) - Red/Green
+    const xyGroup = new THREE.Group();
+    xyGroup.userData.axis = 'xy';
+    xyGroup.userData.isGizmo = true;
+    
+    const xyMat = new THREE.MeshBasicMaterial({ 
+        color: 0xffff00,
+        depthTest: false,
+        depthWrite: false
+    });
+    const xyLine = new THREE.Mesh(
+        new THREE.CylinderGeometry(lineRadius, lineRadius, lineLength, 8),
+        xyMat
+    );
+    xyLine.rotation.z = -Math.PI / 4;
+    xyLine.position.set(lineLength / 2 * Math.cos(-Math.PI / 4), lineLength / 2 * Math.sin(-Math.PI / 4), 0);
+    xyLine.userData.axis = 'xy';
+    xyLine.userData.isGizmo = true;
+    xyLine.renderOrder = 999;
+    
+    const xyDiamond = createDiamond(xyMat);
+    xyDiamond.position.set(lineLength * Math.cos(-Math.PI / 4), lineLength * Math.sin(-Math.PI / 4), 0);
+    xyDiamond.userData.axis = 'xy';
+    xyDiamond.userData.isGizmo = true;
+    xyDiamond.renderOrder = 999;
+    
+    xyGroup.add(xyLine, xyDiamond);
+    
+    // XZ skew (X affected by Z) - Red/Blue
+    const xzGroup = new THREE.Group();
+    xzGroup.userData.axis = 'xz';
+    xzGroup.userData.isGizmo = true;
+    
+    const xzMat = new THREE.MeshBasicMaterial({ 
+        color: 0xff00ff,
+        depthTest: false,
+        depthWrite: false
+    });
+    const xzLine = new THREE.Mesh(
+        new THREE.CylinderGeometry(lineRadius, lineRadius, lineLength, 8),
+        xzMat
+    );
+    xzLine.rotation.y = Math.PI / 4;
+    xzLine.rotation.z = -Math.PI / 2;
+    xzLine.position.set(lineLength / 2 * Math.cos(Math.PI / 4), 0, lineLength / 2 * Math.sin(Math.PI / 4));
+    xzLine.userData.axis = 'xz';
+    xzLine.userData.isGizmo = true;
+    xzLine.renderOrder = 999;
+    
+    const xzDiamond = createDiamond(xzMat);
+    xzDiamond.position.set(lineLength * Math.cos(Math.PI / 4), 0, lineLength * Math.sin(Math.PI / 4));
+    xzDiamond.userData.axis = 'xz';
+    xzDiamond.userData.isGizmo = true;
+    xzDiamond.renderOrder = 999;
+    
+    xzGroup.add(xzLine, xzDiamond);
+    
+    // YZ skew (Y affected by Z) - Green/Blue
+    const yzGroup = new THREE.Group();
+    yzGroup.userData.axis = 'yz';
+    yzGroup.userData.isGizmo = true;
+    
+    const yzMat = new THREE.MeshBasicMaterial({ 
+        color: 0x00ffff,
+        depthTest: false,
+        depthWrite: false
+    });
+    const yzLine = new THREE.Mesh(
+        new THREE.CylinderGeometry(lineRadius, lineRadius, lineLength, 8),
+        yzMat
+    );
+    yzLine.rotation.x = Math.PI / 4;
+    yzLine.position.set(0, lineLength / 2 * Math.cos(Math.PI / 4), lineLength / 2 * Math.sin(Math.PI / 4));
+    yzLine.userData.axis = 'yz';
+    yzLine.userData.isGizmo = true;
+    yzLine.renderOrder = 999;
+    
+    const yzDiamond = createDiamond(yzMat);
+    yzDiamond.position.set(0, lineLength * Math.cos(Math.PI / 4), lineLength * Math.sin(Math.PI / 4));
+    yzDiamond.userData.axis = 'yz';
+    yzDiamond.userData.isGizmo = true;
+    yzDiamond.renderOrder = 999;
+    
+    yzGroup.add(yzLine, yzDiamond);
+    
+    gizmoGroup.add(xyGroup, xzGroup, yzGroup);
+    return gizmoGroup;
+}
+
 function updateGizmo() {
     if (gizmo) {
         scene.remove(gizmo);
@@ -584,6 +726,8 @@ function updateGizmo() {
             gizmo = createScaleGizmo(selectedObject.position);
         } else if (currentMode === 'rotate') {
             gizmo = createRotateGizmo(selectedObject.position);
+        } else if (currentMode === 'skew') {
+            gizmo = createSkewGizmo(selectedObject.position);
         }
         scene.add(gizmo);
         
@@ -612,6 +756,15 @@ function updatePositionPanel() {
     rotXInput.value = (worldRotationX * 180 / Math.PI).toFixed(2);
     rotYInput.value = (worldRotationY * 180 / Math.PI).toFixed(2);
     rotZInput.value = (worldRotationZ * 180 / Math.PI).toFixed(2);
+    
+    // Display skew values
+    const skew = skewValues.get(selectedObject) || { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 };
+    skewXYInput.value = skew.xy.toFixed(2);
+    skewXZInput.value = skew.xz.toFixed(2);
+    skewYXInput.value = skew.yx.toFixed(2);
+    skewYZInput.value = skew.yz.toFixed(2);
+    skewZXInput.value = skew.zx.toFixed(2);
+    skewZYInput.value = skew.zy.toFixed(2);
 }
 
 function onPositionInputChange() {
@@ -689,11 +842,64 @@ function onRotationInputChange() {
     }, 50);
 }
 
+function onSkewInputChange() {
+    if (!selectedObject) return;
+    
+    isUpdatingInputs = true;
+    
+    const skew = {
+        xy: parseFloat(skewXYInput.value) || 0,
+        xz: parseFloat(skewXZInput.value) || 0,
+        yx: parseFloat(skewYXInput.value) || 0,
+        yz: parseFloat(skewYZInput.value) || 0,
+        zx: parseFloat(skewZXInput.value) || 0,
+        zy: parseFloat(skewZYInput.value) || 0
+    };
+    
+    skewValues.set(selectedObject, skew);
+    applySkewToObject(selectedObject);
+    
+    // Reset flag after a delay
+    setTimeout(() => {
+        isUpdatingInputs = false;
+    }, 50);
+}
+
+function applySkewToObject(object) {
+    if (!object) return;
+    
+    const skew = skewValues.get(object);
+    if (!skew) return;
+    
+    // Skew matrix, Matrix format in Three.js is column-major
+    const matrix = new THREE.Matrix4();
+    matrix.set(
+        1,        skew.yx, skew.zx, 0,
+        skew.xy,  1,       skew.zy, 0,
+        skew.xz,  skew.yz, 1,       0,
+        0,        0,       0,       1
+    );
+    
+    // Store original geometry
+    if (!object.userData.originalGeometry) {
+        object.userData.originalGeometry = object.geometry.clone();
+    }
+    
+    // Reset original geometry
+    object.geometry.dispose();
+    object.geometry = object.userData.originalGeometry.clone();
+    
+    // Apply skew to vertices
+    object.geometry.applyMatrix4(matrix);
+    object.geometry.computeVertexNormals();
+}
+
 function setMode(mode) {
     currentMode = mode;
     document.getElementById('btn-translate').classList.toggle('active', mode === 'translate');
     document.getElementById('btn-scale').classList.toggle('active', mode === 'scale');
     document.getElementById('btn-rotate').classList.toggle('active', mode === 'rotate');
+    document.getElementById('btn-skew').classList.toggle('active', mode === 'skew');
     updateGizmo();
 }
 
@@ -773,6 +979,15 @@ function createDragPlane(axis) {
             normal.set(0, 1, 0); // XZ plane
         } else {
             normal.set(0, 0, 1); // XY plane
+        }
+    } else if (currentMode === 'skew') {
+        // For skew, use appropriate plane based on axis combination
+        if (axis === 'xy') {
+            normal.set(0, 0, 1); // XY plane
+        } else if (axis === 'xz') {
+            normal.set(0, 1, 0); // XZ plane
+        } else if (axis === 'yz') {
+            normal.set(1, 0, 0); // YZ plane
         }
     } else {
         // For translate and scale
@@ -908,6 +1123,25 @@ function onMouseMove(event) {
                 // Update world rotation tracking
                 worldRotationZ += rotationAngle;
             }
+        } else if (currentMode === 'skew') {
+            // Calculate skew based on movement
+            const delta = new THREE.Vector3().subVectors(intersection, intersectionStart);
+            
+            const skew = skewValues.get(selectedObject) || { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 };
+            
+            if (dragAxis === 'xy') {
+                // X affected by Y movement
+                skew.xy = delta.y * 0.5;
+            } else if (dragAxis === 'xz') {
+                // X affected by Z movement
+                skew.xz = delta.z * 0.5;
+            } else if (dragAxis === 'yz') {
+                // Y affected by Z movement
+                skew.yz = delta.z * 0.5;
+            }
+            
+            skewValues.set(selectedObject, skew);
+            applySkewToObject(selectedObject);
         }
         
         if (gizmo) {
@@ -1197,6 +1431,11 @@ function onKeyDown(event) {
         setMode('translate');
     }
     
+    // K
+    if (event.key === 'k' || event.key === 'K') {
+        setMode('skew');
+    }
+    
     // Delete
     if (event.key === 'Delete' || event.key === 'Del') {
         if (selectedObject) {
@@ -1238,11 +1477,19 @@ function deleteSelectedObject() {
         selectedObject.material.dispose();
     }
     
+    // Dispose original geometry if exists
+    if (selectedObject.userData.originalGeometry) {
+        selectedObject.userData.originalGeometry.dispose();
+    }
+    
     // Remove from objects array
     const index = objects.indexOf(selectedObject);
     if (index > -1) {
         objects.splice(index, 1);
     }
+    
+    // Remove skew values
+    skewValues.delete(selectedObject);
     
     // Clear selection
     selectedObject = null;
@@ -1269,6 +1516,10 @@ document.getElementById('addZFighting').addEventListener('click', () => {
     addZFightingDemo();
 });
 
+document.getElementById('addSkewDemo').addEventListener('click', () => {
+    addSkewDemo();
+});
+
 document.getElementById('btn-translate').addEventListener('click', () => {
     setMode('translate');
 });
@@ -1279,6 +1530,10 @@ document.getElementById('btn-scale').addEventListener('click', () => {
 
 document.getElementById('btn-rotate').addEventListener('click', () => {
     setMode('rotate');
+});
+
+document.getElementById('btn-skew').addEventListener('click', () => {
+    setMode('skew');
 });
 
 document.getElementById('btn-reset-camera').addEventListener('click', () => {
@@ -1486,6 +1741,51 @@ document.querySelectorAll('.reset-btn').forEach(btn => {
         } else if (resetTarget === 'scale-z') {
             selectedObject.scale.z = 1;
             scaleZInput.value = '1.00';
+        }
+        
+        // Skew resets
+        else if (resetTarget === 'skew-xy') {
+            const skew = skewValues.get(selectedObject);
+            if (skew) {
+                skew.xy = 0;
+                skewXYInput.value = '0.00';
+                applySkewToObject(selectedObject);
+            }
+        } else if (resetTarget === 'skew-xz') {
+            const skew = skewValues.get(selectedObject);
+            if (skew) {
+                skew.xz = 0;
+                skewXZInput.value = '0.00';
+                applySkewToObject(selectedObject);
+            }
+        } else if (resetTarget === 'skew-yx') {
+            const skew = skewValues.get(selectedObject);
+            if (skew) {
+                skew.yx = 0;
+                skewYXInput.value = '0.00';
+                applySkewToObject(selectedObject);
+            }
+        } else if (resetTarget === 'skew-yz') {
+            const skew = skewValues.get(selectedObject);
+            if (skew) {
+                skew.yz = 0;
+                skewYZInput.value = '0.00';
+                applySkewToObject(selectedObject);
+            }
+        } else if (resetTarget === 'skew-zx') {
+            const skew = skewValues.get(selectedObject);
+            if (skew) {
+                skew.zx = 0;
+                skewZXInput.value = '0.00';
+                applySkewToObject(selectedObject);
+            }
+        } else if (resetTarget === 'skew-zy') {
+            const skew = skewValues.get(selectedObject);
+            if (skew) {
+                skew.zy = 0;
+                skewZYInput.value = '0.00';
+                applySkewToObject(selectedObject);
+            }
         }
         
         if (gizmo) {

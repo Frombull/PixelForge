@@ -15,7 +15,7 @@ Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do 
 
 ### Computação Gráfica
 * Canvas 2D
-* Canvas 3D (WIP)
+* Canvas 3D
 * Espectro de Cores RGB em 3D
 
 ### Multimídia
@@ -53,8 +53,8 @@ Pixel Forge é uma aplicação web interativa desenvolvida para a fetin 2025 do 
 
 
 ## ❤️ Agradecimentos
-- Prof. Me. Cysneiros, orientador do projeto
-- Meu grande migorr Vitor Torres, por abandonar seu grupo antigo da Fetin para se juntar ao meu
+- Prof. Me. Marcelo Vinícius Cysneiros Aragão, orientador do projeto
+- Meu migor Torres, por abandonar seu grupo antigo da Fetin para se juntar a mim no meio do semestre
 
 
 ---

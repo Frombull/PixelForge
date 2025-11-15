@@ -1928,21 +1928,30 @@ function initColorPicker() {
         applyColorToObject(color);
     });
     
-    // Collapsible skew section
-    const skewHeader = document.getElementById('skew-header');
-    const skewSection = document.getElementById('skew-section');
+    // Collapsible sections
+    const collapsibleSections = [
+        { header: 'position-header', section: 'position-section' },
+        { header: 'rotation-header', section: 'rotation-section' },
+        { header: 'scale-header', section: 'scale-section' },
+        { header: 'skew-header', section: 'skew-section' }
+    ];
     
-    skewHeader.addEventListener('click', () => {
-        const isExpanded = skewSection.classList.contains('expanded');
-        if (isExpanded) {
-            skewSection.classList.remove('expanded');
-            skewSection.classList.add('collapsed');
-            skewHeader.classList.remove('open');
-        } else {
-            skewSection.classList.remove('collapsed');
-            skewSection.classList.add('expanded');
-            skewHeader.classList.add('open');
-        }
+    collapsibleSections.forEach(({ header, section }) => {
+        const headerEl = document.getElementById(header);
+        const sectionEl = document.getElementById(section);
+        
+        headerEl.addEventListener('click', () => {
+            const isExpanded = sectionEl.classList.contains('expanded');
+            if (isExpanded) {
+                sectionEl.classList.remove('expanded');
+                sectionEl.classList.add('collapsed');
+                headerEl.classList.remove('open');
+            } else {
+                sectionEl.classList.remove('collapsed');
+                sectionEl.classList.add('expanded');
+                headerEl.classList.add('open');
+            }
+        });
     });
     
     // Collapsible color section

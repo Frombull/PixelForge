@@ -172,53 +172,74 @@
         </div>
 
         <div id="position-panel" style="display: none;">
-            <div class="panel-header">Posição</div>
-            <div class="input-group">
-                <label>X:</label>
-                <input type="number" id="pos-x" step="0.1">
-                <button class="reset-btn" data-reset="pos-x" title="Reset X">↺</button>
+            <div class="panel-header collapsible open" id="position-header">
+                <span>Posição</span>
+                <svg class="chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
             </div>
-            <div class="input-group">
-                <label>Y:</label>
-                <input type="number" id="pos-y" step="0.1">
-                <button class="reset-btn" data-reset="pos-y" title="Reset Y">↺</button>
+            <div id="position-section" class="expanded">
+                <div class="input-group">
+                    <label>X:</label>
+                    <input type="number" id="pos-x" step="0.1">
+                    <button class="reset-btn" data-reset="pos-x" title="Reset X">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>Y:</label>
+                    <input type="number" id="pos-y" step="0.1">
+                    <button class="reset-btn" data-reset="pos-y" title="Reset Y">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>Z:</label>
+                    <input type="number" id="pos-z" step="0.1">
+                    <button class="reset-btn" data-reset="pos-z" title="Reset Z">↺</button>
+                </div>
             </div>
-            <div class="input-group">
-                <label>Z:</label>
-                <input type="number" id="pos-z" step="0.1">
-                <button class="reset-btn" data-reset="pos-z" title="Reset Z">↺</button>
+            <div class="panel-header collapsible open" id="rotation-header" style="margin-top: 15px;">
+                <span>Rotação</span>
+                <svg class="chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
             </div>
-            <div class="panel-header" style="margin-top: 15px;">Rotação (graus)</div>
-            <div class="input-group">
-                <label>X:</label>
-                <input type="number" id="rot-x" step="1">
-                <button class="reset-btn" data-reset="rot-x" title="Reset X">↺</button>
+            <div id="rotation-section" class="expanded">
+                <div class="input-group">
+                    <label>X:</label>
+                    <input type="number" id="rot-x" step="1">
+                    <button class="reset-btn" data-reset="rot-x" title="Reset X">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>Y:</label>
+                    <input type="number" id="rot-y" step="1">
+                    <button class="reset-btn" data-reset="rot-y" title="Reset Y">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>Z:</label>
+                    <input type="number" id="rot-z" step="1">
+                    <button class="reset-btn" data-reset="rot-z" title="Reset Z">↺</button>
+                </div>
             </div>
-            <div class="input-group">
-                <label>Y:</label>
-                <input type="number" id="rot-y" step="1">
-                <button class="reset-btn" data-reset="rot-y" title="Reset Y">↺</button>
+            <div class="panel-header collapsible open" id="scale-header" style="margin-top: 15px;">
+                <span>Escala</span>
+                <svg class="chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
             </div>
-            <div class="input-group">
-                <label>Z:</label>
-                <input type="number" id="rot-z" step="1">
-                <button class="reset-btn" data-reset="rot-z" title="Reset Z">↺</button>
-            </div>
-            <div class="panel-header" style="margin-top: 15px;">Escala</div>
-            <div class="input-group">
-                <label>X:</label>
-                <input type="number" id="scale-x" step="0.1" min="0.1">
-                <button class="reset-btn" data-reset="scale-x" title="Reset X">↺</button>
-            </div>
-            <div class="input-group">
-                <label>Y:</label>
-                <input type="number" id="scale-y" step="0.1" min="0.1">
-                <button class="reset-btn" data-reset="scale-y" title="Reset Y">↺</button>
-            </div>
-            <div class="input-group">
-                <label>Z:</label>
-                <input type="number" id="scale-z" step="0.1" min="0.1">
-                <button class="reset-btn" data-reset="scale-z" title="Reset Z">↺</button>
+            <div id="scale-section" class="expanded">
+                <div class="input-group">
+                    <label>X:</label>
+                    <input type="number" id="scale-x" step="0.1" min="0.1">
+                    <button class="reset-btn" data-reset="scale-x" title="Reset X">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>Y:</label>
+                    <input type="number" id="scale-y" step="0.1" min="0.1">
+                    <button class="reset-btn" data-reset="scale-y" title="Reset Y">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>Z:</label>
+                    <input type="number" id="scale-z" step="0.1" min="0.1">
+                    <button class="reset-btn" data-reset="scale-z" title="Reset Z">↺</button>
+                </div>
             </div>
             <div class="panel-header collapsible" id="skew-header" style="margin-top: 15px;">
                 <span>Skew</span>

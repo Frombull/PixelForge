@@ -260,14 +260,32 @@ button {
     max-height: 600px;
 }
 
+#position-section,
+#rotation-section,
+#scale-section,
 #skew-section {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
 }
 
+#position-section.collapsed,
+#rotation-section.collapsed,
+#scale-section.collapsed,
 #skew-section.collapsed {
     max-height: 0;
+}
+
+#position-section.expanded {
+    max-height: 200px;
+}
+
+#rotation-section.expanded {
+    max-height: 200px;
+}
+
+#scale-section.expanded {
+    max-height: 200px;
 }
 
 #skew-section.expanded {

@@ -110,7 +110,7 @@ function init() {
     
     // Second renderer for culling visualization
     secondRenderer = new THREE.WebGLRenderer({ antialias: true });
-    secondRenderer.setSize(800, 400);
+    secondRenderer.setSize(800, 450);
     secondRenderer.domElement.style.position = 'fixed';
     secondRenderer.domElement.style.bottom = '12px';
     secondRenderer.domElement.style.right = '12px';

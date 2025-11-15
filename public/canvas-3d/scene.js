@@ -1928,6 +1928,23 @@ function initColorPicker() {
         applyColorToObject(color);
     });
     
+    // Collapsible skew section
+    const skewHeader = document.getElementById('skew-header');
+    const skewSection = document.getElementById('skew-section');
+    
+    skewHeader.addEventListener('click', () => {
+        const isExpanded = skewSection.classList.contains('expanded');
+        if (isExpanded) {
+            skewSection.classList.remove('expanded');
+            skewSection.classList.add('collapsed');
+            skewHeader.classList.remove('open');
+        } else {
+            skewSection.classList.remove('collapsed');
+            skewSection.classList.add('expanded');
+            skewHeader.classList.add('open');
+        }
+    });
+    
     // Collapsible color section
     const colorHeader = document.getElementById('color-header');
     const colorSection = document.getElementById('color-section');

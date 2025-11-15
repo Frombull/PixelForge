@@ -220,36 +220,43 @@
                 <input type="number" id="scale-z" step="0.1" min="0.1">
                 <button class="reset-btn" data-reset="scale-z" title="Reset Z">↺</button>
             </div>
-            <div class="panel-header" style="margin-top: 15px;">Skew (Cisalhamento)</div>
-            <div class="input-group">
-                <label>XY:</label>
-                <input type="number" id="skew-xy" step="0.1">
-                <button class="reset-btn" data-reset="skew-xy" title="Reset XY">↺</button>
+            <div class="panel-header collapsible" id="skew-header" style="margin-top: 15px;">
+                <span>Skew</span>
+                <svg class="chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
             </div>
-            <div class="input-group">
-                <label>XZ:</label>
-                <input type="number" id="skew-xz" step="0.1">
-                <button class="reset-btn" data-reset="skew-xz" title="Reset XZ">↺</button>
-            </div>
-            <div class="input-group">
-                <label>YX:</label>
-                <input type="number" id="skew-yx" step="0.1">
-                <button class="reset-btn" data-reset="skew-yx" title="Reset YX">↺</button>
-            </div>
-            <div class="input-group">
-                <label>YZ:</label>
-                <input type="number" id="skew-yz" step="0.1">
-                <button class="reset-btn" data-reset="skew-yz" title="Reset YZ">↺</button>
-            </div>
-            <div class="input-group">
-                <label>ZX:</label>
-                <input type="number" id="skew-zx" step="0.1">
-                <button class="reset-btn" data-reset="skew-zx" title="Reset ZX">↺</button>
-            </div>
-            <div class="input-group">
-                <label>ZY:</label>
-                <input type="number" id="skew-zy" step="0.1">
-                <button class="reset-btn" data-reset="skew-zy" title="Reset ZY">↺</button>
+            <div id="skew-section" class="collapsed">
+                <div class="input-group">
+                    <label>XY:</label>
+                    <input type="number" id="skew-xy" step="0.1">
+                    <button class="reset-btn" data-reset="skew-xy" title="Reset XY">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>XZ:</label>
+                    <input type="number" id="skew-xz" step="0.1">
+                    <button class="reset-btn" data-reset="skew-xz" title="Reset XZ">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>YX:</label>
+                    <input type="number" id="skew-yx" step="0.1">
+                    <button class="reset-btn" data-reset="skew-yx" title="Reset YX">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>YZ:</label>
+                    <input type="number" id="skew-yz" step="0.1">
+                    <button class="reset-btn" data-reset="skew-yz" title="Reset YZ">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>ZX:</label>
+                    <input type="number" id="skew-zx" step="0.1">
+                    <button class="reset-btn" data-reset="skew-zx" title="Reset ZX">↺</button>
+                </div>
+                <div class="input-group">
+                    <label>ZY:</label>
+                    <input type="number" id="skew-zy" step="0.1">
+                    <button class="reset-btn" data-reset="skew-zy" title="Reset ZY">↺</button>
+                </div>
             </div>
             <div class="panel-header collapsible" id="color-header" style="margin-top: 15px;">
                 <span>Cor</span>

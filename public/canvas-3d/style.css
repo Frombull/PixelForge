@@ -260,6 +260,20 @@ button {
     max-height: 600px;
 }
 
+#skew-section {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+#skew-section.collapsed {
+    max-height: 0;
+}
+
+#skew-section.expanded {
+    max-height: 400px;
+}
+
 #color-picker-container {
     display: flex;
     justify-content: center;

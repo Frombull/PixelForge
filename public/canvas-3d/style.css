@@ -65,6 +65,14 @@ button {
     background: #d97706;
 }
 
+.btn-subtract {
+    background: #ef4444;
+}
+
+.btn-subtract:hover {
+    background: #dc2626;
+}
+
 .btn-tool {
     background: #3d3550;
     color: #b8b4c8;

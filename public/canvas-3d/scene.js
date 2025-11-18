@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 let scene, camera, renderer, controls;
 let objects = [];
@@ -275,6 +276,13 @@ function animate() {
         checkObjectHover();
     }
     
+    // Update boolean subtraction for all subtract cubes
+    objects.forEach(obj => {
+        if (obj.userData.isSubtractCube) {
+            applyBooleanSubtraction(obj);
+        }
+    });
+    
     renderer.render(scene, camera);
     
     // Render second viewport if enabled
@@ -330,6 +338,125 @@ function addCylinder() {
     
     // Initialize skew values for this object
     skewValues.set(mesh, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
+}
+
+function addSubtractCube() {
+    const geometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xff4444,
+        metalness: 0.3,
+        roughness: 0.7,
+        transparent: true,
+        opacity: 0.2,
+        side: THREE.DoubleSide
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(-0.5, 0.5, -0.5);
+    
+    // Mark as subtract cube
+    mesh.userData.isSubtractCube = true;
+    mesh.userData.subtractedObjects = new Map(); // Store original geometries
+    mesh.userData.lastPosition = mesh.position.clone();
+    mesh.userData.lastRotation = mesh.quaternion.clone();
+    mesh.userData.lastScale = mesh.scale.clone();
+    
+    scene.add(mesh);
+    objects.push(mesh);
+    
+    skewValues.set(mesh, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
+}
+
+function applyBooleanSubtraction(subtractCube) {
+    if (!subtractCube.userData.isSubtractCube) return;
+    
+    // Check if subtract cube has moved/rotated/scaled
+    const hasMoved = !subtractCube.position.equals(subtractCube.userData.lastPosition);
+    const hasRotated = !subtractCube.quaternion.equals(subtractCube.userData.lastRotation);
+    const hasScaled = !subtractCube.scale.equals(subtractCube.userData.lastScale);
+    
+    if (!hasMoved && !hasRotated && !hasScaled) return;
+    
+    // Update last transform
+    subtractCube.userData.lastPosition.copy(subtractCube.position);
+    subtractCube.userData.lastRotation.copy(subtractCube.quaternion);
+    subtractCube.userData.lastScale.copy(subtractCube.scale);
+    
+    // Get bounding box of subtract cube
+    const subtractBox = new THREE.Box3().setFromObject(subtractCube);
+    
+    // Create evaluator for CSG operations
+    const evaluator = new Evaluator();
+    
+    // Check all objects for intersection
+    objects.forEach(obj => {
+        if (obj === subtractCube) return;
+        if (obj.userData.isSubtractCube) return;
+        
+        const objBox = new THREE.Box3().setFromObject(obj);
+        
+        // Check if boxes intersect
+        if (subtractBox.intersectsBox(objBox)) {
+            try {
+                // Store original geometry and transform if not already stored
+                if (!subtractCube.userData.subtractedObjects.has(obj)) {
+                    subtractCube.userData.subtractedObjects.set(obj, {
+                        geometry: obj.geometry.clone(),
+                        position: obj.position.clone(),
+                        rotation: obj.rotation.clone(),
+                        scale: obj.scale.clone()
+                    });
+                }
+                
+                // Get original data
+                const originalData = subtractCube.userData.subtractedObjects.get(obj);
+                
+                // Create brush from target object with original geometry
+                const targetBrush = new Brush(originalData.geometry);
+                targetBrush.position.copy(originalData.position);
+                targetBrush.rotation.copy(originalData.rotation);
+                targetBrush.scale.copy(originalData.scale);
+                targetBrush.quaternion.copy(obj.quaternion);
+                targetBrush.updateMatrixWorld();
+                
+                // Create brush from subtract cube
+                const subtractBrush = new Brush(subtractCube.geometry);
+                subtractBrush.position.copy(subtractCube.position);
+                subtractBrush.rotation.copy(subtractCube.rotation);
+                subtractBrush.scale.copy(subtractCube.scale);
+                subtractBrush.quaternion.copy(subtractCube.quaternion);
+                subtractBrush.updateMatrixWorld();
+                
+                // Perform subtraction
+                const result = evaluator.evaluate(targetBrush, subtractBrush, SUBTRACTION);
+                
+                // Update object geometry
+                if (result && result.geometry) {
+                    obj.geometry.dispose();
+                    obj.geometry = result.geometry;
+                    
+                    // Reset position/rotation/scale since geometry is now in world space
+                    obj.position.set(0, 0, 0);
+                    obj.rotation.set(0, 0, 0);
+                    obj.scale.set(1, 1, 1);
+                    obj.updateMatrixWorld();
+                }
+            } catch (error) {
+                console.warn('Boolean subtraction failed:', error);
+            }
+        } else {
+            // If no longer intersecting, restore original geometry and transform
+            if (subtractCube.userData.subtractedObjects.has(obj)) {
+                const originalData = subtractCube.userData.subtractedObjects.get(obj);
+                obj.geometry.dispose();
+                obj.geometry = originalData.geometry.clone();
+                obj.position.copy(originalData.position);
+                obj.rotation.copy(originalData.rotation);
+                obj.scale.copy(originalData.scale);
+                obj.updateMatrixWorld();
+                subtractCube.userData.subtractedObjects.delete(obj);
+            }
+        }
+    });
 }
 
 function addZFightingDemo() {
@@ -1592,6 +1719,10 @@ document.getElementById('addZFighting').addEventListener('click', () => {
 
 document.getElementById('addSkewDemo').addEventListener('click', () => {
     addSkewDemo();
+});
+
+document.getElementById('addSubtractCube').addEventListener('click', () => {
+    addSubtractCube();
 });
 
 document.getElementById('btn-translate').addEventListener('click', () => {

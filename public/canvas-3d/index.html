@@ -12,19 +12,51 @@
     <body>
         <div id="toolbar">
             <div class="btn-group">
-                <button class="btn-add" id="addCube">
-                    <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    </svg>
-                    Add Cubo
-                </button>
-                <button class="btn-add" id="addCylinder">
-                    <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
-                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                        <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
-                    </svg>
-                    Add Cilindro
-                </button>
+                <div class="dropdown">
+                    <button class="btn-add dropdown-toggle" id="addPrimitiveBtn">
+                        <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" fill="none"></path>
+                        </svg>
+                        Adicionar Primitiva
+                        <svg class="icon-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" id="primitiveMenu">
+                        <button class="dropdown-item" id="addCube">
+                            <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            </svg>
+                            Cubo
+                        </button>
+                        <button class="dropdown-item" id="addCylinder">
+                            <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                            Cilindro
+                        </button>
+                        <button class="dropdown-item" id="addSphere">
+                            <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                            </svg>
+                            Esfera
+                        </button>
+                        <button class="dropdown-item" id="addCone">
+                            <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2 L22 22 L2 22 Z"></path>
+                            </svg>
+                            Cone
+                        </button>
+                        <button class="dropdown-item" id="addTorus">
+                            <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="8"></circle>
+                                <circle cx="12" cy="12" r="4"></circle>
+                            </svg>
+                            Torus
+                        </button>
+                    </div>
+                </div>
                 <button class="btn-add btn-subtract" id="addSubtractCube">
                     <svg class="icon" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -39,19 +71,32 @@
 
 
             <div class="btn-group">
-                <button class="btn-add btn-warning" id="addZFighting">
-                    <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <rect x="7" y="7" width="10" height="10"></rect>
-                    </svg>
-                    Z-Fighting
-                </button>
-                <button class="btn-add btn-warning" id="addSkewDemo">
-                    <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="M4 4 L20 4 L16 20 L0 20 Z"></path>
-                    </svg>
-                    Skew Demo
-                </button>
+                <div class="dropdown">
+                    <button class="btn-add btn-warning dropdown-toggle" id="demoBtn">
+                        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                        </svg>
+                        Demos
+                        <svg class="icon-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" id="demoMenu">
+                        <button class="dropdown-item" id="addZFighting">
+                            <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <rect x="7" y="7" width="10" height="10"></rect>
+                            </svg>
+                            Z-Fighting
+                        </button>
+                        <button class="dropdown-item" id="addSkewDemo">
+                            <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 4 L20 4 L16 20 L0 20 Z"></path>
+                            </svg>
+                            Skew Demo
+                        </button>
+                    </div>
+                </div>
             </div>
 
 

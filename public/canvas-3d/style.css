@@ -29,6 +29,76 @@ body {
     gap: 4px;
 }
 
+/* Dropdown Styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.icon-chevron {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.2s;
+}
+
+.dropdown.open .icon-chevron {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: rgba(42, 36, 56, 0.98);
+    border: 1px solid #3d3550;
+    border-radius: 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    min-width: 180px;
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    padding: 4px 0;
+}
+
+.dropdown.open .dropdown-menu {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    color: #d4d1e0;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.dropdown-item:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.dropdown-item .icon {
+    width: 18px;
+    height: 18px;
+}
+
 .divider {
     width: 1px;
     height: 24px;
@@ -63,6 +133,14 @@ button {
 
 .btn-warning:hover {
     background: #d97706;
+}
+
+.btn-subtract {
+    background: #ef4444;
+}
+
+.btn-subtract:hover {
+    background: #dc2626;
 }
 
 .btn-tool {
@@ -258,6 +336,38 @@ button {
 
 #color-section.expanded {
     max-height: 600px;
+}
+
+#position-section,
+#rotation-section,
+#scale-section,
+#skew-section {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+#position-section.collapsed,
+#rotation-section.collapsed,
+#scale-section.collapsed,
+#skew-section.collapsed {
+    max-height: 0;
+}
+
+#position-section.expanded {
+    max-height: 200px;
+}
+
+#rotation-section.expanded {
+    max-height: 200px;
+}
+
+#scale-section.expanded {
+    max-height: 200px;
+}
+
+#skew-section.expanded {
+    max-height: 400px;
 }
 
 #color-picker-container {

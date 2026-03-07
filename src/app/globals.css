@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
-/* Reset básico - pode manter ou usar @tailwind base */
-
-/* Body customizations - MANTER (Tailwind não sobrescreve tudo) */
+/* Body customizations */
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.6;
@@ -10,7 +8,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth scrolling - MANTER (útil para navegação) */
+/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
@@ -30,7 +28,7 @@ video {
   height: auto;
 }
 
-/* Custom scrollbar - MANTER (visual customizado) */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -48,13 +46,13 @@ video {
   background: linear-gradient(135deg, #5a67d8, #6b46c1);
 }
 
-/* Selection styles - MANTER (melhora UX) */
+/* Selection styles */
 ::selection {
   background: rgba(102, 126, 234, 0.3);
   color: white;
 }
 
-/* Custom animations - MANTER (não existem no Tailwind) */
+/* Custom animations */
 @keyframes gradientShift {
   0%,
   100% {
@@ -138,7 +136,7 @@ video {
   }
 }
 
-/* Custom utility classes - MANTER */
+/* Custom utility classes */
 .animate-gradient-shift {
   animation: gradientShift 20s ease infinite;
 }
@@ -170,7 +168,6 @@ video {
   scrollbar-width: none;
 }
 
-/* Respeita preferências de movimento reduzido */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

@@ -20,9 +20,9 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 ${scrolled
-          ? "bg-black/80 backdrop-blur-md border-b border-white/10"
-          : "bg-transparent"
+      className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 border-b ${scrolled
+          ? "bg-black/80 backdrop-blur-md border-white/10"
+          : "bg-transparent border-transparent"
         }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">

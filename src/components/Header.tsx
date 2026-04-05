@@ -1,109 +1,157 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function Header() {
-  const [activeSection, setActiveSection] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true);
     const handleScroll = () => {
-      const sections = ["graphics", "multimidia", "ia"];
-      let current = "";
-      for (const id of sections) {
-        const el = document.getElementById(id);
-        if (el && window.scrollY >= el.offsetTop - 120) {
-          current = id;
-        }
-      }
-      setActiveSection(current);
+      setScrolled(window.scrollY > 50);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isInfos = pathname?.startsWith("/infos");
-  const isGraphics = !isInfos && (activeSection === "graphics" || activeSection === "");
-  const isMultimidia = !isInfos && activeSection === "multimidia";
-  const isIA = !isInfos && activeSection === "ia";
-
   return (
-    <header className={`fixed top-0 left-0 right-0 z-[100] bg-[rgba(22,23,31,0.92)] backdrop-blur-[12px] border-b border-borderDark h-[52px] flex items-center px-4 sm:px-8 gap-4 sm:gap-8 transition-all duration-600 ease-out font-mono ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-      <Link href="/" className="flex items-center gap-2.5 no-underline shrink-0">
-        <svg className="w-7 h-7 shrink-0" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M7 3H15.5C19.6421 3 23 6.35786 23 10.5C23 14.6421 19.6421 18 15.5 18H10.5V25H7V3Z"
-            fill="rgba(125,207,255,0.08)"
-            stroke="#7dcfff"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M10.5 7H15C16.933 7 18.5 8.567 18.5 10.5C18.5 12.433 16.933 14 15 14H10.5V7Z"
-            fill="rgba(122,162,247,0.12)"
-            stroke="#7aa2f7"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-        </svg>
-        <div className="text-[14px] font-bold tracking-[0.5px] hidden sm:block">
-          <span className="text-whiteTheme">Pixel</span><span className="text-cyanTheme">Forge</span>
-          <span className="text-dim font-normal text-[11px] ml-1"> // v2.0</span>
+    <header
+      className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 border-b ${scrolled
+          ? "bg-black/80 backdrop-blur-md border-white/10"
+          : "bg-transparent border-transparent"
+        }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 lg:h-20">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center text-lg lg:text-xl shadow-lg shadow-purple-500/40 group-hover:scale-110 transition-transform duration-300">
+              <img
+                src="/images/anvil.svg"
+                alt="logo"
+                className="w-6 h-6 lg:w-8 lg:h-8"
+              />
+            </div>
+            <div className="hidden sm:block">
+              <div className="bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent font-bold text-lg lg:text-xl">
+                Pixel Forge
+              </div>
+              <div className="text-xs text-white/60 -mt-1">
+                Educação Interativa
+              </div>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-8">
+            <Link
+              href="/#graphics"
+              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+            >
+              Computação Gráfica
+            </Link>
+            <Link
+              href="/#multimidia"
+              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+            >
+              Multimídia
+            </Link>
+            <Link
+              href="/#ia"
+              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+            >
+              Inteligência Computacional
+            </Link>
+            <Link
+              href="/infos"
+              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+            >
+              Material Teórico
+            </Link>
+            <Link
+              href="/pricing"
+              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+            >
+              Preços
+            </Link>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {mobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </div>
-      </Link>
 
-      <nav className="flex gap-1 items-center overflow-x-auto no-scrollbar">
-        <Link
-          href="/#graphics"
-          className={`text-[11px] no-underline px-[12px] py-[5px] rounded border tracking-[0.5px] transition-colors whitespace-nowrap ${
-            isGraphics
-              ? "text-cyanTheme border-[rgba(125,207,255,0.2)] bg-[rgba(125,207,255,0.05)]"
-              : "text-dim border-transparent hover:text-fg hover:bg-[rgba(255,255,255,0.04)]"
-          }`}
-        >
-          computação gráfica
-        </Link>
-        <Link
-          href="/#multimidia"
-          className={`text-[11px] no-underline px-[12px] py-[5px] rounded border tracking-[0.5px] transition-colors whitespace-nowrap ${
-            isMultimidia
-              ? "text-cyanTheme border-[rgba(125,207,255,0.2)] bg-[rgba(125,207,255,0.05)]"
-              : "text-dim border-transparent hover:text-fg hover:bg-[rgba(255,255,255,0.04)]"
-          }`}
-        >
-          multimídia
-        </Link>
-        <Link
-          href="/#ia"
-          className={`text-[11px] no-underline px-[12px] py-[5px] rounded border tracking-[0.5px] transition-colors whitespace-nowrap ${
-            isIA
-              ? "text-cyanTheme border-[rgba(125,207,255,0.2)] bg-[rgba(125,207,255,0.05)]"
-              : "text-dim border-transparent hover:text-fg hover:bg-[rgba(255,255,255,0.04)]"
-          }`}
-        >
-          IA
-        </Link>
-        <Link
-          href="/infos"
-          className={`text-[11px] no-underline px-[12px] py-[5px] rounded border tracking-[0.5px] transition-colors whitespace-nowrap ${
-            isInfos
-              ? "text-cyanTheme border-[rgba(125,207,255,0.2)] bg-[rgba(125,207,255,0.05)]"
-              : "text-dim border-transparent hover:text-fg hover:bg-[rgba(255,255,255,0.04)]"
-          }`}
-        >
-          conceitos
-        </Link>
-      </nav>
-
-      <div className="flex-1"></div>
-      
-      <div className="hidden sm:block text-[10px] text-greenTheme tracking-[1.5px] border border-[rgba(158,206,106,0.3)] px-[10px] py-[3px] rounded-[3px] bg-[rgba(158,206,106,0.05)]">
-        FETIN 2026
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden py-4 border-t border-white/10">
+            <nav className="flex flex-col space-y-2">
+              <Link
+                href="/#graphics"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Computação Gráfica
+              </Link>
+              <Link
+                href="/#multimidia"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Multimídia
+              </Link>
+              <Link
+                href="/#ia"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Inteligência Computacional
+              </Link>
+              <Link
+                href="/infos"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Material Teórico
+              </Link>
+              <Link
+                href="/pricing"
+                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Preços
+              </Link>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

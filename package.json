@@ -5,8 +5,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "pnpm run build:p5 && next dev",
-    "build": "pnpm run build:p5 && next build",
+    "dev": "npm run build:p5 && next dev",
+    "build": "npm run build:p5 && next build",
     "build:p5": "tsc -p tsconfig.p5.json",
     "dev:p5": "tsc -p tsconfig.p5.json --watch",
     "start": "next start",

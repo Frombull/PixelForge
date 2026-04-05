@@ -122,3 +122,6 @@ temp/
 *.temp
 *.bak
 *.backup
+
+.openclaude-profile.json
+CLAUDE.md

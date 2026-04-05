@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 export interface ToolCard {
   title: string;
   description: string;
-  icon: string;
+  icon: string; // we can use this as a tag prefix if we want
   href: string;
   color: string;
   features: string[];
@@ -16,95 +17,100 @@ interface SectionGridProps {
   title: string;
   tools: ToolCard[];
   className?: string;
+  index?: string;
 }
 
-const getColorClasses = (color: string) => {
-  switch (color) {
-    case "purple":
-      return "from-purple-500/20 to-purple-500/5 hover:shadow-purple-500/10 hover:border-purple-500/30";
-    case "blue":
-      return "from-blue-500/20 to-blue-500/5 hover:shadow-blue-500/10 hover:border-blue-500/30";
-    case "green":
-      return "from-green-500/20 to-green-500/5 hover:shadow-green-500/10 hover:border-green-500/30";
-    case "orange":
-      return "from-orange-500/20 to-orange-500/5 hover:shadow-orange-500/10 hover:border-orange-500/30";
-    case "pink":
-      return "from-pink-500/20 to-pink-500/5 hover:shadow-pink-500/10 hover:border-pink-500/30";
-    default:
-      return "from-purple-500/20 to-purple-500/5 hover:shadow-purple-500/10 hover:border-purple-500/30";
-  }
-};
+export default function SectionGrid({ id, title, tools, className = "", index = "01" }: SectionGridProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-export default function SectionGrid({ id, title, tools, className = "" }: SectionGridProps) {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  let sectionNum = index;
+  if (id === "graphics") sectionNum = "01";
+  else if (id === "multimidia") sectionNum = "02";
+  else if (id === "ia") sectionNum = "03";
+
+  // map IDs to some theme colors
+  const secColor = id === "graphics" ? "text-cyanTheme border-cyanTheme bg-cyanTheme" : id === "multimidia" ? "text-magentaTheme border-magentaTheme bg-magentaTheme" : "text-greenTheme border-greenTheme bg-greenTheme";
+  const secDir = id === "graphics" ? "ls modules/computacao-grafica/" : id === "multimidia" ? "ls modules/multimidia/" : "ls modules/ia/";
+  const tagColor = id === "graphics" ? "text-cyanTheme" : id === "multimidia" ? "text-magentaTheme" : "text-greenTheme";
+
   return (
-    <section
-      id={id}
-      className={`py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-b from-slate-900 to-black ${className}`}
-    >
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-12 sm:mb-16 px-2">
-          <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-            {title}
-          </h2>
+    <div id={id} className={`bg-bg4 border-t border-borderDark ${id === "graphics" ? "border-b" : ""} ${className}`} ref={containerRef}>
+      <div className="py-20 px-8 max-w-[1100px] mx-auto">
+        <div className={`flex items-center gap-3.5 mb-10 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+          <span className="text-[11px] text-dim tracking-[1px]">{sectionNum}</span>
+          <span className="text-greenTheme font-bold text-[13px]">$</span>
+          <span className="text-whiteTheme text-[13px] font-bold tracking-[0.5px]">{secDir}</span>
+          <div className="flex-1 h-[1px] bg-borderDark"></div>
         </div>
 
-        {/* Tools Grid */}
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-12 sm:mb-16">
-          {tools.map((tool, index) => (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-[1px] bg-borderDark border border-borderDark rounded-lg overflow-hidden">
+          {tools.map((tool, idx) => (
             <Link
-              key={index}
+              key={idx}
               href={tool.href}
-              className={`group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-white/15 min-h-[320px] sm:min-h-[380px] lg:min-h-[400px] flex flex-col w-full sm:w-[420px] lg:w-[380px] xl:w-[400px] ${getColorClasses(
-                tool.color
-              )}`}
+              className={`group relative block bg-bg p-[22px_20px] transition-colors duration-150 hover:bg-bg2 no-underline opacity-0 translate-y-3 ${isVisible ? "animate-[reveal_0.5s_ease-out_forwards]" : ""}`}
+              style={{ animationDelay: `${idx * 60}ms` }}
             >
-              {/* Header */}
-              <div className="relative flex items-start justify-between mb-4 sm:mb-6">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div
-                    className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl group-hover:scale-105 transition-transform duration-300 ${getColorClasses(
-                      tool.color
-                    )}`}
-                  >
-                    {tool.icon}
-                  </div>
-                  <h3 className="text-lg sm:text-2xl font-bold text-white">
-                    {tool.title}
-                  </h3>
-                </div>
+              <div className="absolute top-0 left-0 right-0 h-[2px] origin-left scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100 bg-current">
+                {/* using a trick with bg-current to inherit from a div inside if needed, or simply map it */}
+                <div className={`w-full h-full ${id === "graphics" ? "bg-cyanTheme" : id === "multimidia" ? "bg-magentaTheme" : "bg-greenTheme"}`}></div>
               </div>
-
-              {/* Description */}
-              <p className="relative text-white/80 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base flex-grow">
+              
+              <div className={`text-[9px] tracking-[2px] uppercase mb-2.5 inline-flex items-center gap-1.5 ${tagColor}`}>
+                <span className="text-dim">//</span> {tool.title}
+              </div>
+              
+              <div className="text-[14px] font-bold text-whiteTheme mb-2 tracking-[0.3px]">
+                {tool.title} <span className="ml-1 opacity-50">{tool.icon}</span>
+              </div>
+              
+              <div className="text-[11px] text-fg leading-[1.65] font-light">
                 {tool.description}
-              </p>
-
-              {/* Features */}
-              <div className="relative flex flex-wrap gap-2 mb-4 sm:mb-6">
-                {tool.features.map((feature) => (
-                  <span
-                    key={feature}
-                    className="bg-white/10 text-white/90 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm border border-white/10 hover:bg-white/15 transition-colors duration-300"
-                  >
+              </div>
+              
+              <div className="mt-[14px] flex flex-wrap gap-[5px]">
+                {tool.features.slice(0, 4).map((feature, fIdx) => (
+                  <span key={fIdx} className="text-[9px] text-dim border border-borderDark px-[7px] py-[2px] rounded-[3px] tracking-[0.5px]">
                     {feature}
                   </span>
                 ))}
               </div>
-
-              {/* CTA */}
-              <div className="relative flex items-center justify-between mt-auto">
-                <span className="text-white/60 text-xs sm:text-sm">
-                  Clique para explorar
-                </span>
-                <span className="text-lg sm:text-2xl group-hover:translate-x-1 transition-transform duration-300">
-                  →
-                </span>
+              
+              <div className={`absolute top-5 right-[18px] text-[12px] text-border2 transition-all duration-150 group-hover:translate-x-[2px] group-hover:-translate-y-[2px] ${id === "graphics" ? "group-hover:text-cyanTheme" : id === "multimidia" ? "group-hover:text-magentaTheme" : "group-hover:text-greenTheme"}`}>
+                ↗
               </div>
             </Link>
           ))}
         </div>
       </div>
-    </section>
+      
+      <style jsx>{`
+        @keyframes reveal {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
   );
 }

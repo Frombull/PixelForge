@@ -1,71 +1,164 @@
 "use client";
 
 import Link from "next/link";
-import HeroLogo3D from "@/components/HeroLogo3D";
+import { useEffect, useState } from "react";
 
 export default function HeroSection() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <section className="relative flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top,#15263b_0%,#09111a_42%,#02060b_100%)] px-4 pt-28 text-center md:px-8 md:pt-36">
-      <div className="absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(circle_at_50%_0%,rgba(92,170,255,0.24),transparent_54%)]" />
-      <div className="absolute left-1/2 top-44 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-300/10 blur-3xl" />
-
-      <div className="relative mx-auto flex max-w-6xl flex-1 flex-col items-center justify-center">
-        <div className="mb-8 flex flex-col items-center gap-4 sm:gap-6">
-          <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-end sm:gap-5">
-            <h1 className="px-1 pb-2 text-5xl font-black leading-[1.08] tracking-[-0.04em] text-transparent drop-shadow-2xl bg-gradient-to-r from-slate-100 via-slate-200 to-sky-300 bg-clip-text sm:text-7xl lg:text-[7rem]">
-              PixelForge
-            </h1>
-            <HeroLogo3D />
+    <section className="relative flex min-h-screen flex-col items-center justify-center px-4 pt-20 pb-10 bg-bg3">
+      <div
+        className={`w-full max-w-[720px] bg-bg rounded-xl border border-borderDark overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.5)] transition-all duration-700 ease-out ${
+          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+        }`}
+      >
+        <div className="bg-bg2 border-b border-borderDark px-4 py-2.5 flex items-center gap-3">
+          <div className="flex gap-2">
+            <div className="w-3 h-3 rounded-full bg-redTheme"></div>
+            <div className="w-3 h-3 rounded-full bg-yellowTheme"></div>
+            <div className="w-3 h-3 rounded-full bg-greenTheme"></div>
           </div>
-          <div className="h-1 w-24 rounded-full bg-gradient-to-r from-sky-400 via-cyan-300 to-amber-300 sm:w-36" />
+          <div className="text-xs text-dim mx-auto font-mono">
+            kitty — <span className="text-fg">~/pixelforge</span>
+          </div>
         </div>
 
-        <p className="mb-8 max-w-4xl px-2 text-base leading-relaxed text-slate-100/88 sm:text-xl md:mb-12 md:text-2xl lg:text-3xl">
-          Plataforma educacional interativa para
-          <span className="font-semibold text-sky-300"> Computação Gráfica</span>,
-          <span className="font-semibold text-cyan-200"> Multimídia </span>
-          e
-          <span className="font-semibold text-amber-200"> Inteligência Computacional</span>.
-        </p>
+        <div className="p-6 sm:p-8 text-[13px] leading-[1.7] font-mono">
+          <div className={`flex flex-col sm:flex-row gap-6 sm:gap-8 mb-6 items-start transition-all duration-500 delay-300 ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <div className="shrink-0 text-cyanTheme leading-[1.3]">
+              <pre className="m-0 font-mono text-[11px]">
+{`        `} <span className="text-whiteTheme">{`/\\`}</span>{`
+       `} <span className="text-whiteTheme">{`/  \\`}</span>{`
+      `} <span className="text-whiteTheme">{`/\\   \\`}</span>{`
+     `} <span className="text-whiteTheme">{`/  __  \\`}</span>{`
+    `} <span className="text-whiteTheme">{`/  (  )  \\`}</span>{`
+   `} <span className="text-whiteTheme">{`/ __|  |__ \\`}</span>{`
+  `} <span className="text-whiteTheme">{`/.//      \\\\.\\`}</span>
+              </pre>
+            </div>
 
-        <div className="mb-12 flex w-full flex-col gap-4 px-2 md:mb-16 md:w-auto md:flex-row md:gap-6">
-          <Link
-            href="/infos"
-            className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/18 md:gap-3 md:px-8 md:py-4 md:text-lg">
-            <span>Material Teórico</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
+            <div className={`flex-1 transition-all duration-500 delay-500 ${mounted ? "opacity-100" : "opacity-0"}`}>
+              <div className="mb-1.5">
+                <span className="text-blueTheme font-bold">user</span>
+                <span className="text-dim">@</span>
+                <span className="text-magentaTheme font-bold">pixelforge</span>
+              </div>
+              <div className="h-[1px] bg-borderDark mb-2"></div>
+              
+              <div className="flex m-0.5 text-xs">
+                <span className="text-blueTheme min-w-[110px] font-bold">OS</span>
+                <span className="text-fg"><span className="text-cyanTheme">Arch Linux</span> x86_64</span>
+              </div>
+              <div className="flex m-0.5 text-xs">
+                <span className="text-blueTheme min-w-[110px] font-bold">Platform</span>
+                <span className="text-fg"><span className="text-whiteTheme">Next.js & React</span></span>
+              </div>
+              <div className="flex m-0.5 text-xs">
+                <span className="text-blueTheme min-w-[110px] font-bold">Shell</span>
+                <span className="text-fg"><span className="text-magentaTheme">zsh</span> 5.9</span>
+              </div>
+              <div className="flex m-0.5 text-xs">
+                <span className="text-blueTheme min-w-[110px] font-bold">Project</span>
+                <span className="text-fg"><span className="text-cyanTheme">PixelForge</span> <span className="text-dim">// Inatel 2026</span></span>
+              </div>
+              <div className="flex m-0.5 text-xs">
+                <span className="text-blueTheme min-w-[110px] font-bold">Stack</span>
+                <span className="text-fg"><span className="text-magentaTheme">Next.js</span> · <span className="text-cyanTheme">Three.js</span> · <span className="text-greenTheme">p5.js</span></span>
+              </div>
+
+              <div className="flex gap-1 mt-2.5">
+                <div className="w-[18px] h-[18px] rounded-sm bg-redTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-yellowTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-greenTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-cyanTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-blueTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-magentaTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-whiteTheme"></div>
+                <div className="w-[18px] h-[18px] rounded-sm bg-dim"></div>
+              </div>
+            </div>
+          </div>
+
+          <hr className={`border-t border-borderDark my-[18px] transition-all duration-300 delay-500 ${mounted ? "opacity-100" : "opacity-0"}`} />
+
+          <div className={`flex items-baseline gap-2 my-1 transition-all duration-300 delay-700 ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <span>
+              <span className="text-greenTheme font-bold">user</span>
+              <span className="text-dim">@</span>
+              <span className="text-magentaTheme font-bold">arch</span>{" "}
+              <span className="text-blueTheme">~/pixelforge</span>
+              <span className="text-whiteTheme ml-0.5"> $</span>
             </span>
-          </Link>
-          <Link
-            href="#graphics"
-            className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/18 md:gap-3 md:px-8 md:py-4 md:text-lg">
-            <span>Computação Gráfica</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
+            <span>
+              <span className="text-magentaTheme">cat</span> <span className="text-cyanTheme">README.md</span>
             </span>
-          </Link>
-          <Link
-            href="#multimidia"
-            className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/18 md:gap-3 md:px-8 md:py-4 md:text-lg">
-            <span>Multimídia</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
+          </div>
+          <div className={`pl-1 text-xs text-fg mb-3 transition-all duration-300 delay-[800ms] ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <span className="text-whiteTheme">Plataforma educacional de Computação Gráfica e Multimídia.</span><br />
+            Transforme conceitos abstratos em <span className="text-cyanTheme">visualizações interativas</span>.
+          </div>
+
+          <div className={`flex items-baseline gap-2 my-1 transition-all duration-300 delay-[900ms] ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <span>
+              <span className="text-greenTheme font-bold">user</span>
+              <span className="text-dim">@</span>
+              <span className="text-magentaTheme font-bold">arch</span>{" "}
+              <span className="text-blueTheme">~/pixelforge</span>
+              <span className="text-whiteTheme ml-0.5"> $</span>
             </span>
-          </Link>
-          <Link
-            href="#ia"
-            className="group flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white/18 md:gap-3 md:px-8 md:py-4 md:text-lg">
-            <span>Inteligência Computacional</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
+            <span>
+              <span className="text-magentaTheme">ls</span> <span className="text-yellowTheme">-la</span> <span className="text-cyanTheme">modules/</span>
             </span>
-          </Link>
+          </div>
+          <div className={`pl-1 text-xs text-fg mb-3 transition-all duration-300 delay-[1000ms] ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <Link href="#graphics" className="hover:underline flex group">
+              <span className="text-blueTheme min-w-[90px]">drwxr-xr-x</span>  <span className="text-cyanTheme min-w-[140px]">computacao-grafica/</span>   <span className="text-dim group-hover:text-blueTheme transition-colors">// módulos 3D</span>
+            </Link>
+            <Link href="#multimidia" className="hover:underline flex group">
+              <span className="text-blueTheme min-w-[90px]">drwxr-xr-x</span>  <span className="text-magentaTheme min-w-[140px]">multimidia/</span>           <span className="text-dim group-hover:text-blueTheme transition-colors">// módulos 2D</span>
+            </Link>
+            <Link href="#ia" className="hover:underline flex group">
+              <span className="text-blueTheme min-w-[90px]">drwxr-xr-x</span>  <span className="text-redTheme min-w-[140px]">inteligencia-comp/</span>    <span className="text-dim group-hover:text-blueTheme transition-colors">// IA</span>
+            </Link>
+            <Link href="/infos" className="hover:underline flex group">
+              <span className="text-blueTheme min-w-[90px]">drwxr-xr-x</span>  <span className="text-yellowTheme min-w-[140px]">material-teorico/</span>     <span className="text-dim group-hover:text-blueTheme transition-colors">// conceitos e infos</span>
+            </Link>
+          </div>
+
+          <div className={`flex items-baseline gap-2 my-1 transition-all duration-300 delay-[1100ms] ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <span>
+              <span className="text-greenTheme font-bold">user</span>
+              <span className="text-dim">@</span>
+              <span className="text-magentaTheme font-bold">arch</span>{" "}
+              <span className="text-blueTheme">~/pixelforge</span>
+              <span className="text-whiteTheme ml-0.5"> $</span>
+            </span>
+            <span>
+              <span className="text-magentaTheme">pnpm</span> <span className="text-cyanTheme">run</span> <span className="text-greenTheme">dev</span>
+            </span>
+          </div>
+          <div className={`pl-1 text-xs text-fg mb-3 transition-all duration-300 delay-[1200ms] ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <span className="text-greenTheme">✓</span> ready on <span className="text-cyanTheme">http://localhost:3000</span><br />
+            <span className="text-greenTheme">✓</span> three.js renderer <span className="text-whiteTheme">initialized</span><br />
+            <span className="text-greenTheme">✓</span> <span className="text-magentaTheme">modules</span> loaded · <span className="text-greenTheme">● all systems online</span>
+          </div>
+
+          <div className={`flex items-center gap-2 mt-1.5 transition-all duration-300 delay-[1300ms] ${mounted ? "opacity-100" : "opacity-0"}`}>
+            <span>
+              <span className="text-greenTheme font-bold">user</span>
+              <span className="text-dim">@</span>
+              <span className="text-magentaTheme font-bold">arch</span>{" "}
+              <span className="text-blueTheme">~/pixelforge</span>
+              <span className="text-whiteTheme ml-0.5"> $</span>
+            </span>
+            <div className="inline-block w-[9px] h-[16px] bg-blueTheme animate-[pulse_1s_step-end_infinite]"></div>
+          </div>
         </div>
-
-        <p className="max-w-2xl text-sm uppercase tracking-[0.28em] text-slate-300/70 sm:text-base">
-          Computação Gráfica • Multimídia • Exploração Visual Interativa
-        </p>
       </div>
     </section>
   );

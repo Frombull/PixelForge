@@ -1,11 +1,34 @@
 @import "tailwindcss";
 
-/* Body customizations */
-body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1.6;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
+@theme {
+  --color-bg: #1a1b26;
+  --color-bg2: #16171f;
+  --color-bg3: #13141c;
+  --color-bg4: #0f1017;
+  --color-borderDark: #2a2d3e;
+  --color-border2: #3a3d52;
+  --color-dim: #414868;
+  --color-fg: #a9b1d6;
+  --color-whiteTheme: #c0caf5;
+  --color-cyanTheme: #7dcfff;
+  --color-blueTheme: #7aa2f7;
+  --color-magentaTheme: #bb9af7;
+  --color-greenTheme: #9ece6a;
+  --color-yellowTheme: #e0af68;
+  --color-redTheme: #f7768e;
+
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg3);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* Smooth scrolling */
@@ -15,7 +38,7 @@ html {
 
 /* A11y: foco visível mais sutil e consistente */
 *:focus-visible {
-  outline: 2px solid rgba(147, 197, 253, 0.6); /* sky-300 */
+  outline: 2px solid var(--color-cyanTheme);
   outline-offset: 2px;
 }
 
@@ -30,20 +53,16 @@ video {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--color-bg3);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+  background: var(--color-border2);
+  border-radius: 3px;
 }
 
 /* Selection styles */

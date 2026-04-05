@@ -53,11 +53,11 @@ imagem · Aliasing · Segmentação de imagem · Vetorial vs. Matricial.
   (hospedagem).
 - **Diferencial Didático:** Foi criado um módulo no estilo de um editor 3D, similar a UI do Unity, Godot e Playcanvas com popups explicativos e documentação vinculada a cada ferramenta de interação.
 
-#### Conceitos Abordados
-Projeção ortográfica e perspectiva · Z-fighting · Algoritmos de visibilidade
-(Z-buffer, A-buffer) · Frustum Culling · Operações booleanas entre objetos 3D
-(CSG) · Transformações 3D (rotação, escala, cisalhamento, translação) · Espaços
-de cores · Transparência.
+#### Simulações e Funcionalidades
+
+| Módulo | Descrição |
+|---|---|
+| **Canvas 3D Interativo** | Projeção ortográfica e perspectiva · Z-fighting · Algoritmos de visibilidade(Z-buffer, A-buffer) · Frustum Culling · Operações booleanas entre objetos 3D(CSG) · Transformações 3D (rotação, escala, cisalhamento, translação) · Espaços de cores · Transparência. |
 
 ---
 

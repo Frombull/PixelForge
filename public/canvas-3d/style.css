@@ -782,40 +782,14 @@ body {
     margin: 0;
 }
 
-.axis-label {
-    font-size: 8px;
-    font-weight: 700;
-    padding: 1px 3px;
-    border-radius: 2px;
-    color: white;
-    min-width: 12px;
+.prop-letter {
+    font-size: 10px;
+    font-weight: 600;
+    color: #8b84a0;
+    min-width: 18px;
     text-align: center;
-    line-height: 1.2;
     flex-shrink: 0;
-}
-
-.axis-x {
-    background: #ef4444;
-}
-
-.axis-y {
-    background: #22c55e;
-}
-
-.axis-z {
-    background: #3b82f6;
-}
-
-.axis-r {
-    background: #ef4444;
-}
-
-.axis-g {
-    background: #22c55e;
-}
-
-.axis-b {
-    background: #3b82f6;
+    user-select: none;
 }
 
 /* ==================== Skew ==================== */
@@ -837,14 +811,6 @@ body {
     padding: 2px 4px;
     border: 1px solid #2d2640;
     min-width: 0;
-}
-
-.skew-label {
-    font-size: 8px;
-    font-weight: 600;
-    color: #6b6580;
-    min-width: 16px;
-    flex-shrink: 0;
 }
 
 .skew-pair input {

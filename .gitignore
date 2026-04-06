@@ -124,4 +124,5 @@ temp/
 *.backup
 
 .openclaude-profile.json
+openclaude-profile.json
 CLAUDE.md

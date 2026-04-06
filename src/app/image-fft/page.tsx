@@ -5,15 +5,14 @@ import Link from "next/link";
 import { FFTProcessor, type Complex, type FFTResult } from "@/lib/FFTProcessor";
 
 enum DrawMode {
-  ERASE = "erase",
-  SMOOTH = "smooth",
+  BRUSH = "brush",
   CIRCLE = "circle",
 }
 
 export default function ImageFFTPage() {
   const originalCanvasRef = useRef<HTMLCanvasElement>(null);
   const fftCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [drawMode, setDrawMode] = useState<DrawMode>(DrawMode.ERASE);
+  const [drawMode, setDrawMode] = useState<DrawMode>(DrawMode.BRUSH);
   const [brushSize, setBrushSize] = useState(20);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -27,13 +26,19 @@ export default function ImageFFTPage() {
     originalFFTPhase: [] as number[],
     maxFFTValue: 0,
     isDrawing: false,
-    drawingCircle: false,
-    circleStartX: 0,
-    circleStartY: 0,
-    tempCircleRadius: 0,
+    hoverX: -1,
+    hoverY: -1,
     lastDrawX: -1,
     lastDrawY: -1,
+    drawMode: DrawMode.BRUSH,
+    brushSize: 20,
   });
+
+  // Sync state to ref for event listeners
+  useEffect(() => {
+    fftStateRef.current.drawMode = drawMode;
+    fftStateRef.current.brushSize = brushSize;
+  }, [drawMode, brushSize]);
 
   useEffect(() => {
     const originalCanvas = originalCanvasRef.current;
@@ -109,6 +114,8 @@ export default function ImageFFTPage() {
     }
 
     displayFFT();
+    // Convert source directly to grayscale immediately so the left canvas shows it grayscaled.
+    reconstructImage();
   };
 
   const displayFFT = (showPreview = false) => {
@@ -137,17 +144,17 @@ export default function ImageFFTPage() {
     const shiftedImageData = fftShift(imageData, 512, 512);
     fftCtx.putImageData(shiftedImageData, 0, 0);
 
-    if (showPreview && fftStateRef.current.drawingCircle) {
+    if (showPreview && fftStateRef.current.hoverX >= 0 && fftStateRef.current.hoverY >= 0) {
       fftCtx.beginPath();
       fftCtx.arc(
-        fftStateRef.current.circleStartX,
-        fftStateRef.current.circleStartY,
-        fftStateRef.current.tempCircleRadius,
+        fftStateRef.current.hoverX,
+        fftStateRef.current.hoverY,
+        fftStateRef.current.brushSize,
         0,
         Math.PI * 2
       );
-      fftCtx.strokeStyle = "red";
-      fftCtx.lineWidth = 2;
+      fftCtx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+      fftCtx.lineWidth = 1;
       fftCtx.stroke();
     }
   };
@@ -238,14 +245,17 @@ export default function ImageFFTPage() {
 
         fftStateRef.current.lastDrawX = -1;
         fftStateRef.current.lastDrawY = -1;
+        fftStateRef.current.hoverX = x;
+        fftStateRef.current.hoverY = y;
+        fftStateRef.current.isDrawing = true;
 
-        if (drawMode === DrawMode.CIRCLE) {
-          fftStateRef.current.drawingCircle = true;
-          fftStateRef.current.circleStartX = x;
-          fftStateRef.current.circleStartY = y;
-          fftStateRef.current.tempCircleRadius = 0;
+        if (fftStateRef.current.drawMode === DrawMode.CIRCLE) {
+          applyBrushAt(x, y);
+          fftStateRef.current.lastDrawX = x;
+          fftStateRef.current.lastDrawY = y;
+          displayFFT(true);
+          reconstructImage();
         } else {
-          fftStateRef.current.isDrawing = true;
           drawOnFFT(e, false);
         }
       }
@@ -257,63 +267,40 @@ export default function ImageFFTPage() {
         const x = Math.floor(((e.clientX - rect.left) * 512) / rect.width);
         const y = Math.floor(((e.clientY - rect.top) * 512) / rect.height);
 
-        if (fftStateRef.current.drawingCircle) {
-          const dx = x - fftStateRef.current.circleStartX;
-          const dy = y - fftStateRef.current.circleStartY;
-          fftStateRef.current.tempCircleRadius = Math.sqrt(dx * dx + dy * dy);
+        fftStateRef.current.hoverX = x;
+        fftStateRef.current.hoverY = y;
 
-          displayFFT(true);
-        } else if (fftStateRef.current.isDrawing) {
+        if (fftStateRef.current.isDrawing && fftStateRef.current.drawMode === DrawMode.BRUSH) {
           drawOnFFT(e, false);
+        } else {
+          displayFFT(true);
         }
       }
     };
 
     const onMouseUp = (e: MouseEvent) => {
-      if (
-        fftStateRef.current.drawingCircle &&
-        fftStateRef.current.fftMagnitudeData.length > 0
-      ) {
-        const rect = canvas.getBoundingClientRect();
-        const x = Math.floor(((e.clientX - rect.left) * 512) / rect.width);
-        const y = Math.floor(((e.clientY - rect.top) * 512) / rect.height);
-
-        const dx = x - fftStateRef.current.circleStartX;
-        const dy = y - fftStateRef.current.circleStartY;
-        const radius = Math.sqrt(dx * dx + dy * dy);
-
-        drawCircleOnFFT(
-          fftStateRef.current.circleStartX,
-          fftStateRef.current.circleStartY,
-          radius
-        );
-
-        fftStateRef.current.drawingCircle = false;
-
-        displayFFT();
-        reconstructImage();
-      } else if (fftStateRef.current.isDrawing) {
-        displayFFT();
+      if (fftStateRef.current.isDrawing && fftStateRef.current.drawMode === DrawMode.BRUSH) {
+        displayFFT(true);
         reconstructImage();
       }
 
       fftStateRef.current.isDrawing = false;
-      fftStateRef.current.drawingCircle = false;
-
       fftStateRef.current.lastDrawX = -1;
       fftStateRef.current.lastDrawY = -1;
     };
 
     const onMouseLeave = () => {
-      if (fftStateRef.current.isDrawing) {
-        displayFFT();
+      if (fftStateRef.current.isDrawing && fftStateRef.current.drawMode === DrawMode.BRUSH) {
+        displayFFT(false);
         reconstructImage();
       }
 
       fftStateRef.current.isDrawing = false;
-
+      fftStateRef.current.hoverX = -1;
+      fftStateRef.current.hoverY = -1;
       fftStateRef.current.lastDrawX = -1;
       fftStateRef.current.lastDrawY = -1;
+      displayFFT(false);
     };
 
     canvas.addEventListener("mousedown", onMouseDown);
@@ -363,10 +350,10 @@ export default function ImageFFTPage() {
     fftStateRef.current.lastDrawY = y;
 
     if (updateImage) {
-      displayFFT();
+      displayFFT(true);
       reconstructImage();
     } else {
-      displayFFT();
+      displayFFT(true);
     }
   };
 
@@ -403,15 +390,14 @@ export default function ImageFFTPage() {
   };
 
   const applyBrushAt = (x: number, y: number) => {
-    const fftDataCopy = [...fftStateRef.current.fftMagnitudeData];
-
     const halfW = Math.floor(512 / 2);
     const halfH = Math.floor(512 / 2);
     const shiftedX = (x - halfW + 512) % 512;
     const shiftedY = (y - halfH + 512) % 512;
+    const currentBrushSize = fftStateRef.current.brushSize;
 
-    for (let dy = -brushSize; dy <= brushSize; dy++) {
-      for (let dx = -brushSize; dx <= brushSize; dx++) {
+    for (let dy = -currentBrushSize; dy <= currentBrushSize; dy++) {
+      for (let dx = -currentBrushSize; dx <= currentBrushSize; dx++) {
         let px = shiftedX + dx;
         let py = shiftedY + dy;
 
@@ -419,70 +405,9 @@ export default function ImageFFTPage() {
         py = (py + 512) % 512;
 
         const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance <= brushSize) {
+        if (distance <= currentBrushSize) {
           const i = py * 512 + px;
           if (i < fftStateRef.current.fftMagnitudeData.length) {
-            const strength = Math.max(0, 1 - distance / brushSize);
-
-            switch (drawMode) {
-              case DrawMode.ERASE:
-                fftStateRef.current.fftMagnitudeData[i] *= 1 - strength * 0.8;
-                break;
-              case DrawMode.SMOOTH:
-                let avg = 0;
-                let count = 0;
-                for (let sy = -1; sy <= 1; sy++) {
-                  for (let sx = -1; sx <= 1; sx++) {
-                    const nx = (px + sx + 512) % 512;
-                    const ny = (py + sy + 512) % 512;
-                    const ni = ny * 512 + nx;
-                    if (ni < fftStateRef.current.fftMagnitudeData.length) {
-                      avg += fftDataCopy[ni];
-                      count++;
-                    }
-                  }
-                }
-                if (count > 0) {
-                  const targetValue = avg / count;
-                  fftStateRef.current.fftMagnitudeData[i] =
-                    fftDataCopy[i] * (1 - strength * 0.3) +
-                    targetValue * (strength * 0.3);
-                }
-                break;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  const drawCircleOnFFT = (
-    centerX: number,
-    centerY: number,
-    radius: number
-  ) => {
-    if (fftStateRef.current.fftMagnitudeData.length === 0) return;
-
-    const halfW = Math.floor(512 / 2);
-    const halfH = Math.floor(512 / 2);
-
-    const startX = Math.max(0, Math.floor(centerX - radius - 1));
-    const startY = Math.max(0, Math.floor(centerY - radius - 1));
-    const endX = Math.min(512 - 1, Math.ceil(centerX + radius + 1));
-    const endY = Math.min(512 - 1, Math.ceil(centerY + radius + 1));
-
-    for (let y = startY; y <= endY; y++) {
-      for (let x = startX; x <= endX; x++) {
-        const dx = x - centerX;
-        const dy = y - centerY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance <= radius) {
-          const shiftedX = (x - halfW + 512) % 512;
-          const shiftedY = (y - halfH + 512) % 512;
-          const i = shiftedY * 512 + shiftedX;
-
-          if (i >= 0 && i < fftStateRef.current.fftMagnitudeData.length) {
             fftStateRef.current.fftMagnitudeData[i] = 0;
           }
         }
@@ -569,101 +494,129 @@ export default function ImageFFTPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 p-8">
-      {/* Back button */}
-      <Link
-        href="/"
-        className="fixed top-5 left-5 z-500 text-white px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 hover:-translate-y-0.5"
-      >
-        ← Voltar
-      </Link>
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans">
+      {/* Header */}
+      <header className="px-6 py-4 flex items-center justify-between border-b border-neutral-800 bg-neutral-900">
+        <Link
+          href="/"
+          className="text-neutral-400 hover:text-white transition-colors flex items-center gap-2"
+        >
+          <span>←</span> <span className="text-sm font-medium">Voltar</span>
+        </Link>
+        <h1 className="text-xl font-medium tracking-tight">Editor de Imagens FFT</h1>
+        
+        {/* Controls in header for leaner UI */}
+        <div className="flex items-center gap-6">
+          <label className="cursor-pointer text-sm font-medium hover:text-indigo-400 transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            [ Upload de Imagem ]
+          </label>
+        </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto bg-slate-900 to-gray-700 rounded-xl p-10 shadow-2xl backdrop-blur-sm">
-        <h1 className="text-4xl font-bold text-center text-white mb-10 mt-0">
-          Editor de Imagens FFT
-        </h1>
-
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* Original Image Section */}
-          <div className="flex-1">
-            <div className="bg-slate-800 p-5 rounded-xl shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4 text-center">
-                Imagem Original
-              </h3>
-              <canvas
-                ref={originalCanvasRef}
-                className="w-full max-w-[512px] h-[512px] border-4 border-slate-400 rounded-lg mx-auto block"
-                style={{ cursor: "default" }}
-              />
-              <div className="mt-4 text-center">
-                <label className="relative inline-block bg-gradient-to-r from-slate-900 to-gray-700 text-white px-8 py-4 rounded-full cursor-pointer font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  Escolha uma Imagem
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* FFT Domain Section */}
-          <div className="flex-1">
-            <div className="bg-slate-800 p-5 rounded-xl shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4 text-center">
-                Domínio da Frequência
-              </h3>
-              <canvas
-                ref={fftCanvasRef}
-                className="w-full max-w-[512px] h-[512px] border-4 border-slate-400 rounded-lg mx-auto block"
-                style={{ cursor: "crosshair" }}
-              />
-
-              {/* Controls */}
-              <div className="mt-4  bg-gradient-to-r from-slate-90 p-4 rounded-lg">
-                <div className="flex flex-wrap justify-center gap-4 items-center">
-                  <div className="flex items-center gap-2">
-                    <label className="font-semibold text-white">Pincel:</label>
-                    <select
-                      value={drawMode}
-                      onChange={(e) => setDrawMode(e.target.value as DrawMode)}
-                      className="px-3 py-2 border-2 border-gray-200 rounded-lg bg-slate-300 text-sm"
-                    >
-                      <option value="erase">⚫ Preto</option>
-                      <option value="smooth">⚫ Suavizar</option>
-                      <option value="circle">⭕ Círculo</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="font-semibold text-white">Tamanho:</label>
-                    <input
-                      type="range"
-                      min="10"
-                      max="100"
-                      value={brushSize}
-                      onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                      className="w-24"
-                    />
-                    <span className="bg-slate-200 text-black px-2 py-1 rounded font-bold text-sm min-w-[30px] text-center">
-                      {brushSize}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={resetFFT}
-                    className=" bg-slate-900 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    Limpar
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Main Workspace */}
+      <main className="flex-1 p-6 flex flex-col xl:flex-row gap-6">
+        {/* Left Column: Original (Reconstructed) Image */}
+        <div className="flex-1 flex flex-col gap-4">
+          <h2 className="text-sm font-semibold text-neutral-400 uppercase tracking-widest">
+            Imagem (Reconstruída)
+          </h2>
+          <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden flex items-center justify-center p-4 min-h-[500px]">
+            <canvas
+              ref={originalCanvasRef}
+              className="max-w-full max-h-[80vh] border border-neutral-700 bg-black shadow-sm object-contain"
+              style={{ cursor: "default" }}
+            />
           </div>
         </div>
-      </div>
+
+        {/* Right Column: Frequency Domain & Controls */}
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h2 className="text-sm font-semibold text-neutral-400 uppercase tracking-widest">
+              Domínio da Frequência
+            </h2>
+            
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center gap-4 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-md">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-neutral-500 font-medium uppercase">Ferramenta</span>
+                <select
+                  value={drawMode}
+                  onChange={(e) => setDrawMode(e.target.value as DrawMode)}
+                  className="bg-neutral-800 text-sm border-none rounded px-2 py-1 text-neutral-200 focus:ring-1 focus:ring-neutral-600 outline-none"
+                >
+                  <option value="brush">Pincel (Contínuo)</option>
+                  <option value="circle">Círculo (Ponto Único)</option>
+                </select>
+              </div>
+
+              <div className="w-px h-4 bg-neutral-700"></div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-neutral-500 font-medium uppercase">Tamanho</span>
+                <input
+                  type="range"
+                  min="1"
+                  max="256"
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                  className="w-20 accent-neutral-500"
+                />
+                <span className="text-xs font-mono text-neutral-400 w-6 text-right">
+                  {brushSize}
+                </span>
+              </div>
+
+              <div className="w-px h-4 bg-neutral-700"></div>
+
+              <button
+                onClick={resetFFT}
+                className="text-sm text-neutral-300 hover:text-white transition-colors"
+                title="Resetar edições"
+              >
+                Resetar FFT
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden flex items-center justify-center p-4 min-h-[500px]">
+             <canvas
+                ref={fftCanvasRef}
+                className="max-w-full max-h-[80vh] border border-neutral-700 bg-black shadow-sm object-contain"
+                style={{ cursor: "crosshair" }}
+              />
+          </div>
+        </div>
+      </main>
+
+      {/* Info Footer */}
+      <footer className="bg-neutral-900 border-t border-neutral-800 p-8">
+        <div className="max-w-5xl mx-auto">
+          <h3 className="text-lg font-medium mb-3">O que é a Transformada Rápida de Fourier (FFT)?</h3>
+          <p className="text-neutral-400 text-sm leading-relaxed mb-4">
+            A Transformada Rápida de Fourier (FFT) aplicada a imagens converte a informação de 
+            <strong> pixels (domínio espacial)</strong> para <strong>frequências (domínio da frequência)</strong>. 
+            Em vez de olhar para a intensidade de luz em cada coordenada (x, y), você visualiza quão rápido 
+            as intensidades mudam na imagem. O centro do espectro representa frequências baixas 
+            (transições suaves, como o céu ou superfícies lisas), enquanto as bordas representam 
+            frequências altas (detalhes finos, texturas e bordas acentuadas).
+          </p>
+          <p className="text-neutral-400 text-sm leading-relaxed">
+            <strong>Como usar esta ferramenta:</strong> Edite o espectro visualizado no &quot;Domínio da Frequência&quot; 
+            para ver o impacto direto na imagem reconstruída. Apagar frequências (pintando de preto 
+            ou escurecendo) ao redor do centro remove frequências altas, aplicando um filtro passa-baixas (desfoque). 
+            Se você apagar o centro e preservar as pontas, aplicará um filtro passa-altas, realçando 
+            apenas as bordas e contornos. Experimente o Pincel Preto Absoluto para remover agressivamente 
+            frequências específicas!
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

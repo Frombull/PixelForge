@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Focus } from "lucide-react";
 
 const FontImport = () => (
   <style>{`
@@ -82,9 +82,16 @@ const RasterSVG = ({ zoom, pan }: { zoom: number; pan: { x: number; y: number } 
 export default function ImageComparison() {
   const [globalZoom, setGlobalZoom] = useState(30);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDragging(true);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    setIsDragging(false);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -105,16 +112,16 @@ export default function ImageComparison() {
   const inputClasses = "flex-1 h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',_sans-serif]">
+    <div className={`min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',_sans-serif] ${isDragging ? 'select-none' : ''}`}>
       <FontImport />
 
-      <header className="flex items-end justify-between gap-8 pt-10 px-16 pb-8 border-b border-[#222]">
+      <header className="flex items-end justify-between gap-8 pt-10 px-16 pb-6 border-b border-[#222]">
         <div>
-          <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5">
-            Gráficos Digitais — Análise Comparativa
+          <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
+            Multimídia - Vetorial vs Matricial
           </div>
           <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
-            <Link href="/" className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white hover:-translate-x-1" title="Voltar para a Home">
+            <Link href="/" className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white" title="Voltar para a Home">
               <ArrowLeft size={32} strokeWidth={1} />
             </Link>
             <span>
@@ -128,13 +135,13 @@ export default function ImageComparison() {
       </header>
 
       <div className="px-16">
-        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-8 pb-4 mb-8 border-b border-[#1a1a1a]">
+        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-8 border-b border-[#1a1a1a]">
           01 <span className="text-[#333]">—</span> Visualização interativa
         </div>
 
         <div className="grid grid-cols-2 gap-[2px] bg-[#1a1a1a] mb-[2px]">
           {/* VECTOR PANEL */}
-          <div className="bg-[#0d0d0d] p-10">
+          <div className="bg-[#0d0d0d] p-10 pt-5">
             <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
               <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">formato</span>
               <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">Vetorial</span>
@@ -144,8 +151,8 @@ export default function ImageComparison() {
             <div 
               className="flex items-center justify-center relative overflow-hidden h-[280px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
               onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-            >
+              onPointerMove={handlePointerMove}              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}            >
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
                 style={{
@@ -154,7 +161,18 @@ export default function ImageComparison() {
                 }}
               />
               <VectorSVG zoom={globalZoom} pan={pan} />
-              <div className="absolute bottom-3 right-[14px] font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#333] tracking-[0.1em] z-20">
+              <button
+                className="absolute bottom-3 left-[14px] z-20 text-[#555] hover:text-[#f0f0f0] transition-colors"
+                title="Centralizar Visualização"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  setGlobalZoom(30);
+                  setPan({ x: 0, y: 0 });
+                }}
+              >
+                <Focus size={18} strokeWidth={1.5} />
+              </button>
+              <div className="absolute bottom-3 right-[14px] font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.1em] z-20 pointer-events-none">
                 {globalZoom}% zoom
               </div>
             </div>
@@ -211,7 +229,7 @@ export default function ImageComparison() {
           </div>
 
           {/* RASTER PANEL */}
-          <div className="bg-[#0d0d0d] p-10">
+          <div className="bg-[#0d0d0d] p-10 pt-5">
             <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
               <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">formato</span>
               <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">Matricial</span>
@@ -222,6 +240,8 @@ export default function ImageComparison() {
               className="flex items-center justify-center relative overflow-hidden h-[280px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
             >
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
@@ -231,7 +251,18 @@ export default function ImageComparison() {
                 }}
               />
               <RasterSVG zoom={globalZoom} pan={pan} />
-              <div className="absolute bottom-3 right-[14px] font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#333] tracking-[0.1em] z-20">
+              <button
+                className="absolute bottom-3 left-[14px] z-20 text-[#555] hover:text-[#f0f0f0] transition-colors"
+                title="Centralizar Visualização"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  setGlobalZoom(30);
+                  setPan({ x: 0, y: 0 });
+                }}
+              >
+                <Focus size={18} strokeWidth={1.5} />
+              </button>
+              <div className="absolute bottom-3 right-[14px] font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.1em] z-20 pointer-events-none">
                 {globalZoom}% zoom
               </div>
             </div>

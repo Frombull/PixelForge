@@ -496,7 +496,7 @@ export default function ImageFFTPage() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans">
       {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-neutral-800 bg-neutral-900">
+      <header className="relative px-6 py-4 flex items-center justify-between border-b border-neutral-800 bg-neutral-900">
         <Link
           href="/"
           className="text-neutral-400 hover:text-white transition-colors flex items-center gap-2"
@@ -504,19 +504,7 @@ export default function ImageFFTPage() {
           <span>←</span> <span className="text-sm font-medium">Voltar</span>
         </Link>
         <h1 className="text-xl font-medium tracking-tight">Editor de Imagens FFT</h1>
-        
-        {/* Controls in header for leaner UI */}
-        <div className="flex items-center gap-6">
-          <label className="cursor-pointer text-sm font-medium hover:text-indigo-400 transition-colors">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-            [ Upload de Imagem ]
-          </label>
-        </div>
+        <div className="w-16" />
       </header>
 
       {/* Main Workspace */}
@@ -524,16 +512,19 @@ export default function ImageFFTPage() {
         {/* Left Column: Original (Reconstructed) Image */}
         <div className="flex-1 flex flex-col gap-4">
           <h2 className="text-sm font-semibold text-neutral-400 uppercase tracking-widest">
-            Imagem (Reconstruída)
+            Imagem Reconstruida
           </h2>
-          <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden flex items-center justify-center p-4 min-h-[500px]">
+          <div className="flex-1 flex items-center justify-center min-h-[500px]">
             <canvas
               ref={originalCanvasRef}
-              className="max-w-full max-h-[80vh] border border-neutral-700 bg-black shadow-sm object-contain"
+              className="max-w-full max-h-[80vh] border border-neutral-700 bg-black object-contain"
               style={{ cursor: "default" }}
             />
           </div>
         </div>
+
+        {/* Divider */}
+        <div className="w-px bg-neutral-800" />
 
         {/* Right Column: Frequency Domain & Controls */}
         <div className="flex-1 flex flex-col gap-4">
@@ -543,21 +534,18 @@ export default function ImageFFTPage() {
             </h2>
             
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-4 bg-neutral-900 border border-neutral-800 px-4 py-2 rounded-md">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-500 font-medium uppercase">Ferramenta</span>
-                <select
-                  value={drawMode}
-                  onChange={(e) => setDrawMode(e.target.value as DrawMode)}
-                  className="bg-neutral-800 text-sm border-none rounded px-2 py-1 text-neutral-200 focus:ring-1 focus:ring-neutral-600 outline-none"
-                >
-                  <option value="brush">Pincel (Contínuo)</option>
-                  <option value="circle">Círculo (Ponto Único)</option>
-                </select>
-              </div>
+            <div className="flex flex-wrap items-center gap-4 bg-transparent border-0 px-0 py-2 rounded-md">
+              <label className="cursor-pointer text-sm font-medium hover:text-indigo-400 transition-colors whitespace-nowrap">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                [ Carregar Imagem ]
+              </label>
 
               <div className="w-px h-4 bg-neutral-700"></div>
-
               <div className="flex items-center gap-2">
                 <span className="text-xs text-neutral-500 font-medium uppercase">Tamanho</span>
                 <input
@@ -585,10 +573,10 @@ export default function ImageFFTPage() {
             </div>
           </div>
 
-          <div className="flex-1 bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden flex items-center justify-center p-4 min-h-[500px]">
+          <div className="flex-1 flex items-center justify-center min-h-[500px]">
              <canvas
                 ref={fftCanvasRef}
-                className="max-w-full max-h-[80vh] border border-neutral-700 bg-black shadow-sm object-contain"
+                className="max-w-full max-h-[80vh] border border-neutral-700 bg-black object-contain"
                 style={{ cursor: "crosshair" }}
               />
           </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
@@ -39,6 +41,22 @@ const styles = `
     letter-spacing: -0.02em;
     line-height: 1.1;
     color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .back-btn {
+    color: #888;
+    transition: color 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .back-btn:hover {
+    color: #fff;
+    transform: translateX(-4px);
   }
 
   .header-title strong {
@@ -130,6 +148,11 @@ const styles = `
     margin-bottom: 32px;
     position: relative;
     overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+  }
+  .image-area:active {
+    cursor: grabbing;
   }
 
   .image-area::before {
@@ -357,7 +380,7 @@ const styles = `
   }
 `;
 
-const VectorSVG = ({ zoom }: { zoom: number }) => {
+const VectorSVG = ({ zoom, pan }: { zoom: number; pan: { x: number; y: number } }) => {
   const scale = 1 + (zoom / 100) * 1.8;
   return (
     <svg
@@ -365,7 +388,7 @@ const VectorSVG = ({ zoom }: { zoom: number }) => {
       width="180"
       height="180"
       viewBox="0 0 100 100"
-      style={{ transform: `scale(${scale})`, transition: "transform 0.2s" }}
+      style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }}
     >
       <circle cx="50" cy="50" r="38" fill="none" stroke="#2e2e2e" strokeWidth="1" />
       <circle cx="50" cy="50" r="24" fill="none" stroke="#3a3a3a" strokeWidth="0.5" />
@@ -376,16 +399,17 @@ const VectorSVG = ({ zoom }: { zoom: number }) => {
         strokeWidth="1.2"
         strokeLinejoin="round"
       />
-      <circle cx="50" cy="50" r="5" fill="#4a7a8a" opacity="0.6" />
+      <circle cx="50" cy="50" r="5" fill="#4a7a8a" />
       <line x1="50" y1="12" x2="50" y2="88" stroke="#222" strokeWidth="0.4" strokeDasharray="2,3" />
       <line x1="12" y1="50" x2="88" y2="50" stroke="#222" strokeWidth="0.4" strokeDasharray="2,3" />
     </svg>
   );
 };
 
-const RasterSVG = ({ zoom, quality }: { zoom: number; quality: number }) => {
+const RasterSVG = ({ zoom, pan }: { zoom: number; pan: { x: number; y: number } }) => {
   const scale = 1 + (zoom / 100) * 1.8;
-  const blur = zoom > 60 ? ((zoom - 60) / 40) * 2.5 : 0;
+  const blur = 0;
+  const quality = 80;
   const blockSize = Math.max(1, Math.floor((1 - quality / 100) * 8));
 
   return (
@@ -395,8 +419,7 @@ const RasterSVG = ({ zoom, quality }: { zoom: number; quality: number }) => {
       height="180"
       viewBox="0 0 100 100"
       style={{
-        transform: `scale(${scale})`,
-        transition: "transform 0.2s",
+        transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
         filter: `blur(${blur}px)`,
         imageRendering: "pixelated",
       }}
@@ -419,23 +442,31 @@ const RasterSVG = ({ zoom, quality }: { zoom: number; quality: number }) => {
         strokeLinejoin="round"
         style={{ shapeRendering: "crispEdges" }}
       />
-      <circle cx="50" cy="50" r="5" fill="#7a5a4a" opacity="0.6" />
+      <circle cx="50" cy="50" r="5" fill="#7a5a4a" />
       <line x1="50" y1="12" x2="50" y2="88" stroke="#222" strokeWidth="0.4" strokeDasharray="2,3" />
       <line x1="12" y1="50" x2="88" y2="50" stroke="#222" strokeWidth="0.4" strokeDasharray="2,3" />
       {/* Pixel grid overlay */}
-      <rect width="100" height="100" fill="url(#px)" opacity={0.4 + (1 - quality / 100) * 0.6} />
+      <rect width="100" height="100" fill="url(#px)" />
     </svg>
   );
 };
 
 export default function ImageComparison() {
-  const [vectorZoom, setVectorZoom] = useState(30);
-  const [vectorStroke, setVectorStroke] = useState(60);
-  const [vectorOpacity, setVectorOpacity] = useState(80);
+  const [globalZoom, setGlobalZoom] = useState(30);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
 
-  const [rasterZoom, setRasterZoom] = useState(30);
-  const [rasterQuality, setRasterQuality] = useState(80);
-  const [rasterDpi, setRasterDpi] = useState(72);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (e.buttons === 1) {
+      setPan((prev) => ({
+        x: prev.x + e.movementX,
+        y: prev.y + e.movementY,
+      }));
+    }
+  };
 
   return (
     <div className="page">
@@ -445,7 +476,12 @@ export default function ImageComparison() {
         <div>
           <div className="header-label">Gráficos Digitais — Análise Comparativa</div>
           <h1 className="header-title">
-            <strong>Vetorial</strong> vs <strong>Matricial</strong>
+            <Link href="/" className="back-btn" title="Voltar para a Home">
+              <ArrowLeft size={32} strokeWidth={1} />
+            </Link>
+            <span>
+              <strong>Vetorial</strong> vs <strong>Matricial</strong>
+            </span>
             <br />
           </h1>
         </div>
@@ -468,35 +504,23 @@ export default function ImageComparison() {
               <span className="panel-ext">.svg / .pdf / .eps</span>
             </div>
 
-            <div className="image-area">
-              <VectorSVG zoom={vectorZoom} />
-              <div className="zoom-indicator">{vectorZoom}% zoom</div>
+            <div 
+              className="image-area"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+            >
+              <VectorSVG zoom={globalZoom} pan={pan} />
+              <div className="zoom-indicator">{globalZoom}% zoom</div>
             </div>
 
             <div className="sliders-section">
               <div className="slider-row">
                 <span className="slider-label">ZOOM</span>
                 <input
-                  type="range" min={0} max={100} value={vectorZoom}
-                  onChange={(e) => setVectorZoom(Number(e.target.value))}
+                  type="range" min={0} max={100} value={globalZoom}
+                  onChange={(e) => setGlobalZoom(Number(e.target.value))}
                 />
-                <span className="slider-value">{vectorZoom}%</span>
-              </div>
-              <div className="slider-row">
-                <span className="slider-label">STROKE</span>
-                <input
-                  type="range" min={0} max={100} value={vectorStroke}
-                  onChange={(e) => setVectorStroke(Number(e.target.value))}
-                />
-                <span className="slider-value">{vectorStroke}%</span>
-              </div>
-              <div className="slider-row">
-                <span className="slider-label">OPACITY</span>
-                <input
-                  type="range" min={0} max={100} value={vectorOpacity}
-                  onChange={(e) => setVectorOpacity(Number(e.target.value))}
-                />
-                <span className="slider-value">{vectorOpacity}%</span>
+                <span className="slider-value">{globalZoom}%</span>
               </div>
             </div>
 
@@ -547,35 +571,23 @@ export default function ImageComparison() {
               <span className="panel-ext">.png / .jpg / .webp</span>
             </div>
 
-            <div className="image-area">
-              <RasterSVG zoom={rasterZoom} quality={rasterQuality} />
-              <div className="zoom-indicator">{rasterZoom}% zoom</div>
+            <div 
+              className="image-area"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+            >
+              <RasterSVG zoom={globalZoom} pan={pan} />
+              <div className="zoom-indicator">{globalZoom}% zoom</div>
             </div>
 
             <div className="sliders-section">
               <div className="slider-row">
                 <span className="slider-label">ZOOM</span>
                 <input
-                  type="range" min={0} max={100} value={rasterZoom}
-                  onChange={(e) => setRasterZoom(Number(e.target.value))}
+                  type="range" min={0} max={100} value={globalZoom}
+                  onChange={(e) => setGlobalZoom(Number(e.target.value))}
                 />
-                <span className="slider-value">{rasterZoom}%</span>
-              </div>
-              <div className="slider-row">
-                <span className="slider-label">QUALIDADE</span>
-                <input
-                  type="range" min={10} max={100} value={rasterQuality}
-                  onChange={(e) => setRasterQuality(Number(e.target.value))}
-                />
-                <span className="slider-value">{rasterQuality}%</span>
-              </div>
-              <div className="slider-row">
-                <span className="slider-label">DPI</span>
-                <input
-                  type="range" min={72} max={300} value={rasterDpi}
-                  onChange={(e) => setRasterDpi(Number(e.target.value))}
-                />
-                <span className="slider-value">{rasterDpi}</span>
+                <span className="slider-value">{globalZoom}%</span>
               </div>
             </div>
 

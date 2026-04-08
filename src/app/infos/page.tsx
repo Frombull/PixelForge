@@ -138,12 +138,12 @@ export default function InfosPage() {
 
       {/* Page Hero + Search */}
       <div className="pt-[100px] px-8 pb-12 max-w-[1100px] w-full mx-auto">
-        <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2 font-mono">
           <span className="text-[#7dcfff]">Computação Gráfica</span><br />
           <span className="text-[#414868] text-[18px] font-normal">+</span>
           <span className="text-[#bb9af7]"> Multimídia</span>
         </h1>
-        <p className="text-[12px] text-[#a9b1d6] font-light leading-[1.7] max-w-[560px] mb-7">
+        <p className="text-[12px] text-[#a9b1d6] font-light leading-[1.7] max-w-[560px] mb-7 font-mono">
           Material teórico.
         </p>
 
@@ -185,8 +185,7 @@ export default function InfosPage() {
               <div
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className={pillClass}
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                className={`${pillClass} font-mono`}
               >
                 {category}
               </div>
@@ -251,13 +250,10 @@ export default function InfosPage() {
                     <div className={`text-[9px] tracking-widest uppercase mb-2.5 pb-2 inline-flex items-center gap-1.5 ${isCG ? 'text-[#7dcfff]' : 'text-[#bb9af7]'}`}>
                       {concept.category}
                     </div>
-                    <div 
-                      className="text-base font-bold text-[#c0caf5] mb-2 tracking-wide pr-6 leading-tight"
-                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                    >
+                    <div className="text-base font-bold text-[#c0caf5] mb-2 tracking-wide pr-6 leading-tight font-mono">
                       {concept.title}
                     </div>
-                    <div className="text-[11px] text-[#a9b1d6] leading-relaxed font-light line-clamp-3">
+                    <div className="text-[11px] text-[#a9b1d6] leading-relaxed font-light line-clamp-3 font-mono">
                       {concept.description}
                     </div>
                     

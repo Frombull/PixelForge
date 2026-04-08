@@ -21,7 +21,7 @@ export default function Header() {
   return (
     <header
       className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 border-b ${scrolled
-          ? "bg-black/80 backdrop-blur-md border-white/10"
+          ? "bg-black/80 backdrop-blur-md border-neutral-900"
           : "bg-transparent border-transparent"
         }`}
     >
@@ -29,62 +29,72 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center text-lg lg:text-xl shadow-lg shadow-purple-500/40 group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-center text-lg lg:text-xl group-hover:bg-neutral-800 transition-colors duration-300">
               <img
                 src="/images/anvil.svg"
                 alt="logo"
-                className="w-6 h-6 lg:w-8 lg:h-8"
+                className="w-6 h-6 lg:w-8 lg:h-8 opacity-80"
               />
             </div>
             <div className="hidden sm:block">
-              <div className="bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent font-bold text-lg lg:text-xl">
-                Pixel Forge
-              </div>
-              <div className="text-xs text-white/60 -mt-1">
-                Educação Interativa
+              <div className="text-white font-bold text-lg lg:text-xl tracking-tight flex items-baseline gap-1.5">
+                <span>PixelForge</span>
+                <span className="text-sky-400 font-normal">3D</span>
+                <span className="text-[10px] text-neutral-500 font-normal font-mono">// v2.0</span>
               </div>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-6 font-mono text-xs">
             <Link
               href="/#graphics"
-              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+              className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              Computação Gráfica
+              comp. gráfica
             </Link>
             <Link
               href="/#multimidia"
-              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+              className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              Multimídia
+              multimídia
             </Link>
             <Link
               href="/#ia"
-              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+              className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              Inteligência Computacional
+              inteligência comp.
             </Link>
             <Link
               href="/infos"
-              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+              className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              Material Teórico
+              material teórico
             </Link>
             <Link
               href="/pricing"
-              className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-all duration-300 font-medium"
+              className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              Preços
+              preços
             </Link>
           </nav>
 
+          {/* Badge */}
+          <div className="hidden lg:flex items-center">
+            <div className="font-mono text-[10px] text-green-400 border border-green-400/30 bg-green-400/5 px-2.5 py-1 rounded tracking-widest">
+              FETIN 2026
+            </div>
+          </div>
+
           {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
-          >
+          <div className="flex lg:hidden items-center gap-4">
+            <div className="font-mono text-[10px] text-green-400 border border-green-400/30 bg-green-400/5 px-2 py-0.5 rounded tracking-widest">
+              FETIN 2026
+            </div>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded text-neutral-400 hover:text-white hover:bg-neutral-900/50 transition-all duration-300"
+            >
             <svg
               className="w-6 h-6"
               fill="none"
@@ -109,45 +119,46 @@ export default function Header() {
             </svg>
           </button>
         </div>
+        </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-white/10">
-            <nav className="flex flex-col space-y-2">
+          <div className="lg:hidden py-4 border-t border-neutral-900 bg-black/95 backdrop-blur-md">
+            <nav className="flex flex-col space-y-2 font-mono text-sm px-4">
               <Link
                 href="/#graphics"
-                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Computação Gráfica
+                comp. gráfica
               </Link>
               <Link
                 href="/#multimidia"
-                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Multimídia
+                multimídia
               </Link>
               <Link
                 href="/#ia"
-                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Inteligência Computacional
+                inteligência comp.
               </Link>
               <Link
                 href="/infos"
-                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Material Teórico
+                material teórico
               </Link>
               <Link
                 href="/pricing"
-                className="text-white/80 hover:text-white hover:bg-white/10 px-4 py-3 rounded-lg transition-all duration-300 font-medium"
+                className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Preços
+                preços
               </Link>
             </nav>
           </div>

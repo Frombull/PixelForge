@@ -4,69 +4,84 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-black border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Logo e descrição */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/40">
-                <img
-                  src="/images/anvil.svg"
-                  alt="logo"
-                  className="w-6 h-6"
-                />
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-                Pixel Forge
-              </span>
+    <footer className="bg-[#0f1017] border-t border-neutral-800/60 text-xs font-mono text-neutral-500">
+      <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 lg:gap-8 mb-12">
+          
+          {/* Coluna 1: Branding e Créditos */}
+          <div className="flex flex-col gap-4 md:col-span-1">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-white font-bold tracking-tight text-lg">PixelForge<span className="text-sky-400">3D</span></span>
             </div>
-            <p className="text-white/60 text-sm">
-              Plataforma educacional interativa para Computação Gráfica, Multimídia e Inteligência Computacional.
-            </p>
+            
+            {/* Timeline */}
+            <div className="flex gap-4 mt-2">
+              <div className="flex flex-col items-center">
+                <div className="w-2 h-2 rounded-full bg-sky-500/50 mt-1"></div>
+                <div className="w-[1px] h-6 bg-neutral-800 my-1"></div>
+                <div className="w-2 h-2 rounded-full bg-neutral-700 mb-1"></div>
+              </div>
+              <div className="flex flex-col justify-between">
+                <p className="text-[10px] sm:text-xs text-neutral-400 whitespace-nowrap">FETIN 2026 Prof. Ruan Patrick</p>
+                <p className="text-[10px] sm:text-xs text-neutral-500 whitespace-nowrap">FETIN 2025 Prof. Me. Marcelo Cysneiros</p>
+              </div>
+            </div>
           </div>
 
-          {/* Links rápidos */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-white font-semibold mb-2">Links Rápidos</h3>
-            <Link href="/infos" className="text-white/70 hover:text-sky-400 transition-colors duration-200 text-sm">
-              Material Teórico
-            </Link>
-            <Link href="/pricing" className="text-white/70 hover:text-sky-400 transition-colors duration-200 text-sm">
-              Preços
-            </Link>
-            <Link href="/cookies" className="text-white/70 hover:text-sky-400 transition-colors duration-200 text-sm">
-              Política de Cookies
-            </Link>
-            <Link href="/privacy" className="text-white/70 hover:text-sky-400 transition-colors duration-200 text-sm">
-              Política de Privacidade
-            </Link>
+          {/* Coluna 2: Módulos */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-white font-semibold tracking-wider">./módulos</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <Link href="/#graphics" className="hover:text-sky-400 transition-colors">Computação Gráfica</Link>
+              </li>
+              <li>
+                <Link href="/#multimidia" className="hover:text-fuchsia-400 transition-colors">Multimídia</Link>
+              </li>
+              <li>
+                <Link href="/#ia" className="hover:text-green-400 transition-colors">Inteligência Computacional</Link>
+              </li>
+            </ul>
           </div>
 
-          {/* Links sociais */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-white font-semibold mb-2">Conecte-se</h3>
-            <a
-              href="https://www.linkedin.com/in/marcoditoro/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/70 hover:text-sky-400 transition-colors duration-200 flex items-center gap-2 text-sm">
-              <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.026-3.063-1.867-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.381-1.563 2.841-1.563 3.039 0 3.603 2.002 3.603 4.604v5.592z" />
-              </svg>
-              LinkedIn - Marco
-            </a>
+          {/* Coluna 3: Recursos */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-white font-semibold tracking-wider">./recursos</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <Link href="/infos" className="hover:text-sky-400 transition-colors">Material Teórico</Link>
+              </li>
+              <li>
+                <Link href="/pricing" className="hover:text-sky-400 transition-colors">Planos e Preços</Link>
+              </li>
+              <li>
+                <Link href="/" className="hover:text-sky-400 transition-colors">Página Inicial</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Coluna 4: Legal & Social */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-white font-semibold tracking-wider">./links</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <Link href="/privacy" className="hover:text-sky-400 transition-colors">Política de Privacidade</Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="hover:text-sky-400 transition-colors">Política de Cookies</Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-6" />
-
-        {/* Copyright e créditos */}
-        <div className="text-center text-white/40 text-sm">
-          <p className="mb-6">© 2026 Pixel Forge. Desenvolvido por Marco Di Toro</p>
-          <p className="text-xs mb-1">Fetin 2026 | Orientado por Prof. Ruan Patrik</p>
-          <p className="text-xs mb-1">Fetin 2025 | Orientado por Prof. Me. Marcelo Cysneiros</p>
+        {/* Rodapé Inferior */}
+        <div className="flex justify-center sm:justify-start items-center pt-8 border-t border-neutral-800/60 w-full">
+          <p className="text-[10px] text-neutral-600 uppercase tracking-widest text-center sm:text-left">
+            © 2026 Inatel // Desenvolvido por{" "}
+            <a href="https://www.linkedin.com/in/marcoditoro/" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-sky-400 transition-colors underline decoration-neutral-800 underline-offset-4 hover:decoration-sky-400">
+              Marco Di Toro
+            </a>
+          </p>
         </div>
       </div>
     </footer>

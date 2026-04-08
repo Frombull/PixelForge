@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface Concept {
   id: string;
@@ -137,7 +138,7 @@ export default function InfosPage() {
       <Header />
 
       {/* Page Hero + Search */}
-      <div className="pt-[100px] px-8 pb-12 max-w-[1100px] w-full mx-auto">
+      <div className="pt-[110px] px-8 pb-12 max-w-[1100px] w-full mx-auto">
         <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2 font-mono">
           <span className="text-[#7dcfff]">Material teórico</span><br />
         </h1>
@@ -268,6 +269,8 @@ export default function InfosPage() {
             })}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

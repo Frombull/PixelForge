@@ -23,14 +23,14 @@ export default function Header() {
       className={`fixed left-0 top-0 w-full z-50 border-b border-[#2a2d3e] bg-[rgb(22,23,31)]`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between h-12 lg:h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 lg:w-12 lg:h-12 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-center text-lg lg:text-xl group-hover:bg-neutral-800 transition-colors duration-300">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-neutral-900 border border-neutral-800 rounded-xl flex items-center justify-center text-lg lg:text-xl group-hover:bg-neutral-800 transition-colors duration-300">
               <img
                 src="/images/anvil.svg"
                 alt="logo"
-                className="w-6 h-6 lg:w-8 lg:h-8 opacity-80"
+                className="w-5 h-5 lg:w-6 lg:h-6 opacity-80"
               />
             </div>
             <div className="hidden sm:block">

@@ -20,10 +20,7 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed left-0 top-0 w-full z-50 transition-all duration-300 border-b ${scrolled
-          ? "bg-black/80 backdrop-blur-md border-neutral-900"
-          : "bg-transparent border-transparent"
-        }`}
+      className={`fixed left-0 top-0 w-full z-50 border-b border-[#2a2d3e] bg-[rgb(22,23,31)]`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">

@@ -139,13 +139,8 @@ export default function InfosPage() {
       {/* Page Hero + Search */}
       <div className="pt-[100px] px-8 pb-12 max-w-[1100px] w-full mx-auto">
         <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2 font-mono">
-          <span className="text-[#7dcfff]">Computação Gráfica</span><br />
-          <span className="text-[#414868] text-[18px] font-normal">+</span>
-          <span className="text-[#bb9af7]"> Multimídia</span>
+          <span className="text-[#7dcfff]">Material teórico</span><br />
         </h1>
-        <p className="text-[12px] text-[#a9b1d6] font-light leading-[1.7] max-w-[560px] mb-7 font-mono">
-          Material teórico.
-        </p>
 
         <div className="flex items-center gap-3 max-w-[560px]">
           <div className="flex-1 flex items-center gap-2.5 bg-[#1a1b26] border border-[#2a2d3e] rounded-md px-3.5 focus-within:border-[#3a3d52] focus-within:ring-[3px] focus-within:ring-[#7aa2f7]/10 transition-all">
@@ -239,8 +234,7 @@ export default function InfosPage() {
                         <div
                           key={index}
                           onClick={() => handleConceptClick(concept.id)}
-                          className="bg-[#1a1b26] p-0 relative cursor-pointer block hover:bg-[#16171f] transition-colors group border border-[#2a2d3e] rounded-lg overflow-hidden"
-                        >
+                          className="bg-[#1a1b26] p-0 relative cursor-pointer block hover:bg-[#16171f] transition-colors group border border-[#2a2d3e] rounded-[2px] overflow-hidden">
                   
                   <div className="w-full h-24 bg-[#13141c] border-b border-[#2a2d3e] flex items-center justify-center overflow-hidden">
                     <span className="text-[32px]">{concept.icon}</span>

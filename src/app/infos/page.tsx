@@ -132,7 +132,7 @@ export default function InfosPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col text-center px-4 sm:px-6 lg:px-8 pt-28 sm:pt-36 relative bg-slate-900 overflow-hidden">
+    <div className="min-h-screen flex flex-col text-center px-4 sm:px-6 lg:px-8 pt-28 sm:pt-36 relative bg-black text-white overflow-x-hidden">
       {/* Header */}
       <Header />
 
@@ -164,7 +164,7 @@ export default function InfosPage() {
       </section>
 
       {/* Main Content */}
-      <main className="bg-black/20 rounded-t-3xl relative z-10 border-t border-white/10">
+      <main className="relative z-10 pt-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           {/* Filter Tabs */}
           <div className="mb-8 sm:mb-12 px-2">

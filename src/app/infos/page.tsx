@@ -133,7 +133,10 @@ export default function InfosPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-hidden">
+    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-hidden">
+      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+      <div className="relative z-10 flex min-h-screen flex-col">
       {/* Header */}
       <Header />
 
@@ -191,8 +194,10 @@ export default function InfosPage() {
       </div>
 
       {/* Main Content (CG Section Style) */}
-      <div className="bg-[#0f1017] border-t border-[#2a2d3e] border-b pb-16 flex-1">
-        <div className="py-[60px] px-8 max-w-[1100px] mx-auto">
+      <div className="relative isolate overflow-hidden bg-[#0f1017] border-t border-[#2a2d3e] border-b pb-16 flex-1">
+        <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+        <div className="relative z-10 py-[60px] px-8 max-w-[1100px] mx-auto">
           {categories
             .filter(
               (c) =>
@@ -271,6 +276,7 @@ export default function InfosPage() {
       </div>
 
       <Footer />
+      </div>
     </div>
   );
 }

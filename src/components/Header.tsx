@@ -37,7 +37,6 @@ export default function Header() {
               <div className="text-white font-bold font-mono text-lg lg:text-xl tracking-tight flex items-baseline gap-1.5">
                 <span>PixelForge</span>
                 <span className="text-sky-400 font-normal">3D</span>
-                <span className="text-[10px] text-neutral-500 font-normal font-mono">// v2.0</span>
               </div>
             </div>
           </Link>

@@ -22,9 +22,11 @@ export default function SectionGrid({ id, title, tools, className = "" }: Sectio
   return (
     <section
       id={id}
-      className={`py-24 px-6 sm:px-12 bg-black border-t border-neutral-900 ${className}`}
+      className={`relative isolate overflow-hidden py-24 px-6 sm:px-12 bg-black border-t border-neutral-900 ${className}`}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+      <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="mb-12 flex items-center gap-4">
           <span className="text-neutral-600 font-mono text-xl sm:text-2xl mt-1">$</span>

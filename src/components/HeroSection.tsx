@@ -6,7 +6,7 @@ import HeroLogo3D from "@/components/HeroLogo3D";
 export default function HeroSection() {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
-      <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none" />
+      <div className="app-noise absolute inset-0 pointer-events-none" aria-hidden="true" />
 
       <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-2">
@@ -25,22 +25,24 @@ export default function HeroSection() {
 
         <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto font-mono text-sm">
           <Link
-            href="/infos"
-            className="flex items-center justify-center gap-2 rounded bg-white px-8 py-3 font-semibold text-black transition-transform hover:scale-105"
-          >
-            Material Teórico
-          </Link>
-          <Link
             href="#graphics"
-            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-sky-400/50"
-          >
+            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-sky-400/50">
             Computação Gráfica
           </Link>
           <Link
             href="#multimidia"
-            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-fuchsia-400/50"
-          >
+            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-fuchsia-400/50">
             Multimídia
+          </Link>
+          <Link
+            href="#ia"
+            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-purple-400/50">
+            Inteligência Computacional
+          </Link>
+          <Link
+            href="/infos"
+            className="flex items-center justify-center gap-2 rounded bg-white px-8 py-3 font-semibold text-black transition-transform hover:scale-105">
+            Material Teórico
           </Link>
         </div>
 

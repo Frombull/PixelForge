@@ -4,11 +4,37 @@
     box-sizing: border-box;
 }
 
+:root {
+    --ui-bg: #13141c;
+    --ui-bg-panel: #1a1b26;
+    --ui-bg-header: #0f1017;
+    --ui-border: #2a2d3e;
+    --ui-border-soft: #3a3d52;
+    --ui-text: #a9b1d6;
+    --ui-text-strong: #c0caf5;
+    --ui-text-muted: #565f89;
+    --ui-accent: #7dcfff;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
     overflow: hidden;
-    background: #1a1625;
-    color: #d4d1e0;
+    background: radial-gradient(circle at 18% -12%, #1f243a 0%, rgba(31, 36, 58, 0) 42%), var(--ui-bg);
+    color: var(--ui-text-strong);
+    position: relative;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+    background-size: 480px 480px;
+    background-repeat: repeat;
+    mix-blend-mode: soft-light;
+    opacity: 0.14;
+    z-index: 0;
 }
 
 /* ==================== Top Bar ==================== */
@@ -19,19 +45,19 @@ body {
     left: 0;
     right: 0;
     height: 36px;
-    background: #2a2438;
+    background: #1a1b26;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 12px;
-    border-bottom: 1px solid #3d3550;
+    border-bottom: 1px solid #2a2d3e;
     z-index: 1000;
 }
 
 #topbar-title {
     font-size: 13px;
     font-weight: 600;
-    color: #8b5cf6;
+    color: #7dcfff;
     letter-spacing: 0.5px;
 }
 
@@ -50,14 +76,14 @@ body {
     background: transparent;
     border: none;
     border-radius: 4px;
-    color: #b8b4c8;
+    color: #a9b1d6;
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .topbar-btn:hover {
-    background: #3d3550;
-    color: #d4d1e0;
+    background: #2a2d3e;
+    color: #c0caf5;
 }
 
 .icon-sm {
@@ -71,14 +97,14 @@ body {
     position: fixed;
     top: 42px;
     right: 12px;
-    background: #2a2438f7;
+    background: #1a1b26f7;
     border-radius: 6px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     min-width: 240px;
     z-index: 1001;
     padding: 8px 0;
     transition: opacity 0.2s, transform 0.2s;
-    border: 1px solid #3d3550;
+    border: 1px solid #2a2d3e;
 }
 
 .settings-menu.hidden {
@@ -93,14 +119,14 @@ body {
 }
 
 .settings-item:hover {
-    background: rgba(139, 92, 246, 0.1);
+    background: rgba(125, 207, 255, 0.1);
 }
 
 .settings-label {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #b8b4c8;
+    color: #a9b1d6;
     font-size: 12px;
     cursor: pointer;
     user-select: none;
@@ -110,7 +136,7 @@ body {
     width: 14px;
     height: 14px;
     cursor: pointer;
-    accent-color: #8b5cf6;
+    accent-color: #7dcfff;
 }
 
 .settings-label span {
@@ -120,9 +146,9 @@ body {
 .settings-item input[type="color"] {
     width: 100%;
     height: 28px;
-    border: 1px solid #3d3550;
+    border: 1px solid #2a2d3e;
     border-radius: 4px;
-    background: #1a1625;
+    background: #13141c;
     cursor: pointer;
     margin-top: 4px;
 }
@@ -142,14 +168,14 @@ body {
     position: fixed;
     top: 42px;
     right: 56px;
-    background: #2a2438f7;
-    color: #d4d1e0;
+    background: #1a1b26f7;
+    color: #c0caf5;
     padding: 12px 16px;
     border-radius: 6px;
     font-size: 12px;
     line-height: 1.6;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    border: 1px solid #3d3550;
+    border: 1px solid #2a2d3e;
     z-index: 1001;
     min-width: 280px;
     transition: opacity 0.2s, transform 0.2s;
@@ -178,13 +204,13 @@ body {
 }
 
 .close-info-btn:hover {
-    color: #ff4444;
+    color: #f7768e;
 }
 
 .info-tooltip strong {
     display: block;
     font-size: 12px;
-    color: #8b5cf6;
+    color: #7dcfff;
     margin-bottom: 4px;
 }
 
@@ -216,10 +242,10 @@ body {
     flex: 1;
     height: 4px;
     border-radius: 2px;
-    background: #1a1625;
+    background: #13141c;
     outline: none;
     cursor: pointer;
-    border: 1px solid #3d3550;
+    border: 1px solid #2a2d3e;
 }
 
 .settings-slider-group input[type="range"]::-webkit-slider-thumb {
@@ -227,26 +253,26 @@ body {
     width: 14px;
     height: 14px;
     border-radius: 3px;
-    background: #8b5cf6;
+    background: #7dcfff;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .settings-slider-group input[type="range"]::-webkit-slider-thumb:hover {
-    background: #a78bfa;
+    background: #a8ddff;
 }
 
 .settings-slider-group input[type="range"]::-moz-range-thumb {
     width: 14px;
     height: 14px;
     border-radius: 3px;
-    background: #8b5cf6;
+    background: #7dcfff;
     cursor: pointer;
     border: none;
 }
 
 .settings-slider-group input[type="range"]::-moz-range-thumb:hover {
-    background: #a78bfa;
+    background: #a8ddff;
 }
 
 .snap-size-item {
@@ -263,10 +289,10 @@ body {
 .settings-item input[type="number"] {
     width: 100%;
     padding: 4px 8px;
-    border: 1px solid #3d3550;
+    border: 1px solid #2a2d3e;
     border-radius: 4px;
-    background: #1a1625;
-    color: #d4d1e0;
+    background: #13141c;
+    color: #c0caf5;
     font-size: 12px;
     margin-top: 4px;
     outline: none;
@@ -274,7 +300,7 @@ body {
 }
 
 .settings-item input[type="number"]:focus {
-    border-color: #8b5cf6;
+    border-color: #7dcfff;
 }
 
 /* ==================== Main Layout ==================== */
@@ -293,8 +319,8 @@ body {
 #sidebar-left {
     width: 280px;
     min-width: 280px;
-    background: #2a2438;
-    border-right: 1px solid #3d3550;
+    background: #1a1b26;
+    border-right: 1px solid #2a2d3e;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -311,28 +337,28 @@ body {
 }
 
 #sidebar-left::-webkit-scrollbar-thumb {
-    background: #3d3550;
+    background: #2a2d3e;
     border-radius: 3px;
 }
 
 #sidebar-left::-webkit-scrollbar-thumb:hover {
-    background: #4a4560;
+    background: #3a3d52;
 }
 
 /* ==================== Sidebar Sections ==================== */
 
 .sidebar-section {
-    border-bottom: 1px solid #3d3550;
+    border-bottom: 1px solid #2a2d3e;
 }
 
 .sidebar-header {
     padding: 8px 12px;
-    background: #251f33;
+    background: #0f1017;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #8b5cf6;
+    color: #7dcfff;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -358,7 +384,7 @@ body {
     padding: 12px;
     text-align: center;
     font-size: 12px;
-    color: #6b6580;
+    color: #565f89;
     font-style: italic;
 }
 
@@ -375,12 +401,12 @@ body {
 }
 
 .hierarchy-item:hover {
-    background: #3d3550;
+    background: #2a2d3e;
 }
 
 .hierarchy-item.selected {
-    background: rgba(139, 92, 246, 0.25);
-    border-left: 2px solid #8b5cf6;
+    background: rgba(125, 207, 255, 0.25);
+    border-left: 2px solid #7dcfff;
 }
 
 .hierarchy-icon {
@@ -405,7 +431,7 @@ body {
     justify-content: center;
     border: none;
     background: transparent;
-    color: #6b6580;
+    color: #565f89;
     font-size: 14px;
     cursor: pointer;
     border-radius: 2px;
@@ -418,8 +444,8 @@ body {
 }
 
 .hierarchy-delete:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    color: #f7768e;
+    background: rgba(247, 118, 142, 0.12);
 }
 
 /* ==================== Primitive Buttons ==================== */
@@ -437,27 +463,27 @@ body {
     justify-content: center;
     gap: 4px;
     padding: 10px 4px;
-    background: #1a1625;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    border: 1px solid #2a2d3e;
     border-radius: 6px;
-    color: #b8b4c8;
+    color: #a9b1d6;
     font-size: 10px;
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .prim-btn:hover {
-    background: #251f33;
-    border-color: #8b5cf6;
-    color: #d4d1e0;
+    background: #0f1017;
+    border-color: #7dcfff;
+    color: #c0caf5;
 }
 
 .prim-btn-subtract {
-    border-color: #ef444466;
+    border-color: #f7768e66;
 }
 
 .prim-btn-subtract:hover {
-    border-color: #ef4444;
+    border-color: #f7768e;
     background: rgba(239, 68, 68, 0.08);
 }
 
@@ -475,7 +501,7 @@ body {
 .demo-label {
     font-size: 10px;
     text-transform: uppercase;
-    color: #6b6580;
+    color: #565f89;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
 }
@@ -484,10 +510,10 @@ body {
     display: block;
     width: 100%;
     padding: 6px 10px;
-    background: #1a1625;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    border: 1px solid #2a2d3e;
     border-radius: 4px;
-    color: #b8b4c8;
+    color: #a9b1d6;
     font-size: 11px;
     cursor: pointer;
     transition: all 0.15s;
@@ -495,9 +521,9 @@ body {
 }
 
 .demo-btn:hover {
-    background: #251f33;
+    background: #0f1017;
     border-color: #f59e0b;
-    color: #d4d1e0;
+    color: #c0caf5;
 }
 
 /* ==================== Transform Tools ==================== */
@@ -514,24 +540,24 @@ body {
     align-items: center;
     gap: 3px;
     padding: 10px 8px;
-    background: #1a1625;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    border: 1px solid #2a2d3e;
     border-radius: 6px;
-    color: #b8b4c8;
+    color: #a9b1d6;
     font-size: 10px;
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .tool-btn:hover {
-    background: #251f33;
-    color: #d4d1e0;
+    background: #0f1017;
+    color: #c0caf5;
 }
 
 .tool-btn.active {
-    background: rgba(139, 92, 246, 0.15);
-    border-color: #8b5cf6;
-    color: #8b5cf6;
+    background: rgba(125, 207, 255, 0.15);
+    border-color: #7dcfff;
+    color: #7dcfff;
 }
 
 .tool-icon {
@@ -541,18 +567,18 @@ body {
 
 .tool-btn kbd {
     padding: 1px 5px;
-    background: #2a2438;
-    border: 1px solid #3d3550;
+    background: #1a1b26;
+    border: 1px solid #2a2d3e;
     border-radius: 3px;
     font-size: 9px;
     font-family: monospace;
-    color: #6b6580;
+    color: #565f89;
 }
 
 .tool-btn.active kbd {
-    background: #8b5cf6;
-    border-color: #8b5cf6;
-    color: white;
+    background: #7dcfff;
+    border-color: #7dcfff;
+    color: #13141c;
 }
 
 /* ==================== View Controls ==================== */
@@ -560,14 +586,14 @@ body {
 .view-controls {
     margin-top: 12px;
     padding-top: 10px;
-    border-top: 1px solid #3d3550;
+    border-top: 1px solid #2a2d3e;
 }
 
 .view-label {
     display: block;
     font-size: 10px;
     text-transform: uppercase;
-    color: #6b6580;
+    color: #565f89;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
 }
@@ -576,10 +602,10 @@ body {
     display: block;
     width: 100%;
     padding: 6px 10px;
-    background: #1a1625;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    border: 1px solid #2a2d3e;
     border-radius: 4px;
-    color: #b8b4c8;
+    color: #a9b1d6;
     font-size: 11px;
     cursor: pointer;
     transition: all 0.15s;
@@ -587,14 +613,14 @@ body {
 }
 
 .view-btn:hover {
-    background: #251f33;
-    border-color: #8b5cf6;
+    background: #0f1017;
+    border-color: #7dcfff;
 }
 
 .view-btn.active {
-    background: rgba(139, 92, 246, 0.15);
-    border-color: #8b5cf6;
-    color: #a78bfa;
+    background: rgba(125, 207, 255, 0.15);
+    border-color: #7dcfff;
+    color: #a8ddff;
 }
 
 /* ==================== Center Canvas ==================== */
@@ -619,7 +645,7 @@ body {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #6b6580;
+    color: #565f89;
     pointer-events: none;
     user-select: none;
     opacity: 0.7;
@@ -630,8 +656,8 @@ body {
 #sidebar-right {
     width: 280px;
     min-width: 280px;
-    background: #2a2438;
-    border-left: 1px solid #3d3550;
+    background: #1a1b26;
+    border-left: 1px solid #2a2d3e;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -648,12 +674,12 @@ body {
 }
 
 #sidebar-right::-webkit-scrollbar-thumb {
-    background: #3d3550;
+    background: #2a2d3e;
     border-radius: 3px;
 }
 
 #sidebar-right::-webkit-scrollbar-thumb:hover {
-    background: #4a4560;
+    background: #3a3d52;
 }
 
 /* ==================== Inspector Empty State ==================== */
@@ -666,7 +692,7 @@ body {
     padding: 40px 20px;
     text-align: center;
     gap: 12px;
-    color: #6b6580;
+    color: #565f89;
     font-size: 13px;
 }
 
@@ -687,7 +713,7 @@ body {
 /* ==================== Inspector Groups ==================== */
 
 .inspector-group {
-    border-bottom: 1px solid #3d3550;
+    border-bottom: 1px solid #2a2d3e;
 }
 
 .group-header {
@@ -695,14 +721,14 @@ body {
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    background: #251f33;
+    background: #0f1017;
     cursor: pointer;
     user-select: none;
     transition: background 0.15s;
 }
 
 .group-header:hover {
-    background: #2d2640;
+    background: #171a26;
 }
 
 .group-title {
@@ -710,7 +736,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: #8b5cf6;
+    color: #7dcfff;
 }
 
 .chevron-sm {
@@ -740,7 +766,7 @@ body {
 
 .prop-label {
     font-size: 10px;
-    color: #6b6580;
+    color: #565f89;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -757,10 +783,10 @@ body {
     align-items: center;
     min-width: 0;
     gap: 2px;
-    background: #1a1625;
+    background: #13141c;
     border-radius: 4px;
     padding: 2px 4px;
-    border: 1px solid #2d2640;
+    border: 1px solid #2a2d3e;
 }
 
 .prop-field input {
@@ -768,7 +794,7 @@ body {
     min-width: 0;
     background: transparent;
     border: none;
-    color: #d4d1e0;
+    color: #c0caf5;
     font-size: 11px;
     font-family: 'Consolas', monospace;
     outline: none;
@@ -785,7 +811,7 @@ body {
 .prop-letter {
     font-size: 10px;
     font-weight: 600;
-    color: #8b84a0;
+    color: #7aa2f7;
     min-width: 18px;
     text-align: center;
     flex-shrink: 0;
@@ -806,10 +832,10 @@ body {
     display: flex;
     align-items: center;
     gap: 3px;
-    background: #1a1625;
+    background: #13141c;
     border-radius: 4px;
     padding: 2px 4px;
-    border: 1px solid #2d2640;
+    border: 1px solid #2a2d3e;
     min-width: 0;
 }
 
@@ -819,7 +845,7 @@ body {
     flex: 1;
     background: transparent;
     border: none;
-    color: #d4d1e0;
+    color: #c0caf5;
     font-size: 11px;
     font-family: 'Consolas', monospace;
     outline: none;
@@ -858,9 +884,9 @@ body {
 .color-tab {
     flex: 1;
     padding: 4px 8px;
-    background: #1a1625;
-    color: #b8b4c8;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    color: #a9b1d6;
+    border: 1px solid #2a2d3e;
     border-radius: 4px;
     font-size: 10px;
     cursor: pointer;
@@ -868,13 +894,13 @@ body {
 }
 
 .color-tab:hover {
-    background: #251f33;
+    background: #0f1017;
 }
 
 .color-tab.active {
-    background: #8b5cf6;
-    color: white;
-    border-color: #8b5cf6;
+    background: #7dcfff;
+    color: #13141c;
+    border-color: #7dcfff;
 }
 
 .color-inputs {
@@ -893,17 +919,17 @@ body {
     align-items: center;
     flex: 1;
     gap: 3px;
-    background: #1a1625;
+    background: #13141c;
     border-radius: 4px;
     padding: 3px 6px;
-    border: 1px solid #2d2640;
+    border: 1px solid #2a2d3e;
 }
 
 .color-field input {
     flex: 1;
     background: transparent;
     border: none;
-    color: #d4d1e0;
+    color: #c0caf5;
     font-size: 11px;
     font-family: 'Consolas', monospace;
     outline: none;
@@ -920,7 +946,7 @@ body {
 .color-axis-label {
     font-size: 10px;
     font-weight: 600;
-    color: #6b6580;
+    color: #565f89;
     min-width: 14px;
     text-align: center;
     flex-shrink: 0;
@@ -935,7 +961,7 @@ body {
 
 .alpha-label {
     font-size: 10px;
-    color: #6b6580;
+    color: #565f89;
     min-width: 36px;
 }
 
@@ -943,10 +969,10 @@ body {
     flex: 1;
     height: 4px;
     border-radius: 2px;
-    background: #1a1625;
+    background: #13141c;
     outline: none;
     cursor: pointer;
-    border: 1px solid #3d3550;
+    border: 1px solid #2a2d3e;
 }
 
 .alpha-row input[type="range"]::-webkit-slider-thumb {
@@ -954,7 +980,7 @@ body {
     width: 12px;
     height: 12px;
     border-radius: 3px;
-    background: #8b5cf6;
+    background: #7dcfff;
     cursor: pointer;
 }
 
@@ -962,7 +988,7 @@ body {
     width: 12px;
     height: 12px;
     border-radius: 3px;
-    background: #8b5cf6;
+    background: #7dcfff;
     cursor: pointer;
     border: none;
 }
@@ -976,17 +1002,17 @@ body {
 
 .hex-label {
     font-size: 10px;
-    color: #6b6580;
+    color: #565f89;
     min-width: 28px;
 }
 
 #color-hex {
     flex: 1;
     padding: 4px 8px;
-    background: #1a1625;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    border: 1px solid #2a2d3e;
     border-radius: 4px;
-    color: #d4d1e0;
+    color: #c0caf5;
     font-size: 11px;
     font-family: 'Consolas', monospace;
     outline: none;
@@ -994,7 +1020,7 @@ body {
 }
 
 #color-hex:focus {
-    border-color: #8b5cf6;
+    border-color: #7dcfff;
 }
 
 /* ==================== Reset Button ==================== */
@@ -1007,7 +1033,7 @@ body {
     justify-content: center;
     background: transparent;
     border: none;
-    color: #4a4560;
+    color: #3a3d52;
     font-size: 11px;
     cursor: pointer;
     border-radius: 2px;
@@ -1017,8 +1043,8 @@ body {
 }
 
 .reset-btn:hover {
-    color: #8b5cf6;
-    background: rgba(139, 92, 246, 0.1);
+    color: #7dcfff;
+    background: rgba(125, 207, 255, 0.1);
 }
 
 .settings-reset-btn {
@@ -1026,15 +1052,15 @@ body {
     margin: 0;
     min-width: 22px;
     height: 22px;
-    background: #1a1625;
-    border: 1px solid #3d3550;
+    background: #13141c;
+    border: 1px solid #2a2d3e;
     border-radius: 3px;
-    color: #6b6580;
+    color: #565f89;
 }
 
 .settings-reset-btn:hover {
-    color: #8b5cf6;
-    border-color: #8b5cf6;
+    color: #7dcfff;
+    border-color: #7dcfff;
 }
 
 /* ==================== Animations ==================== */
@@ -1042,4 +1068,32 @@ body {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1200px) {
+    #sidebar-left,
+    #sidebar-right {
+        width: 240px;
+        min-width: 240px;
+    }
+}
+
+@media (max-width: 980px) {
+    #app-layout {
+        flex-direction: column;
+    }
+
+    #sidebar-left,
+    #sidebar-right {
+        width: 100%;
+        min-width: 0;
+        max-height: 32vh;
+        border-right: none;
+        border-left: none;
+        border-bottom: 1px solid #2a2d3e;
+    }
+
+    #center-area {
+        min-height: 40vh;
+    }
 }

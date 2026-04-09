@@ -43,20 +43,22 @@ const pricingPlans = [
 
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-black text-white overflow-x-hidden">
-      <Header />
-      
-      <section className="relative flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top,#15263b_0%,#09111a_42%,#02060b_100%)] px-4 pt-28 pb-20 md:px-8 md:pt-36">
-        <div className="absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(circle_at_50%_0%,rgba(92,170,255,0.24),transparent_54%)]" />
-        <div className="absolute left-1/2 top-44 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-300/10 blur-3xl" />
+    <main className="relative isolate min-h-screen flex flex-col bg-[#13141c] text-[#a9b1d6] overflow-x-hidden font-mono">
+      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
-        <div className="relative mx-auto w-full max-w-7xl">
+      <div className="relative z-10 flex min-h-screen flex-col">
+      <Header />
+
+      <section className="relative flex min-h-screen flex-col overflow-hidden border-t border-[#2a2d3e] bg-[#0f1017] px-4 pt-28 pb-20 md:px-8 md:pt-36">
+        <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+        <div className="relative z-10 mx-auto w-full max-w-7xl">
           <div className="mb-16 text-center">
-            <h1 className="mb-4 text-5xl font-black leading-tight tracking-[-0.04em] text-transparent bg-gradient-to-r from-slate-100 via-slate-200 to-sky-300 bg-clip-text sm:text-6xl lg:text-7xl">
+            <h1 className="mb-4 text-5xl font-bold leading-tight tracking-tight text-[#c0caf5] sm:text-6xl lg:text-7xl">
               Planos e Preços
             </h1>
-            <div className="mx-auto mb-6 h-1 w-24 rounded-full bg-gradient-to-r from-sky-400 via-cyan-300 to-amber-300 sm:w-36" />
-            <p className="mx-auto max-w-2xl text-lg text-slate-100/88 sm:text-xl">
+            <div className="mx-auto mb-6 h-px w-36 bg-[#2a2d3e]" />
+            <p className="mx-auto max-w-2xl text-sm text-[#a9b1d6] sm:text-base">
               Escolha o plano ideal para sua jornada em Computação Gráfica
             </p>
           </div>
@@ -70,6 +72,7 @@ export default function PricingPage() {
       </section>
 
       <Footer />
+      </div>
     </main>
   );
 }

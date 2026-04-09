@@ -137,7 +137,7 @@ export default function ImageComparison() {
             </div>
 
             <div
-              className="flex items-center justify-center relative overflow-hidden h-[280px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
+              className="flex items-center justify-center relative overflow-hidden h-[420px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
@@ -282,7 +282,7 @@ export default function ImageComparison() {
             </div>
 
             <div
-              className="flex items-center justify-center relative overflow-hidden h-[280px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
+              className="flex items-center justify-center relative overflow-hidden h-[420px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}

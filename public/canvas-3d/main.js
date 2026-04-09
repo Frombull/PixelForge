@@ -5,73 +5,101 @@ import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
 import { TransformHandler } from '/canvas-3d/transforms/transformHandler.js';
-import { PositionPanel } from '/canvas-3d/ui/positionPanel.js';
+import { InspectorPanel } from '/canvas-3d/ui/inspectorPanel.js';
 import { ColorPickerUI } from '/canvas-3d/ui/colorPicker.js';
 import { SettingsMenu } from '/canvas-3d/ui/settingsMenu.js';
+import { HierarchyManager } from '/canvas-3d/ui/hierarchyManager.js';
 import { MODES } from '/canvas-3d/utils/constants.js';
 
 class App {
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
-        
+
         this.init();
     }
-    
+
     init() {
         const container = document.getElementById('canvas-container');
-        
+
         // Core
         this.sceneManager = new SceneManager(container);
         this.controlsManager = new ControlsManager(
             this.sceneManager.camera,
             this.sceneManager.renderer.domElement
         );
-        
+
         // Objects & Transforms
         this.objectManager = new ObjectManager(this.sceneManager.scene);
         this.booleanOps = new BooleanOperations(this.objectManager.objects);
         this.gizmoManager = new GizmoManager(this.sceneManager.scene);
         this.transformHandler = new TransformHandler();
-        
+
         // UI
-        this.positionPanel = new PositionPanel(
+        this.inspectorPanel = new InspectorPanel(
             this.transformHandler, this.objectManager, this.gizmoManager
         );
         this.colorPicker = new ColorPickerUI(this.objectManager);
         this.settingsMenu = new SettingsMenu(this.sceneManager, this.transformHandler);
-        
+        this.hierarchy = new HierarchyManager(this.objectManager, this);
+
         this.setupEventListeners();
         this.setupToolbar();
         this.animate();
     }
-    
+
     setupEventListeners() {
         const canvas = this.sceneManager.renderer.domElement;
-        
+
         canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
         canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
         canvas.addEventListener('mouseup', () => this.onMouseUp());
         canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-        
+
         window.addEventListener('resize', () => this.sceneManager.onResize());
         window.addEventListener('keydown', (e) => this.onKeyDown(e));
-        
-        document.getElementById('toolbar').addEventListener('contextmenu', e => e.preventDefault());
-        document.getElementById('close-instructions')?.addEventListener('click', () => {
-            document.getElementById('instructions')?.classList.add('hidden');
+
+        document.getElementById('btn-info')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('info-tooltip')?.classList.toggle('hidden');
+            document.getElementById('settings-menu')?.classList.add('hidden');
         });
-        
+
+        document.getElementById('close-info')?.addEventListener('click', () => {
+            document.getElementById('info-tooltip')?.classList.add('hidden');
+        });
+
+        // Close info/settings on outside click
+        document.addEventListener('click', (e) => {
+            const info = document.getElementById('info-tooltip');
+            const settings = document.getElementById('settings-menu');
+            const infoBtn = document.getElementById('btn-info');
+            const settingsBtn = document.getElementById('btn-settings');
+
+            if (info && !info.contains(e.target) && e.target !== infoBtn) {
+                info.classList.add('hidden');
+            }
+            if (settings && !settings.contains(e.target) && e.target !== settingsBtn) {
+                settings.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('settings-menu')?.addEventListener('click', e => e.stopPropagation());
+        document.getElementById('info-tooltip')?.addEventListener('click', e => e.stopPropagation());
+
         this.setupResetButtons();
     }
-    
+
     setupToolbar() {
-        // Setup dropdowns
-        this.setupDropdowns();
-        
         // Add objects
-        document.getElementById('addCube')?.addEventListener('click', () => this.objectManager.addCube());
-        document.getElementById('addCylinder')?.addEventListener('click', () => this.objectManager.addCylinder());
+        document.getElementById('addCube')?.addEventListener('click', () => {
+            this.objectManager.addCube();
+            this.hierarchy.refresh();
+        });
+        document.getElementById('addCylinder')?.addEventListener('click', () => {
+            this.objectManager.addCylinder();
+            this.hierarchy.refresh();
+        });
         document.getElementById('addSphere')?.addEventListener('click', () => {
             console.log('Adicionar Esfera - Em breve!');
         });
@@ -81,18 +109,24 @@ class App {
         document.getElementById('addTorus')?.addEventListener('click', () => {
             console.log('Adicionar Torus - Em breve!');
         });
-        document.getElementById('addZFighting')?.addEventListener('click', () => this.objectManager.addZFightingDemo());
-        document.getElementById('addSubtractCube')?.addEventListener('click', () => this.objectManager.addSubtractCube());
+        document.getElementById('addZFighting')?.addEventListener('click', () => {
+            this.objectManager.addZFightingDemo();
+            this.hierarchy.refresh();
+        });
+        document.getElementById('addSubtractCube')?.addEventListener('click', () => {
+            this.objectManager.addSubtractCube();
+            this.hierarchy.refresh();
+        });
         document.getElementById('addSkewDemo')?.addEventListener('click', () => {});
-        
+
         // Mode buttons
         document.getElementById('btn-translate')?.addEventListener('click', () => this.setMode(MODES.TRANSLATE));
         document.getElementById('btn-scale')?.addEventListener('click', () => this.setMode(MODES.SCALE));
         document.getElementById('btn-rotate')?.addEventListener('click', () => this.setMode(MODES.ROTATE));
         document.getElementById('btn-skew')?.addEventListener('click', () => this.setMode(MODES.SKEW));
-        
+
         // Camera/View
-        document.getElementById('btn-reset-camera')?.addEventListener('click', () => 
+        document.getElementById('btn-reset-camera')?.addEventListener('click', () =>
             this.sceneManager.resetCamera(this.controlsManager.controls)
         );
         document.getElementById('btn-toggle-camera')?.addEventListener('click', () => {
@@ -104,68 +138,22 @@ class App {
             document.getElementById('btn-toggle-culling')?.classList.toggle('active', show);
         });
     }
-    
-    setupDropdowns() {
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown')) {
-                document.querySelectorAll('.dropdown').forEach(dropdown => {
-                    dropdown.classList.remove('open');
-                });
-            }
-        });
-        
-        // Setup primitive dropdown
-        const primitiveBtn = document.getElementById('addPrimitiveBtn');
-        const primitiveDropdown = primitiveBtn?.closest('.dropdown');
-        primitiveBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            primitiveDropdown?.classList.toggle('open');
-            // Close other dropdowns
-            document.querySelectorAll('.dropdown').forEach(dropdown => {
-                if (dropdown !== primitiveDropdown) {
-                    dropdown.classList.remove('open');
-                }
-            });
-        });
-        
-        // Setup demo dropdown
-        const demoBtn = document.getElementById('demoBtn');
-        const demoDropdown = demoBtn?.closest('.dropdown');
-        demoBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            demoDropdown?.classList.toggle('open');
-            // Close other dropdowns
-            document.querySelectorAll('.dropdown').forEach(dropdown => {
-                if (dropdown !== demoDropdown) {
-                    dropdown.classList.remove('open');
-                }
-            });
-        });
-        
-        // Close dropdown when clicking on an item
-        document.querySelectorAll('.dropdown-item').forEach(item => {
-            item.addEventListener('click', () => {
-                item.closest('.dropdown')?.classList.remove('open');
-            });
-        });
-    }
-    
+
     setupResetButtons() {
         document.querySelectorAll('.reset-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const target = btn.dataset.reset;
-                
+
                 // Settings resets
                 if (['near-clip', 'far-clip', 'snap-size'].includes(target)) {
                     this.settingsMenu.resetValue(target);
                     return;
                 }
-                
+
                 const obj = this.objectManager.selectedObject;
                 if (!obj) return;
-                
+
                 // Position resets
                 if (target.startsWith('pos-')) {
                     const axis = target.split('-')[1];
@@ -190,35 +178,35 @@ class App {
                     this.objectManager.setSkew(obj, skew);
                     this.objectManager.applySkew(obj);
                 }
-                
-                this.positionPanel.update();
+
+                this.inspectorPanel.update();
             });
         });
     }
-    
+
     setMode(mode) {
         this.gizmoManager.setMode(mode);
-        
+
         document.getElementById('btn-translate')?.classList.toggle('active', mode === MODES.TRANSLATE);
         document.getElementById('btn-scale')?.classList.toggle('active', mode === MODES.SCALE);
         document.getElementById('btn-rotate')?.classList.toggle('active', mode === MODES.ROTATE);
         document.getElementById('btn-skew')?.classList.toggle('active', mode === MODES.SKEW);
-        
+
         this.gizmoManager.update(this.objectManager.selectedObject);
     }
-    
+
     updateMouse(e) {
         const rect = this.sceneManager.renderer.domElement.getBoundingClientRect();
         this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     }
-    
+
     onMouseDown(e) {
         if (e.button !== 0) return;
-        
+
         this.updateMouse(e);
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
-        
+
         // Check gizmo first
         const gizmoHits = this.gizmoManager.raycast(this.raycaster);
         if (gizmoHits.length > 0 && gizmoHits[0].object.userData.isGizmo) {
@@ -232,7 +220,7 @@ class App {
             this.controlsManager.disable();
             return;
         }
-        
+
         // Check objects
         const hits = this.objectManager.raycastObjects(this.raycaster);
         if (hits.length > 0) {
@@ -244,19 +232,19 @@ class App {
             this.updateSelection();
         }
     }
-    
+
     onMouseMove(e) {
         this.updateMouse(e);
-        
+
         if (this.transformHandler.isDragging) {
             this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
             const intersection = new THREE.Vector3();
             this.raycaster.ray.intersectPlane(this.transformHandler.dragPlane, intersection);
-            
+
             if (intersection) {
                 const obj = this.objectManager.selectedObject;
                 const mode = this.gizmoManager.currentMode;
-                
+
                 if (mode === MODES.TRANSLATE) {
                     this.transformHandler.handleTranslate(obj, intersection);
                 } else if (mode === MODES.SCALE) {
@@ -266,13 +254,13 @@ class App {
                 } else if (mode === MODES.SKEW) {
                     this.transformHandler.handleSkew(obj, intersection, this.objectManager);
                 }
-                
+
                 this.gizmoManager.updatePosition(obj.position);
             }
         } else {
             this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
             const hoveredAxis = this.gizmoManager.checkHover(this.raycaster);
-            
+
             if (hoveredAxis) {
                 this.sceneManager.renderer.domElement.style.cursor = 'pointer';
                 this.objectManager.clearHover();
@@ -283,25 +271,25 @@ class App {
                 } else {
                     this.objectManager.clearHover();
                 }
-                this.sceneManager.renderer.domElement.style.cursor = 
+                this.sceneManager.renderer.domElement.style.cursor =
                     this.objectManager.hoveredObject ? 'pointer' : 'default';
             }
         }
     }
-    
+
     onMouseUp() {
         this.transformHandler.stopDrag();
         this.controlsManager.enable();
     }
-    
+
     onKeyDown(e) {
         if (document.activeElement.tagName === 'INPUT') return;
-        
+
         const key = e.key.toLowerCase();
-        
+
         if (key === 'f' && this.objectManager.selectedObject) {
             this.controlsManager.focusOnObject(
-                this.objectManager.selectedObject, 
+                this.objectManager.selectedObject,
                 this.sceneManager.camera
             );
         }
@@ -311,33 +299,36 @@ class App {
         else if (key === 'k') this.setMode(MODES.SKEW);
         else if (key === 'delete' && this.objectManager.selectedObject) {
             this.objectManager.deleteSelected();
+            this.hierarchy.refresh();
             this.updateSelection();
         }
     }
-    
+
     updateSelection() {
         this.gizmoManager.update(this.objectManager.selectedObject);
-        
+
         if (this.objectManager.selectedObject) {
-            this.positionPanel.show();
-            this.positionPanel.update();
+            this.inspectorPanel.show();
+            this.inspectorPanel.update();
             this.colorPicker.updateFromObject();
         } else {
-            this.positionPanel.hide();
+            this.inspectorPanel.hide();
         }
+
+        this.hierarchy.selectSelected();
     }
-    
+
     animate() {
         requestAnimationFrame(() => this.animate());
-        
+
         this.controlsManager.update();
-        
-        if (this.objectManager.selectedObject && 
-            !this.positionPanel.isUpdating && 
+
+        if (this.objectManager.selectedObject &&
+            !this.inspectorPanel.isUpdating &&
             document.activeElement.type !== 'number') {
-            this.positionPanel.update();
+            this.inspectorPanel.update();
         }
-        
+
         this.booleanOps.update();
         this.sceneManager.render();
     }

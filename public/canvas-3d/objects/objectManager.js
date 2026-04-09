@@ -11,6 +11,11 @@ export class ObjectManager {
     }
     
     addObject(mesh) {
+        if (!mesh.userData.name) {
+            const type = mesh.userData.type || 'Object';
+            const count = this.objects.filter(o => o.userData.type === mesh.userData.type).length;
+            mesh.userData.name = `${type}${count}`;
+        }
         this.scene.add(mesh);
         this.objects.push(mesh);
         this.skewValues.set(mesh, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });
@@ -26,6 +31,7 @@ export class ObjectManager {
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(0.5, 0.5, 0.5);
+        mesh.userData.type = 'Cube';
         return this.addObject(mesh);
     }
     
@@ -38,6 +44,7 @@ export class ObjectManager {
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(1.5, 0.5, 1.5);
+        mesh.userData.type = 'Cylinder';
         return this.addObject(mesh);
     }
     

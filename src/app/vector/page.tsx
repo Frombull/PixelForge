@@ -1,323 +1,483 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, Focus } from "lucide-react";
 
-export default function VectorPage() {
-  const vectorImageRef = useRef<SVGSVGElement>(null);
-  const rasterCanvasRef = useRef<HTMLCanvasElement>(null);
-  const vectorZoomRef = useRef<HTMLInputElement>(null);
-  const rasterZoomRef = useRef<HTMLInputElement>(null);
-  const vectorZoomValueRef = useRef<HTMLSpanElement>(null);
-  const rasterZoomValueRef = useRef<HTMLSpanElement>(null);
+const FontImport = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+    input[type=range]::-webkit-slider-thumb { cursor: grab; }
+    input[type=range]::-moz-range-thumb { cursor: grab; border-radius: 0; }
+  `}</style>
+);
 
-  const [originalImageData, setOriginalImageData] = useState<ImageData | null>(
-    null
+const VectorImage = ({
+  zoom,
+  pan,
+}: {
+  zoom: number;
+  pan: { x: number; y: number };
+}) => {
+  const scale = 1 + (zoom / 100) * 10;
+  return (
+    <img
+      src="/images/ArchLinux_logo.svg"
+      alt="Vector Arch Linux Logo"
+      className="relative z-10 w-[180px] h-auto"
+      style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})` }}
+      draggable={false}
+    />
   );
+};
 
-  useEffect(() => {
-    drawRasterImage();
-  }, []);
-
-  const drawRasterImage = () => {
-    const canvas = rasterCanvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Criar gradiente
-    const gradient = ctx.createLinearGradient(0, 0, 150, 150);
-    gradient.addColorStop(0, "#4CAF50");
-    gradient.addColorStop(1, "#2E7D32");
-
-    // Desenhar círculo
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(75, 75, 60, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // Borda do círculo
-    ctx.strokeStyle = "#1B5E20";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Desenhar estrela
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.moveTo(75, 45);
-    ctx.lineTo(85, 65);
-    ctx.lineTo(105, 65);
-    ctx.lineTo(90, 80);
-    ctx.lineTo(95, 100);
-    ctx.lineTo(75, 90);
-    ctx.lineTo(55, 100);
-    ctx.lineTo(60, 80);
-    ctx.lineTo(45, 65);
-    ctx.lineTo(65, 65);
-    ctx.closePath();
-    ctx.fill();
-
-    // Salvar dados originais
-    if (!originalImageData) {
-      setOriginalImageData(ctx.getImageData(0, 0, 150, 150));
-    }
-  };
-
-  const resetVector = () => {
-    if (
-      vectorZoomRef.current &&
-      vectorImageRef.current &&
-      vectorZoomValueRef.current
-    ) {
-      vectorZoomRef.current.value = "2";
-      vectorImageRef.current.style.transform = "scale(2)";
-      vectorZoomValueRef.current.textContent = "2.0x";
-    }
-  };
-
-  const resetRaster = () => {
-    if (
-      rasterZoomRef.current &&
-      rasterCanvasRef.current &&
-      rasterZoomValueRef.current
-    ) {
-      rasterZoomRef.current.value = "2";
-      rasterCanvasRef.current.style.transform = "scale(2)";
-      rasterZoomValueRef.current.textContent = "2.0x";
-    }
-  };
-
-  useEffect(() => {
-    const vectorZoom = vectorZoomRef.current;
-    const vectorImage = vectorImageRef.current;
-    const vectorZoomValue = vectorZoomValueRef.current;
-
-    if (vectorZoom && vectorImage && vectorZoomValue) {
-      const handleVectorZoom = () => {
-        const scale = vectorZoom.value;
-        vectorImage.style.transform = `scale(${scale})`;
-        vectorZoomValue.textContent = scale + "x";
-      };
-
-      vectorZoom.addEventListener("input", handleVectorZoom);
-      return () => vectorZoom.removeEventListener("input", handleVectorZoom);
-    }
-  }, []);
-
-  useEffect(() => {
-    const rasterZoom = rasterZoomRef.current;
-    const rasterCanvas = rasterCanvasRef.current;
-    const rasterZoomValue = rasterZoomValueRef.current;
-
-    if (rasterZoom && rasterCanvas && rasterZoomValue) {
-      const handleRasterZoom = () => {
-        const scale = rasterZoom.value;
-        rasterCanvas.style.transform = `scale(${scale})`;
-        rasterZoomValue.textContent = scale + "x";
-      };
-
-      rasterZoom.addEventListener("input", handleRasterZoom);
-      return () => rasterZoom.removeEventListener("input", handleRasterZoom);
-    }
-  }, []);
+const RasterImage = ({
+  zoom,
+  pan,
+}: {
+  zoom: number;
+  pan: { x: number; y: number };
+}) => {
+  const scale = 1 + (zoom / 100) * 10;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
-      {/* Back button */}
-      <Link
-        href="/"
-        className="fixed top-5 left-5 z-50 tex-white px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 "
-      >
-        ← Voltar
-      </Link>
+    <img
+      src="/images/ArchLinux_logo.png"
+      alt="Raster Arch Linux Logo"
+      className="relative z-10 w-[180px] h-auto [image-rendering:pixelated]"
+      style={{
+        transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
+      }}
+      draggable={false}
+    />
+  );
+};
 
-      <div className="max-w-7xl mx-auto mt-20">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Vetorial x Matricial
+export default function ImageComparison() {
+  const [globalZoom, setGlobalZoom] = useState(30);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDragging(true);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    setIsDragging(false);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (e.buttons === 1) {
+      setPan((prev) => ({
+        x: prev.x + e.movementX,
+        y: prev.y + e.movementY,
+      }));
+    }
+  };
+
+  const badgeColor = (cls: string) => {
+    if (cls === "good") return "text-[#5a8a5a]";
+    if (cls === "bad") return "text-[#8a5a5a]";
+    return "text-[#7a7a5a]";
+  };
+
+  const inputClasses =
+    "flex-1 h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
+
+  return (
+    <div
+      className={`min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',_sans-serif] ${isDragging ? "select-none" : ""}`}
+    >
+      <FontImport />
+
+      <header className="flex items-end justify-between gap-8 pt-10 px-16 pb-6 border-b border-[#222]">
+        <div>
+          <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
+            Multimídia - Vetorial vs Matricial
+          </div>
+          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
+            <Link
+              href="/"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              title="Voltar para a Home"
+            >
+              <ArrowLeft size={32} strokeWidth={1} />
+            </Link>
+            <span>
+              <strong className="font-medium text-white">Vetorial</strong> vs{" "}
+              <strong className="font-medium text-white">Matricial</strong>
+            </span>
           </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Compare a qualidade de imagens vetoriais e matriciais em diferentes
-            níveis de zoom
-          </p>
+        </div>
+        <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
+          <div>PNG · JPG · WebP · SVG</div>
+        </div>
+      </header>
+
+      <div className="px-16">
+        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-8 border-b border-[#1a1a1a]">
+          01 <span className="text-[#333]">—</span> Visualização interativa
         </div>
 
-        {/* Comparison Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {/* Vector Section */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">
-              Imagem Vetorial
-            </h2>
-            <div className="bg-white/5 rounded-xl p-4 md:p-6 mb-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] flex items-center justify-center overflow-hidden border-2 border-dashed border-white/30 rounded-lg">
-                  <svg
-                    ref={vectorImageRef}
-                    width="150"
-                    height="150"
-                    className="transition-transform duration-300 ease-in-out"
-                    style={{ transformOrigin: "center center" }}
-                  >
-                    <defs>
-                      <linearGradient
-                        id="grad1"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="100%"
-                      >
-                        <stop
-                          offset="0%"
-                          style={{ stopColor: "#4CAF50", stopOpacity: 1 }}
-                        />
-                        <stop
-                          offset="100%"
-                          style={{ stopColor: "#2E7D32", stopOpacity: 1 }}
-                        />
-                      </linearGradient>
-                    </defs>
-                    <circle
-                      cx="75"
-                      cy="75"
-                      r="60"
-                      fill="url(#grad1)"
-                      stroke="#1B5E20"
-                      strokeWidth="3"
-                    />
-                    <polygon
-                      points="75,45 85,65 105,65 90,80 95,100 75,90 55,100 60,80 45,65 65,65"
-                      fill="white"
-                    />
-                  </svg>
-                </div>
-              </div>
+        <div className="grid grid-cols-2 gap-[2px] bg-[#1a1a1a] mb-[2px]">
+          {/* VECTOR PANEL */}
+          <div className="bg-[#0d0d0d] p-10 pt-5">
+            <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                formato
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Vetorial
+              </span>
+              <span className="font-['IBM_Plex_Mono',_monospace] text-xs text-[#3a3a3a] ml-auto">
+                .svg
+              </span>
+            </div>
 
-              <div className="text-center">
-                <label className="block text-white font-semibold mb-2">
-                  Zoom:{" "}
-                  <span
-                    ref={vectorZoomValueRef}
-                    className="text-green-400 font-bold"
-                  >
-                    2.0x
-                  </span>
-                </label>
-                <input
-                  ref={vectorZoomRef}
-                  type="range"
-                  min="2"
-                  max="4"
-                  step="0.1"
-                  defaultValue="2"
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider mb-4"
-                />
-                <button
-                  onClick={resetVector}
-                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-500/40"
-                >
-                  Reset
-                </button>
+            <div
+              className="flex items-center justify-center relative overflow-hidden h-[420px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+            >
+              <div
+                className="absolute inset-0 z-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                }}
+              />
+              <VectorImage zoom={globalZoom} pan={pan} />
+              <button
+                className="absolute bottom-3 left-[14px] z-20 text-[#555] hover:text-[#f0f0f0] transition-colors"
+                title="Centralizar Visualização"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  setGlobalZoom(30);
+                  setPan({ x: 0, y: 0 });
+                }}
+              >
+                <Focus size={18} strokeWidth={1.5} />
+              </button>
+              <div className="absolute bottom-3 right-[14px] font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.1em] z-20 pointer-events-none">
+                {globalZoom}% zoom
               </div>
             </div>
 
-            <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30">
-              <h3 className="text-green-400 font-semibold mb-2">
-                Vantagens Vetorial:
-              </h3>
-              <ul className="text-white/80 text-sm space-y-1">
-                <li>• Escalável sem perda de qualidade</li>
-                <li>• Arquivos menores</li>
-                <li>• Ideal para logos e ícones</li>
-                <li>• Editável matematicamente</li>
-              </ul>
+            <div className="flex flex-col gap-[18px] mb-8">
+              <div className="flex items-center gap-4">
+                <span className="w-[90px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.08em]">
+                  ZOOM
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={globalZoom}
+                  onChange={(e) => setGlobalZoom(Number(e.target.value))}
+                  className={inputClasses}
+                />
+                <span className="w-[36px] shrink-0 text-right font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555]">
+                  {globalZoom}%
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-7 border-t border-[#1a1a1a]">
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px] last:mb-0">
+                Imagens vetoriais são definidas por equações matemáticas —
+                curvas de Bézier, arcos e primitivas geométricas armazenadas
+                como instruções, não como pixels. O arquivo descreve{" "}
+                <em className="italic">como</em> desenhar a forma, e o
+                renderizador resolve isso em tempo real para qualquer resolução
+                de saída.
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px] last:mb-0">
+                Em SVG, cada elemento é um nó DOM acessível via{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  getAttribute
+                </code>{" "}
+                e{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  setAttribute
+                </code>
+                . Em PDF/EPS, as instruções seguem um modelo de stream de
+                operadores (
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  moveto
+                </code>
+                ,{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  curveto
+                </code>
+                ,{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  fill
+                </code>
+                ). Isso torna o formato intrinsecamente escalável: ampliar 4000×
+                não degrada nitidez porque não há amostragem discreta envolvida.
+              </p>
+
+              <div className="mt-5 flex flex-col">
+                <div className="flex py-[9px] border-b border-[#181818] border-t-[1px]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    REPRESENTAÇÃO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Equações paramétricas + primitivas geométricas
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    ESCALONAMENTO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Lossless — resolução independente
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    TAMANHO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Proporcional à complexidade do caminho, não à área
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    IDEAL PARA
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Logotipos, tipografia, ícones, UI, impressão
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    LIMITAÇÃO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Fotografia e gradientes complexos são custosos
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Raster Section */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/20">
-            <h2 className="text-2xl font-bold text-white mb-6 text-center">
-              Imagem Matricial
-            </h2>
-            <div className="bg-white/5 rounded-xl p-4 md:p-6 mb-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] flex items-center justify-center overflow-hidden border-2 border-dashed border-white/30 rounded-lg">
-                  <canvas
-                    ref={rasterCanvasRef}
-                    width="150"
-                    height="150"
-                    className="border border-white/30 transition-transform duration-300 ease-in-out"
-                    style={{ transformOrigin: "center center" }}
-                  />
-                </div>
-              </div>
+          {/* RASTER PANEL */}
+          <div className="bg-[#0d0d0d] p-10 pt-5">
+            <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                formato
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Matricial
+              </span>
+              <span className="font-['IBM_Plex_Mono',_monospace] text-xs text-[#3a3a3a] ml-auto">
+                .png / .jpg / .webp
+              </span>
+            </div>
 
-              <div className="text-center">
-                <label className="block text-white font-semibold mb-2">
-                  Zoom:{" "}
-                  <span
-                    ref={rasterZoomValueRef}
-                    className="text-blue-400 font-bold"
-                  >
-                    2.0x
-                  </span>
-                </label>
-                <input
-                  ref={rasterZoomRef}
-                  type="range"
-                  min="2"
-                  max="4"
-                  step="0.1"
-                  defaultValue="2"
-                  className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider mb-4"
-                />
-                <button
-                  onClick={resetRaster}
-                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-500/40"
-                >
-                  Reset
-                </button>
+            <div
+              className="flex items-center justify-center relative overflow-hidden h-[420px] mb-8 bg-[#111] border border-[#1e1e1e] cursor-grab touch-none active:cursor-grabbing"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+            >
+              <div
+                className="absolute inset-0 z-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                }}
+              />
+              <RasterImage zoom={globalZoom} pan={pan} />
+              <button
+                className="absolute bottom-3 left-[14px] z-20 text-[#555] hover:text-[#f0f0f0] transition-colors"
+                title="Centralizar Visualização"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => {
+                  setGlobalZoom(30);
+                  setPan({ x: 0, y: 0 });
+                }}
+              >
+                <Focus size={18} strokeWidth={1.5} />
+              </button>
+              <div className="absolute bottom-3 right-[14px] font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.1em] z-20 pointer-events-none">
+                {globalZoom}% zoom
               </div>
             </div>
 
-            <div className="bg-blue-500/20 rounded-lg p-4 border border-blue-500/30">
-              <h3 className="text-blue-400 font-semibold mb-2">
-                Limitações Matricial:
-              </h3>
-              <ul className="text-white/80 text-sm space-y-1">
-                <li>• Perde qualidade ao ampliar</li>
-                <li>• Arquivos maiores</li>
-                <li>• Ideal para fotografias</li>
-                <li>• Pixelização visível</li>
-              </ul>
+            <div className="flex flex-col gap-[18px] mb-8">
+              <div className="flex items-center gap-4">
+                <span className="w-[90px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.08em]">
+                  ZOOM
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={globalZoom}
+                  onChange={(e) => setGlobalZoom(Number(e.target.value))}
+                  className={inputClasses}
+                />
+                <span className="w-[36px] shrink-0 text-right font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555]">
+                  {globalZoom}%
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-7 border-t border-[#1a1a1a]">
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px] last:mb-0">
+                Imagens matriciais (bitmap) armazenam informação como uma grade
+                bidimensional de pixels — cada célula contém valores numéricos
+                de canal de cor (ex:{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  R, G, B, A
+                </code>{" "}
+                em 8 bits por canal = 32 bits por pixel). A qualidade da imagem
+                é fixada no momento da exportação: a resolução em pixels por
+                polegada (DPI/PPI) determina o nível de detalhe disponível.
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px] last:mb-0">
+                Ao ampliar além da resolução nativa, algoritmos de interpolação
+                como{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  nearest-neighbor
+                </code>
+                ,{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  bilinear
+                </code>{" "}
+                ou{" "}
+                <code className="font-['IBM_Plex_Mono',_monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  bicubic
+                </code>{" "}
+                estimam valores para os novos pixels — gerando o artefato de
+                pixelação ou borrão característico. Formatos com compressão com
+                perda como JPEG aplicam a Transformada Discreta de Cossenos
+                (DCT) por blocos de 8×8, descartando informação de alta
+                frequência irreversível.
+              </p>
+
+              <div className="mt-5 flex flex-col">
+                <div className="flex py-[9px] border-b border-[#181818] border-t-[1px]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    REPRESENTAÇÃO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Grade de pixels — valores discretos por canal
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    ESCALONAMENTO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Lossy — interpolação ao ampliar
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    TAMANHO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Proporcional à área (largura × altura × bit depth)
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    IDEAL PARA
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Fotografia, capturas de tela, texturas, render 3D
+                  </span>
+                </div>
+                <div className="flex py-[9px] border-b border-[#181818]">
+                  <span className="w-[130px] shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-[1px]">
+                    LIMITAÇÃO
+                  </span>
+                  <span className="text-[12.5px] text-[#777] font-light">
+                    Redimensionamento destrutivo; tamanho de arquivo alto
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM COMPARISON TABLE */}
+        <div className="bg-[#0d0d0d] py-8 px-10 border-t-2 border-[#1a1a1a]">
+          <div className="flex items-center gap-6 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-4 mb-6 border-b border-[#1a1a1a]">
+            02 <span className="text-[#333]">—</span> Tabela comparativa
+          </div>
+          <div className="grid grid-cols-2 gap-16">
+            {/* Vector col */}
+            <div>
+              <div className="text-[13px] text-[#555] font-light mb-5">
+                Vetorial
+              </div>
+              {[
+                ["Escalabilidade", "Perfeita", "good"],
+                ["Suporte fotografia", "Inadequado", "bad"],
+                ["Editabilidade", "Alta (por nó)", "good"],
+                ["Renderização", "CPU/GPU em RT", "mid"],
+                ["Compressão", "SVGZ (gzip)", "mid"],
+                ["Interatividade web", "Nativa via DOM", "good"],
+                ["Compatibilidade", "Limitada", "mid"],
+              ].map(([attr, val, cls]) => (
+                <div
+                  className="flex justify-between items-center py-[11px] border-b border-[#181818] first:border-t-[1px]"
+                  key={attr}
+                >
+                  <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3a3a3a] tracking-[0.08em]">
+                    {attr}
+                  </span>
+                  <span
+                    className={`font-['IBM_Plex_Mono',_monospace] text-[10px] tracking-[0.06em] ${badgeColor(cls)}`}
+                  >
+                    {val}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Raster col */}
+            <div>
+              <div className="text-[13px] text-[#555] font-light mb-5">
+                Matricial
+              </div>
+              {[
+                ["Escalabilidade", "Dependente de DPI", "bad"],
+                ["Suporte fotografia", "Excelente", "good"],
+                ["Editabilidade", "Por pixel/camada", "mid"],
+                ["Renderização", "Direta (blitting)", "good"],
+                ["Compressão", "Lossy/lossless", "mid"],
+                ["Interatividade web", "Via canvas/WebGL", "mid"],
+                ["Compatibilidade", "Universal", "good"],
+              ].map(([attr, val, cls]) => (
+                <div
+                  className="flex justify-between items-center py-[11px] border-b border-[#181818] first:border-t-[1px]"
+                  key={attr}
+                >
+                  <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#3a3a3a] tracking-[0.08em]">
+                    {attr}
+                  </span>
+                  <span
+                    className={`font-['IBM_Plex_Mono',_monospace] text-[10px] tracking-[0.06em] ${badgeColor(cls)}`}
+                  >
+                    {val}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .slider::-moz-range-thumb {
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-      `}</style>
     </div>
   );
 }

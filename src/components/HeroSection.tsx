@@ -1,68 +1,74 @@
 "use client";
 
 import Link from "next/link";
+import HeroLogo3D from "@/components/HeroLogo3D";
 
 export default function HeroSection() {
   return (
-    <section className="min-h-screen flex flex-col text-center px-4 md:px-8 pt-28 md:pt-36 relative bg-gradient-to-t from-slate-900 to-black overflow-hidden">
-      {/* Main Hero Content */}
-      <div className="flex-1 flex flex-col justify-center items-center max-w-6xl mx-auto">
-        {/* Main Title */}
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-4xl md:text-7xl lg:text-8xl font-black mb-4 md:mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-400 bg-clip-text text-transparent drop-shadow-2xl leading-tight">
-            Pixel Forge
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
+      <div className="app-noise absolute inset-0 pointer-events-none" aria-hidden="true" />
+
+      <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-2">
+          <h1 className="flex items-baseline gap-2 font-mono text-5xl sm:text-7xl lg:text-[6.5rem] font-bold tracking-tighter text-white">
+            <span className="text-sky-400">PixelForge</span>
           </h1>
-          <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full mb-4 md:mb-6"></div>
+          <HeroLogo3D />
         </div>
 
-        {/* Subtitle */}
-        <p className="text-base md:text-2xl lg:text-3xl text-white/90 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed font-light px-2">
-          Plataforma educacional interativa para
-          <span className="font-semibold text-purple-300"> Computação Gráfica</span>
-          ,
-          <span className="font-semibold text-blue-300"> Multimídia </span>
-          e
-          <span className="font-semibold text-green-300"> Inteligência Computacional</span>
-          .
+        <p className="max-w-2xl text-lg sm:text-xl text-neutral-400 font-medium leading-relaxed font-mono mt-4">
+          <span className="text-neutral-500"></span>Plataforma educacional interativa para
+          <span className="text-white"> computação gráfica</span>,
+          <span className="text-white"> multimídia</span> e
+          <span className="text-white"> IA</span>.
         </p>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col gap-4 md:flex-row md:gap-6 mb-12 md:mb-16 w-full md:w-auto px-2">
-          <Link
-            href="/infos"
-            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
-            <span>Material Teórico</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
-            </span>
-          </Link>
+        <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto font-mono text-sm">
           <Link
             href="#graphics"
-            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
-            <span>Computação Gráfica</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
-            </span>
+            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-sky-400/50">
+            Computação Gráfica
           </Link>
           <Link
             href="#multimidia"
-            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
-            <span>Multimídia</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
-            </span>
+            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-fuchsia-400/50">
+            Multimídia
           </Link>
           <Link
             href="#ia"
-            className="group bg-white/10 backdrop-blur-sm border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 hover:bg-white/20 hover:-translate-y-1 flex items-center justify-center gap-2 md:gap-3">
-            <span>Inteligência Computacional</span>
-            <span className="group-hover:translate-x-1 transition-transform duration-300">
-              →
-            </span>
+            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-purple-400/50">
+            Inteligência Computacional
+          </Link>
+          <Link
+            href="/infos"
+            className="flex items-center justify-center gap-2 rounded bg-white px-8 py-3 font-semibold text-black transition-transform hover:scale-105">
+            Material Teórico
           </Link>
         </div>
 
+        <div className="mt-16 pt-8 w-full border-t border-neutral-900 flex justify-center">
+          <p className="text-[11px] font-mono text-neutral-500">
+            <span className="text-green-400">~/pixelforge3d</span> $ ./start.sh --inatel --2026
+          </p>
+        </div>
       </div>
+
+      <Link
+        href="#graphics"
+        aria-label="Descer"
+        className="scroll-cue group absolute bottom-7 left-1/2 z-20 -translate-x-1/2 text-neutral-400 transition-colors hover:text-sky-300 focus-visible:text-sky-300">
+        <svg
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-y-0.5"
+          aria-hidden="true">
+          <path d="M5.5 7.5L10 12l4.5-4.5" />
+        </svg>
+      </Link>
     </section>
   );
 }

@@ -18,88 +18,60 @@ interface SectionGridProps {
   className?: string;
 }
 
-const getColorClasses = (color: string) => {
-  switch (color) {
-    case "purple":
-      return "from-purple-500/20 to-purple-500/5 hover:shadow-purple-500/10 hover:border-purple-500/30";
-    case "blue":
-      return "from-blue-500/20 to-blue-500/5 hover:shadow-blue-500/10 hover:border-blue-500/30";
-    case "green":
-      return "from-green-500/20 to-green-500/5 hover:shadow-green-500/10 hover:border-green-500/30";
-    case "orange":
-      return "from-orange-500/20 to-orange-500/5 hover:shadow-orange-500/10 hover:border-orange-500/30";
-    case "pink":
-      return "from-pink-500/20 to-pink-500/5 hover:shadow-pink-500/10 hover:border-pink-500/30";
-    default:
-      return "from-purple-500/20 to-purple-500/5 hover:shadow-purple-500/10 hover:border-purple-500/30";
-  }
-};
-
 export default function SectionGrid({ id, title, tools, className = "" }: SectionGridProps) {
   return (
     <section
       id={id}
-      className={`py-16 sm:py-24 px-4 sm:px-8 bg-gradient-to-b from-slate-900 to-black ${className}`}
+      className={`relative isolate overflow-hidden py-24 px-6 sm:px-12 bg-black border-t border-neutral-900 ${className}`}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+      <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-12 sm:mb-16 px-2">
-          <h2 className="text-3xl sm:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-            {title}
+        <div className="mb-12 flex items-center gap-4">
+          <span className="text-neutral-600 font-mono text-xl sm:text-2xl mt-1">$</span>
+          <h2 className="text-2xl sm:text-3xl font-mono text-white tracking-wide">
+            ls <span className="text-sky-400">~/modules</span>/{title.toLowerCase().replace(/\s+/g, "-")}
           </h2>
+          <div className="flex-1 h-[1px] bg-neutral-800 ml-4 hidden sm:block" />
         </div>
 
         {/* Tools Grid */}
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-12 sm:mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {tools.map((tool, index) => (
             <Link
               key={index}
               href={tool.href}
-              className={`group relative overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-white/15 min-h-[320px] sm:min-h-[380px] lg:min-h-[400px] flex flex-col w-full sm:w-[420px] lg:w-[380px] xl:w-[400px] ${getColorClasses(
-                tool.color
-              )}`}
+              className="group relative flex flex-col bg-neutral-900/40 border border-neutral-800 rounded-lg p-6 transition-colors duration-300 hover:bg-neutral-800/80 overflow-hidden"
             >
-              {/* Header */}
-              <div className="relative flex items-start justify-between mb-4 sm:mb-6">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div
-                    className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl group-hover:scale-105 transition-transform duration-300 ${getColorClasses(
-                      tool.color
-                    )}`}
-                  >
-                    {tool.icon}
-                  </div>
-                  <h3 className="text-lg sm:text-2xl font-bold text-white">
-                    {tool.title}
-                  </h3>
+              {/* Tag Header */}
+              <div className="flex items-start mb-4">
+                <div className="flex items-center gap-2 text-[12px] font-mono text-sky-400 uppercase tracking-widest">
+                  <span className="text-neutral-600">//</span>
+                  {title}
                 </div>
               </div>
 
+              {/* Title */}
+              <h3 className="text-[22px] font-bold text-white mb-2 tracking-wide">
+                {tool.title}
+              </h3>
+
               {/* Description */}
-              <p className="relative text-white/80 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base flex-grow">
+              <p className="text-neutral-400 font-light leading-relaxed text-xs sm:text-sm mb-6 flex-grow">
                 {tool.description}
               </p>
 
-              {/* Features */}
-              <div className="relative flex flex-wrap gap-2 mb-4 sm:mb-6">
+              {/* Features (Pills) */}
+              <div className="flex flex-wrap gap-1.5 mt-auto">
                 {tool.features.map((feature) => (
                   <span
                     key={feature}
-                    className="bg-white/10 text-white/90 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm border border-white/10 hover:bg-white/15 transition-colors duration-300"
+                    className="border border-neutral-800 bg-neutral-900/50 text-neutral-400 px-2 py-1 rounded text-[10px] font-mono tracking-wide"
                   >
                     {feature}
                   </span>
                 ))}
-              </div>
-
-              {/* CTA */}
-              <div className="relative flex items-center justify-between mt-auto">
-                <span className="text-white/60 text-xs sm:text-sm">
-                  Clique para explorar
-                </span>
-                <span className="text-lg sm:text-2xl group-hover:translate-x-1 transition-transform duration-300">
-                  →
-                </span>
               </div>
             </Link>
           ))}

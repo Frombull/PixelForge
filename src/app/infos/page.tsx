@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface Concept {
   id: string;
@@ -16,7 +17,7 @@ interface Concept {
 const concepts: Concept[] = [
   {
     id: "bezier-curves",
-    icon: "📐",
+    icon: "",
     title: "Curvas de Bézier",
     description:
       "Curvas paramétricas definidas por pontos de controle, amplamente utilizadas em design gráfico, animação e modelagem 3D. Fundamentais para criar formas suaves e orgânicas.",
@@ -25,7 +26,7 @@ const concepts: Concept[] = [
   },
   {
     id: "geometric-transformations",
-    icon: "🔄",
+    icon: "",
     title: "Transformações Geométricas",
     description:
       "Operações matemáticas para translação, rotação, escala e cisalhamento de objetos em espaços 2D e 3D usando matrizes.",
@@ -34,7 +35,7 @@ const concepts: Concept[] = [
   },
   {
     id: "animations",
-    icon: "🕺",
+    icon: "",
     title: "Animações",
     description:
       "Sequências temporais que criam movimento através da interpolação entre estados, fundamentais em jogos, interfaces e mídia digital. Essenciais para dar vida e fluidez às experiências visuais interativas.",
@@ -43,7 +44,7 @@ const concepts: Concept[] = [
   },
   {
     id: "ray-tracing",
-    icon: "🎨",
+    icon: "",
     title: "Ray Tracing",
     description:
       "Técnica de renderização que simula o comportamento físico da luz, criando reflexos, refrações e sombras realistas em tempo real.",
@@ -52,7 +53,7 @@ const concepts: Concept[] = [
   },
   {
     id: "video-compression",
-    icon: "🎬",
+    icon: "",
     title: "Compressão de Vídeo",
     description:
       "Algoritmos e codecs para reduzir o tamanho de arquivos de vídeo mantendo qualidade visual, incluindo H.264, H.265 e AV1.",
@@ -61,7 +62,7 @@ const concepts: Concept[] = [
   },
   {
     id: "color-spaces",
-    icon: "🌈",
+    icon: "",
     title: "Espaços de Cor",
     description:
       "Modelos matemáticos para representar cores digitalmente, incluindo RGB, HSV, CMYK e Lab, cada um otimizado para diferentes aplicações.",
@@ -70,7 +71,7 @@ const concepts: Concept[] = [
   },
   {
     id: "image-segmentation",
-    icon: "🎯",
+    icon: "",
     title: "Segmentação de Imagens",
     description:
       "Técnicas para separar e identificar regiões de interesse em imagens, incluindo flood fill, watershed e algoritmos baseados em cor.",
@@ -79,7 +80,7 @@ const concepts: Concept[] = [
   },
   {
     id: "vector-raster",
-    icon: "🎨",
+    icon: "",
     title: "Vetorial vs Matricial",
     description:
       "Diferenças fundamentais entre imagens vetoriais (SVG) e matriciais (JPG/PNG), incluindo escalabilidade, qualidade e aplicações.",
@@ -88,7 +89,7 @@ const concepts: Concept[] = [
   },
   {
     id: "audio",
-    icon: "🎵",
+    icon: "",
     title: "Processamento Digital de Áudio",
     description:
       "Fundamentos do áudio digital: digitalização, codecs, formatos de arquivo e aplicações modernas em streaming, jogos e comunicação.",
@@ -132,113 +133,150 @@ export default function InfosPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col text-center px-4 sm:px-6 lg:px-8 pt-28 sm:pt-36 relative bg-slate-900 overflow-hidden">
+    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-hidden">
+      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+      <div className="relative z-10 flex min-h-screen flex-col">
       {/* Header */}
       <Header />
 
-      {/* Hero Section */}
-      <section className="py-16 sm:py-20 text-center text-white relative z-10">
-        <div className="max-w-5xl mx-auto px-4">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-6 bg-gradient-to-r from-white via-purple-300 to-blue-400 bg-clip-text text-transparent drop-shadow-2xl leading-tight">
-            Explorando Computação Gráfica & Multimídia
-          </h1>
-          <p className="text-lg sm:text-xl text-white/90 max-w-2xl mx-auto mb-8 sm:mb-10 animate-fade-in delay-200">
-            Mergulhe fundo nos conceitos teóricos através de explicações
-            interativas, exemplos práticos e recursos complementares
-          </p>
+      {/* Page Hero + Search */}
+      <div className="pt-[110px] px-8 pb-12 max-w-[1100px] w-full mx-auto">
+        <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2 font-mono">
+          <span className="text-[#7dcfff]">Material teórico</span><br />
+        </h1>
 
-          {/* Search Box */}
-          <div className="w-full max-w-xl mx-auto relative animate-fade-in delay-400">
+        <div className="flex items-center gap-3 max-w-[560px]">
+          <div className="flex-1 flex items-center gap-2.5 bg-[#1a1b26] border border-[#2a2d3e] rounded-md px-3.5 focus-within:border-[#3a3d52] focus-within:ring-[3px] focus-within:ring-[#7aa2f7]/10 transition-all">
+            <span className="text-[#414868] text-xs shrink-0">⌕</span>
             <input
               type="text"
-              placeholder="Buscar conceitos..."
+              placeholder="buscar material..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-5 py-3 sm:py-4 rounded-full bg-white/10 backdrop-blur-sm text-white placeholder-white/60 border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/30 focus:-translate-y-0.5 transition-all duration-300 shadow-xl text-sm sm:text-base"
+              className="bg-transparent border-none outline-none font-mono text-[12px] text-[#c0caf5] w-full py-2.5 placeholder:text-[#414868]"
             />
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/10 px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm text-white cursor-pointer">
-              Procurar
-            </button>
+            <span className="text-[9px] text-[#414868] border border-[#2a2d3e] px-1.5 py-0.5 rounded-[3px] tracking-widest shrink-0">
+              ⌘K
+            </span>
           </div>
         </div>
-      </section>
 
-      {/* Main Content */}
-      <main className="bg-black/20 rounded-t-3xl relative z-10 border-t border-white/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-          {/* Filter Tabs */}
-          <div className="mb-8 sm:mb-12 px-2">
-            {/* Principais mudanças aqui:
-    - Removemos a div com 'overflow-x-auto'.
-    - Usamos 'flex flex-wrap' para permitir a quebra de linha.
-    - 'justify-center' para centralizar os botões.
-    - 'gap-2' para o espaçamento entre eles.
-  */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
-                    activeCategory === category
-                      ? "bg-white text-gray-900" // Estilo ativo simplificado para melhor contraste
-                      : "text-white/70 bg-white/10 hover:text-white"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="flex gap-1.5 mt-4 flex-wrap">
+          {categories.map((category) => {
+            const isCG = category === "Computação Gráfica";
+            const isMM = category === "Multimídia";
+            const isActive = activeCategory === category;
+            
+            let pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border border-[#2a2d3e] text-[#414868] cursor-pointer transition-all hover:text-[#a9b1d6] hover:border-[#3a3d52]";
+            
+            if (isActive) {
+              if (isCG) {
+                pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#7dcfff] border-[#7dcfff]/40 bg-[#7dcfff]/5";
+              } else if (isMM) {
+                pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#bb9af7] border-[#bb9af7]/40 bg-[#bb9af7]/5";
+              } else {
+                pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#c0caf5] border-[#3a3d52] bg-[#2a2d3e]/30";
+              }
+            }
 
-          {/* Concepts Grid */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
-            {filteredConcepts.map((concept, index) => (
+            return (
               <div
-                key={index}
-                onClick={() => handleConceptClick(concept.id)}
-                className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-md hover:shadow-lg hover:bg-white/10 transition-all duration-300 cursor-pointer group relative overflow-hidden border border-white/10"
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`${pillClass} font-mono`}
               >
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500/70 to-blue-600/70 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center text-xl sm:text-2xl text-white mb-4 sm:mb-5 border border-white/10">
-                  {concept.icon}
-                </div>
-
-                <div className="mb-3 sm:mb-4">
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/10">
-                    {concept.category}
-                  </span>
-                </div>
-
-                <h3 className="text-lg sm:text-2xl font-bold text-white mb-3 sm:mb-4">
-                  {concept.title}
-                </h3>
-
-                <p className="text-white/80 leading-relaxed text-sm sm:text-base mb-5 sm:mb-6">
-                  {concept.description}
-                </p>
-
-                <div className="flex gap-2 sm:gap-3 flex-wrap">
-                  {concept.links.map((link, linkIndex) => (
-                    <button
-                      key={linkIndex}
-                      className="bg-white/10 backdrop-blur-sm border border-white/10 text-white/90 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 hover:bg-white/15 relative overflow-hidden group"
-                    >
-                      <span className="relative z-10">{link}</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-5 sm:mt-6 text-white/60 text-xs sm:text-sm font-medium">
-                  Clique para saber mais →
-                </div>
+                {category}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </main>
+      </div>
+
+      {/* Main Content (CG Section Style) */}
+      <div className="relative isolate overflow-hidden bg-[#0f1017] border-t border-[#2a2d3e] border-b pb-16 flex-1">
+        <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
+
+        <div className="relative z-10 py-[60px] px-8 max-w-[1100px] mx-auto">
+          {categories
+            .filter(
+              (c) =>
+                c !== "Todos" &&
+                (activeCategory === "Todos" || activeCategory === c)
+            )
+            .map((category, idx) => {
+              const categoryConcepts = filteredConcepts.filter(
+                (c) => c.category === category
+              );
+
+              if (categoryConcepts.length === 0) return null;
+
+              const dirName =
+                category === "Computação Gráfica"
+                  ? "computacao-grafica/"
+                  : "multimidia/";
+
+              return (
+                <div key={category} className="mb-12">
+                  <div className="flex items-center gap-3.5 mb-8">
+                    <span className="text-[11px] text-[#414868] tracking-widest">
+                      0{idx + 1}
+                    </span>
+                    <span className="text-[#9ece6a] font-bold text-[13px]">$</span>
+                    <span className="text-[#c0caf5] text-[13px] font-bold tracking-wide">
+                      ls material/{dirName}
+                    </span>
+                    <div className="flex-1 h-px bg-[#2a2d3e]"></div>
+                    <span className="text-[9px] text-[#414868] tracking-widest border border-[#2a2d3e] px-2 py-0.5 rounded-[3px]">
+                      {categoryConcepts.length} ITENS
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
+                    {categoryConcepts.map((concept, index) => {
+                      const isCG = concept.category === "Computação Gráfica";
+                      
+                      return (
+                        <div
+                          key={index}
+                          onClick={() => handleConceptClick(concept.id)}
+                          className="bg-[#1a1b26] p-0 relative cursor-pointer block hover:bg-[#16171f] transition-colors group border border-[#2a2d3e] rounded-[2px] overflow-hidden">
+                  
+                  <div className="w-full h-24 bg-[#13141c] border-b border-[#2a2d3e] flex items-center justify-center overflow-hidden">
+                    <span className="text-[32px]">{concept.icon}</span>
+                  </div>
+
+                  <div className="p-[18px] px-5 pb-5 pt-2">
+                    <div className={`text-[9px] tracking-widest uppercase mb-2.5 pb-2 inline-flex items-center gap-1.5 ${isCG ? 'text-[#7dcfff]' : 'text-[#bb9af7]'}`}>
+                      {concept.category}
+                    </div>
+                    <div className="text-base font-bold text-[#c0caf5] mb-2 tracking-wide pr-6 leading-tight font-mono">
+                      {concept.title}
+                    </div>
+                    <div className="text-[11px] text-[#a9b1d6] leading-relaxed font-light line-clamp-3 font-mono">
+                      {concept.description}
+                    </div>
+                    
+                    <div className="mt-3.5 flex flex-wrap gap-1.5">
+                      {concept.links.map((link, i) => (
+                        <span key={i} className="text-[9px] text-[#414868] border border-[#2a2d3e] px-1.5 py-0.5 rounded-[3px] tracking-wide">
+                          {link.toLowerCase()}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
+      <Footer />
+      </div>
     </div>
   );
 }

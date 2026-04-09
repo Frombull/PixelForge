@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { FFTProcessor, type Complex, type FFTResult } from "@/lib/FFTProcessor";
 
 enum DrawMode {
-  ERASE = "erase",
-  SMOOTH = "smooth",
+  BRUSH = "brush",
   CIRCLE = "circle",
 }
 
 export default function ImageFFTPage() {
   const originalCanvasRef = useRef<HTMLCanvasElement>(null);
   const fftCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [drawMode, setDrawMode] = useState<DrawMode>(DrawMode.ERASE);
+  const [drawMode, setDrawMode] = useState<DrawMode>(DrawMode.BRUSH);
   const [brushSize, setBrushSize] = useState(20);
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -27,13 +26,19 @@ export default function ImageFFTPage() {
     originalFFTPhase: [] as number[],
     maxFFTValue: 0,
     isDrawing: false,
-    drawingCircle: false,
-    circleStartX: 0,
-    circleStartY: 0,
-    tempCircleRadius: 0,
+    hoverX: -1,
+    hoverY: -1,
     lastDrawX: -1,
     lastDrawY: -1,
+    drawMode: DrawMode.BRUSH,
+    brushSize: 20,
   });
+
+  // Sync state to ref for event listeners
+  useEffect(() => {
+    fftStateRef.current.drawMode = drawMode;
+    fftStateRef.current.brushSize = brushSize;
+  }, [drawMode, brushSize]);
 
   useEffect(() => {
     const originalCanvas = originalCanvasRef.current;
@@ -60,17 +65,30 @@ export default function ImageFFTPage() {
   }, []);
 
   const initializeDefaultImage = (ctx: CanvasRenderingContext2D) => {
-    // Create a simple test pattern
-    const gradient = ctx.createLinearGradient(0, 0, 512, 512);
-    gradient.addColorStop(0, "#6366f1");
-    gradient.addColorStop(1, "#a78bfa");
+    const img = new Image();
+    img.onload = () => {
+      const aspectRatio = img.width / img.height;
+      let drawWidth: number, drawHeight: number;
 
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 512, 512);
+      if (aspectRatio > 1) {
+        drawWidth = 512;
+        drawHeight = 512 / aspectRatio;
+      } else {
+        drawWidth = 512 * aspectRatio;
+        drawHeight = 512;
+      }
 
-    // Process the default image for FFT
-    processImage();
-    setImageLoaded(true);
+      const x = (512 - drawWidth) / 2;
+      const y = (512 - drawHeight) / 2;
+
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, 512, 512);
+      ctx.drawImage(img, x, y, drawWidth, drawHeight);
+
+      processImage();
+      setImageLoaded(true);
+    };
+    img.src = "/images/ArchLinux_logo.jpg";
   };
 
   const processImage = () => {
@@ -109,6 +127,8 @@ export default function ImageFFTPage() {
     }
 
     displayFFT();
+    // Convert source directly to grayscale immediately so the left canvas shows it grayscaled.
+    reconstructImage();
   };
 
   const displayFFT = (showPreview = false) => {
@@ -137,17 +157,21 @@ export default function ImageFFTPage() {
     const shiftedImageData = fftShift(imageData, 512, 512);
     fftCtx.putImageData(shiftedImageData, 0, 0);
 
-    if (showPreview && fftStateRef.current.drawingCircle) {
+    if (
+      showPreview &&
+      fftStateRef.current.hoverX >= 0 &&
+      fftStateRef.current.hoverY >= 0
+    ) {
       fftCtx.beginPath();
       fftCtx.arc(
-        fftStateRef.current.circleStartX,
-        fftStateRef.current.circleStartY,
-        fftStateRef.current.tempCircleRadius,
+        fftStateRef.current.hoverX,
+        fftStateRef.current.hoverY,
+        fftStateRef.current.brushSize,
         0,
-        Math.PI * 2
+        Math.PI * 2,
       );
-      fftCtx.strokeStyle = "red";
-      fftCtx.lineWidth = 2;
+      fftCtx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+      fftCtx.lineWidth = 1;
       fftCtx.stroke();
     }
   };
@@ -155,7 +179,7 @@ export default function ImageFFTPage() {
   const fftShift = (
     imageData: ImageData,
     width: number,
-    height: number
+    height: number,
   ): ImageData => {
     const fftCtx = fftCanvasRef.current?.getContext("2d");
     if (!fftCtx) return imageData;
@@ -228,7 +252,7 @@ export default function ImageFFTPage() {
 
   const setupFFTCanvas = (
     canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D
+    ctx: CanvasRenderingContext2D,
   ) => {
     const onMouseDown = (e: MouseEvent) => {
       if (fftStateRef.current.fftMagnitudeData.length > 0) {
@@ -238,14 +262,17 @@ export default function ImageFFTPage() {
 
         fftStateRef.current.lastDrawX = -1;
         fftStateRef.current.lastDrawY = -1;
+        fftStateRef.current.hoverX = x;
+        fftStateRef.current.hoverY = y;
+        fftStateRef.current.isDrawing = true;
 
-        if (drawMode === DrawMode.CIRCLE) {
-          fftStateRef.current.drawingCircle = true;
-          fftStateRef.current.circleStartX = x;
-          fftStateRef.current.circleStartY = y;
-          fftStateRef.current.tempCircleRadius = 0;
+        if (fftStateRef.current.drawMode === DrawMode.CIRCLE) {
+          applyBrushAt(x, y);
+          fftStateRef.current.lastDrawX = x;
+          fftStateRef.current.lastDrawY = y;
+          displayFFT(true);
+          reconstructImage();
         } else {
-          fftStateRef.current.isDrawing = true;
           drawOnFFT(e, false);
         }
       }
@@ -257,63 +284,49 @@ export default function ImageFFTPage() {
         const x = Math.floor(((e.clientX - rect.left) * 512) / rect.width);
         const y = Math.floor(((e.clientY - rect.top) * 512) / rect.height);
 
-        if (fftStateRef.current.drawingCircle) {
-          const dx = x - fftStateRef.current.circleStartX;
-          const dy = y - fftStateRef.current.circleStartY;
-          fftStateRef.current.tempCircleRadius = Math.sqrt(dx * dx + dy * dy);
+        fftStateRef.current.hoverX = x;
+        fftStateRef.current.hoverY = y;
 
-          displayFFT(true);
-        } else if (fftStateRef.current.isDrawing) {
+        if (
+          fftStateRef.current.isDrawing &&
+          fftStateRef.current.drawMode === DrawMode.BRUSH
+        ) {
           drawOnFFT(e, false);
+        } else {
+          displayFFT(true);
         }
       }
     };
 
     const onMouseUp = (e: MouseEvent) => {
       if (
-        fftStateRef.current.drawingCircle &&
-        fftStateRef.current.fftMagnitudeData.length > 0
+        fftStateRef.current.isDrawing &&
+        fftStateRef.current.drawMode === DrawMode.BRUSH
       ) {
-        const rect = canvas.getBoundingClientRect();
-        const x = Math.floor(((e.clientX - rect.left) * 512) / rect.width);
-        const y = Math.floor(((e.clientY - rect.top) * 512) / rect.height);
-
-        const dx = x - fftStateRef.current.circleStartX;
-        const dy = y - fftStateRef.current.circleStartY;
-        const radius = Math.sqrt(dx * dx + dy * dy);
-
-        drawCircleOnFFT(
-          fftStateRef.current.circleStartX,
-          fftStateRef.current.circleStartY,
-          radius
-        );
-
-        fftStateRef.current.drawingCircle = false;
-
-        displayFFT();
-        reconstructImage();
-      } else if (fftStateRef.current.isDrawing) {
-        displayFFT();
+        displayFFT(true);
         reconstructImage();
       }
 
       fftStateRef.current.isDrawing = false;
-      fftStateRef.current.drawingCircle = false;
-
       fftStateRef.current.lastDrawX = -1;
       fftStateRef.current.lastDrawY = -1;
     };
 
     const onMouseLeave = () => {
-      if (fftStateRef.current.isDrawing) {
-        displayFFT();
+      if (
+        fftStateRef.current.isDrawing &&
+        fftStateRef.current.drawMode === DrawMode.BRUSH
+      ) {
+        displayFFT(false);
         reconstructImage();
       }
 
       fftStateRef.current.isDrawing = false;
-
+      fftStateRef.current.hoverX = -1;
+      fftStateRef.current.hoverY = -1;
       fftStateRef.current.lastDrawX = -1;
       fftStateRef.current.lastDrawY = -1;
+      displayFFT(false);
     };
 
     canvas.addEventListener("mousedown", onMouseDown);
@@ -349,7 +362,7 @@ export default function ImageFFTPage() {
         fftStateRef.current.lastDrawX,
         fftStateRef.current.lastDrawY,
         x,
-        y
+        y,
       );
 
       for (const point of points) {
@@ -363,10 +376,10 @@ export default function ImageFFTPage() {
     fftStateRef.current.lastDrawY = y;
 
     if (updateImage) {
-      displayFFT();
+      displayFFT(true);
       reconstructImage();
     } else {
-      displayFFT();
+      displayFFT(true);
     }
   };
 
@@ -374,7 +387,7 @@ export default function ImageFFTPage() {
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
   ): Array<{ x: number; y: number }> => {
     const points: Array<{ x: number; y: number }> = [];
     const dx = Math.abs(x1 - x0);
@@ -403,15 +416,14 @@ export default function ImageFFTPage() {
   };
 
   const applyBrushAt = (x: number, y: number) => {
-    const fftDataCopy = [...fftStateRef.current.fftMagnitudeData];
-
     const halfW = Math.floor(512 / 2);
     const halfH = Math.floor(512 / 2);
     const shiftedX = (x - halfW + 512) % 512;
     const shiftedY = (y - halfH + 512) % 512;
+    const currentBrushSize = fftStateRef.current.brushSize;
 
-    for (let dy = -brushSize; dy <= brushSize; dy++) {
-      for (let dx = -brushSize; dx <= brushSize; dx++) {
+    for (let dy = -currentBrushSize; dy <= currentBrushSize; dy++) {
+      for (let dx = -currentBrushSize; dx <= currentBrushSize; dx++) {
         let px = shiftedX + dx;
         let py = shiftedY + dy;
 
@@ -419,70 +431,9 @@ export default function ImageFFTPage() {
         py = (py + 512) % 512;
 
         const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance <= brushSize) {
+        if (distance <= currentBrushSize) {
           const i = py * 512 + px;
           if (i < fftStateRef.current.fftMagnitudeData.length) {
-            const strength = Math.max(0, 1 - distance / brushSize);
-
-            switch (drawMode) {
-              case DrawMode.ERASE:
-                fftStateRef.current.fftMagnitudeData[i] *= 1 - strength * 0.8;
-                break;
-              case DrawMode.SMOOTH:
-                let avg = 0;
-                let count = 0;
-                for (let sy = -1; sy <= 1; sy++) {
-                  for (let sx = -1; sx <= 1; sx++) {
-                    const nx = (px + sx + 512) % 512;
-                    const ny = (py + sy + 512) % 512;
-                    const ni = ny * 512 + nx;
-                    if (ni < fftStateRef.current.fftMagnitudeData.length) {
-                      avg += fftDataCopy[ni];
-                      count++;
-                    }
-                  }
-                }
-                if (count > 0) {
-                  const targetValue = avg / count;
-                  fftStateRef.current.fftMagnitudeData[i] =
-                    fftDataCopy[i] * (1 - strength * 0.3) +
-                    targetValue * (strength * 0.3);
-                }
-                break;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  const drawCircleOnFFT = (
-    centerX: number,
-    centerY: number,
-    radius: number
-  ) => {
-    if (fftStateRef.current.fftMagnitudeData.length === 0) return;
-
-    const halfW = Math.floor(512 / 2);
-    const halfH = Math.floor(512 / 2);
-
-    const startX = Math.max(0, Math.floor(centerX - radius - 1));
-    const startY = Math.max(0, Math.floor(centerY - radius - 1));
-    const endX = Math.min(512 - 1, Math.ceil(centerX + radius + 1));
-    const endY = Math.min(512 - 1, Math.ceil(centerY + radius + 1));
-
-    for (let y = startY; y <= endY; y++) {
-      for (let x = startX; x <= endX; x++) {
-        const dx = x - centerX;
-        const dy = y - centerY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance <= radius) {
-          const shiftedX = (x - halfW + 512) % 512;
-          const shiftedY = (y - halfH + 512) % 512;
-          const i = shiftedY * 512 + shiftedX;
-
-          if (i >= 0 && i < fftStateRef.current.fftMagnitudeData.length) {
             fftStateRef.current.fftMagnitudeData[i] = 0;
           }
         }
@@ -568,98 +519,199 @@ export default function ImageFFTPage() {
     }
   };
 
+  const inputClasses =
+    "w-20 h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
+
   return (
-    <div className="min-h-screen bg-slate-900 p-8">
-      {/* Back button */}
-      <Link
-        href="/"
-        className="fixed top-5 left-5 z-500 text-white px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 hover:-translate-y-0.5"
-      >
-        ← Voltar
-      </Link>
+    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',sans-serif]">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+        input[type=range]::-webkit-slider-thumb { cursor: grab; }
+        input[type=range]::-moz-range-thumb { cursor: grab; border-radius: 0; }
+      `}</style>
 
-      <div className="max-w-7xl mx-auto bg-slate-900 to-gray-700 rounded-xl p-10 shadow-2xl backdrop-blur-sm">
-        <h1 className="text-4xl font-bold text-center text-white mb-10 mt-0">
-          Editor de Imagens FFT
-        </h1>
+      {/* Header */}
+      <header className="flex items-end justify-between gap-8 pt-10 px-16 pb-6 border-b border-[#222]">
+        <div>
+          <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
+            Multimídia - Edição FFT
+          </div>
+          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
+            <a
+              href="/"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              title="Voltar para a Home"
+            >
+              <ArrowLeft size={32} strokeWidth={1} />
+            </a>
+            <span>
+              <strong className="font-medium text-white">
+                Domínio Espacial
+              </strong>{" "}
+              vs{" "}
+              <strong className="font-medium text-white">
+                Domínio da Frequência
+              </strong>
+            </span>
+          </h1>
+        </div>
+        <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
+          <div>FFT · Domínio da Frequência · Transformada de Fourier · Processamento de Imagens</div>
+        </div>
+      </header>
 
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* Original Image Section */}
-          <div className="flex-1">
-            <div className="bg-slate-800 p-5 rounded-xl shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4 text-center">
-                Imagem Original
-              </h3>
+      {/* Main Workspace */}
+      <div className="px-16">
+        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-8 border-b border-[#1a1a1a]">
+          01 <span className="text-[#333]">-</span> Editor Visual Interativo FFT
+        </div>
+
+        <div className="grid grid-cols-2 gap-[2px] bg-[#1a1a1a] mb-[2px]">
+          {/* Left Column: Original (Reconstructed) Image */}
+          <div className="bg-[#0d0d0d] p-10 pt-5 flex flex-col items-center">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                Visualização
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Espacial
+              </span>
+              <span className="font-['IBM_Plex_Mono',monospace] text-xs text-[#3a3a3a] ml-auto">
+                Reconstruída
+              </span>
+            </div>
+
+            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] self-center items-center justify-center p-2 mb-auto">
               <canvas
                 ref={originalCanvasRef}
-                className="w-full max-w-[512px] h-[512px] border-4 border-slate-400 rounded-lg mx-auto block"
+                className="w-full h-full object-contain"
                 style={{ cursor: "default" }}
               />
-              <div className="mt-4 text-center">
-                <label className="relative inline-block bg-gradient-to-r from-slate-900 to-gray-700 text-white px-8 py-4 rounded-full cursor-pointer font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+            </div>
+          </div>
+
+          {/* Right Column: Frequency Domain & Controls */}
+          <div className="bg-[#0d0d0d] p-10 pt-5 flex flex-col items-center">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                Edição
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Frequência
+              </span>
+              <span className="font-['IBM_Plex_Mono',monospace] text-xs text-[#3a3a3a] ml-auto">
+                Espectro
+              </span>
+            </div>
+
+            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] self-center items-center justify-center p-2 mb-6">
+              <canvas
+                ref={fftCanvasRef}
+                className="w-full h-full object-contain"
+                style={{ cursor: "crosshair" }}
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-6 w-full pt-6 border-t border-[#1a1a1a]">
+              {/* Toolbar */}
+              <div className="flex flex-wrap items-center justify-center gap-6 w-full">
+                <label className="cursor-pointer font-['IBM_Plex_Mono',monospace] text-[11px] text-[#777] tracking-[0.1em] uppercase hover:text-[#bbb] transition-colors whitespace-nowrap px-3 py-1.5 border border-[#222] hover:border-[#444] rounded bg-[#111]">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="hidden"
                   />
-                  Escolha uma Imagem
+                  Carregar Imagem ⇪
                 </label>
+
+                <div className="w-px h-6 bg-[#222]"></div>
+
+                <div className="flex items-center gap-4">
+                  <span className="text-[10px] text-[#444] font-['IBM_Plex_Mono',monospace] tracking-[0.08em] uppercase">
+                    Pincel
+                  </span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="256"
+                    value={brushSize}
+                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                    className={inputClasses}
+                  />
+                  <span className="text-[10px] font-['IBM_Plex_Mono',monospace] text-[#555] w-6 text-right">
+                    {brushSize}px
+                  </span>
+                </div>
+
+                <div className="w-px h-6 bg-[#222]"></div>
+
+                <button
+                  onClick={resetFFT}
+                  className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#8a5a5a] hover:text-[#d46a6a] tracking-[0.1em] uppercase transition-colors px-3 py-1.5 border border-[#331111] bg-[#160505] hover:border-[#552222] rounded"
+                  title="Resetar edições"
+                >
+                  Resetar FFT ↺
+                </button>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* FFT Domain Section */}
-          <div className="flex-1">
-            <div className="bg-slate-800 p-5 rounded-xl shadow-lg">
-              <h3 className="text-xl font-semibold text-white mb-4 text-center">
-                Domínio da Frequência
+        {/* Info Footer */}
+        <div className="bg-[#0d0d0d] py-10 px-10 border-t-2 border-[#1a1a1a]">
+          <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-4 mb-6 border-b border-[#1a1a1a]">
+            02 <span className="text-[#333]">-</span> Teoria e Funcionamento FFT
+          </div>
+          <div className="grid grid-cols-2 gap-16">
+            <div>
+              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+                O que é a Transformada Rápida de Fourier?
               </h3>
-              <canvas
-                ref={fftCanvasRef}
-                className="w-full max-w-[512px] h-[512px] border-4 border-slate-400 rounded-lg mx-auto block"
-                style={{ cursor: "crosshair" }}
-              />
-
-              {/* Controls */}
-              <div className="mt-4  bg-gradient-to-r from-slate-90 p-4 rounded-lg">
-                <div className="flex flex-wrap justify-center gap-4 items-center">
-                  <div className="flex items-center gap-2">
-                    <label className="font-semibold text-white">Pincel:</label>
-                    <select
-                      value={drawMode}
-                      onChange={(e) => setDrawMode(e.target.value as DrawMode)}
-                      className="px-3 py-2 border-2 border-gray-200 rounded-lg bg-slate-300 text-sm"
-                    >
-                      <option value="erase">⚫ Preto</option>
-                      <option value="smooth">⚫ Suavizar</option>
-                      <option value="circle">⭕ Círculo</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <label className="font-semibold text-white">Tamanho:</label>
-                    <input
-                      type="range"
-                      min="10"
-                      max="100"
-                      value={brushSize}
-                      onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                      className="w-24"
-                    />
-                    <span className="bg-slate-200 text-black px-2 py-1 rounded font-bold text-sm min-w-[30px] text-center">
-                      {brushSize}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={resetFFT}
-                    className=" bg-slate-900 text-white px-5 py-2 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-                  >
-                    Limpar
-                  </button>
-                </div>
-              </div>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+                A Transformada Rápida de Fourier (FFT) aplicada a imagens
+                converte a informação de{" "}
+                <code className="font-['IBM_Plex_Mono',monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  pixels (domínio espacial)
+                </code>{" "}
+                para{" "}
+                <code className="font-['IBM_Plex_Mono',monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                  frequências (domínio da frequência)
+                </code>
+                .
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+                Em vez de medir a intensidade de luz em cada coordenada (x, y),
+                você visualiza quão rápido as intensidades mudam ao longo da
+                imagem original. O centro do espectro de frequência representa
+                baixas frequências (transições muito suaves ou lentas de cor na
+                foto original, como o pano de fundo liso ou um degradê da
+                iluminação).
+              </p>
+            </div>
+            <div>
+              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+                Manipulando no Domínio da Frequência
+              </h3>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+                As regiões afastadas do centro representam as altas frequências
+                (texturas complexas, fios de cabelo e bordas de contraste
+                perfeitamente nítidas e secas).
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px]">
+                <strong>Filtro Passa-Baixas: </strong> Use o pincel e tente
+                apagar por completo as bordas do espectro (deixando apenas o
+                centro iluminado intacto). A imagem gerada à esquerda ficará com
+                efeito de{" "}
+                <em className="italic">borrão / desfoque gaussiano</em> nativo.
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px]">
+                <strong>Filtro Passa-Altas: </strong> O oposto - ao apagar toda
+                a área central concentrada e deixar somente os pontos distantes,
+                a imagem gerada não terá preenchimento sólido de cor e será
+                construída apenas por bordas (parecendo um "raio x" ou um traço
+                à lápis detectando os contornos da foto original).
+              </p>
             </div>
           </div>
         </div>

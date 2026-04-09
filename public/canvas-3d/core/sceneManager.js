@@ -35,7 +35,8 @@ export class SceneManager {
     }
     
     createCameras() {
-        const aspect = window.innerWidth / (window.innerHeight - 44);
+        const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
         const { fov, near, far, position } = CAMERA_CONFIG;
         
         // Perspective
@@ -57,7 +58,7 @@ export class SceneManager {
     
     createRenderer() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(window.innerWidth, window.innerHeight - 44);
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.container.appendChild(this.renderer.domElement);
     }
     
@@ -144,8 +145,9 @@ export class SceneManager {
     }
     
     onResize() {
-        const aspect = window.innerWidth / (window.innerHeight - 44);
-        
+        const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
+
         if (this.isPerspective) {
             this.perspectiveCamera.aspect = aspect;
             this.perspectiveCamera.updateProjectionMatrix();
@@ -157,8 +159,8 @@ export class SceneManager {
             });
             this.orthographicCamera.updateProjectionMatrix();
         }
-        
-        this.renderer.setSize(window.innerWidth, window.innerHeight - 44);
+
+        this.renderer.setSize(rect.width, rect.height);
         this.secondCamera.aspect = 1;
         this.secondCamera.updateProjectionMatrix();
     }

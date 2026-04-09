@@ -1,67 +1,87 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Footer() {
   return (
-    <footer className="bg-black border-t border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-8 md:gap-6">
-          {/* Logo e nome */}
-          <div className="flex flex-col items-center md:flex-row md:items-center gap-2 md:gap-3">
-            <span className="text-2xl font-bold text-white text-center md:text-left">
-              Pixel Forge
-            </span>
+    <footer className="bg-[#0f1017] border-t border-neutral-800/60 text-xs font-mono text-neutral-500">
+      <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 lg:gap-8 mb-12">
+          
+          {/* Coluna 1: Branding e Créditos */}
+          <div className="flex flex-col gap-4 md:col-span-1">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-white font-bold tracking-tight text-lg">PixelForge<span className="text-sky-400">3D</span></span>
+            </div>
+            
+            {/* Timeline */}
+            <div className="flex gap-4 mt-2">
+              <div className="flex flex-col items-center">
+                <div className="w-2 h-2 rounded-full bg-sky-500/50 mt-1"></div>
+                <div className="w-[1px] h-6 bg-neutral-800 my-1"></div>
+                <div className="w-2 h-2 rounded-full bg-neutral-700 mb-1"></div>
+              </div>
+              <div className="flex flex-col justify-between">
+                <p className="text-[10px] sm:text-xs text-neutral-400 whitespace-nowrap">FETIN 2026 Prof. Ruan Patrick</p>
+                <p className="text-[10px] sm:text-xs text-neutral-500 whitespace-nowrap">FETIN 2025 Prof. Me. Marcelo Cysneiros</p>
+              </div>
+            </div>
           </div>
 
-          {/* Links sociais */}
-          <div className="flex flex-wrap justify-center md:justify-end gap-4">
-            <a
-              href="https://github.com/Frombull/PixelForge.git"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2">
-              <svg
-                width="22"
-                height="22"
-                fill="currentColor"
-                viewBox="0 0 24 24">
-                <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.29-1.7-1.29-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.75-1.56-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98.01 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.75.12 3.04.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.7.42.36.8 1.09.8 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z" />
-              </svg>
-              Código-Fonte
-            </a>
-            <a
-              href="https://www.linkedin.com/in/marcoditoro/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2">
-              <svg
-                width="22"
-                height="22"
-                fill="currentColor"
-                viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.026-3.063-1.867-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.381-1.563 2.841-1.563 3.039 0 3.603 2.002 3.603 4.604v5.592z" />
-              </svg>
-              Marco
-            </a>
-            <a
-              href="https://www.linkedin.com/in/vitorgonzaga10/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2">
-              <svg
-                width="22"
-                height="22"
-                fill="currentColor"
-                viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.026-3.063-1.867-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.381-1.563 2.841-1.563 3.039 0 3.603 2.002 3.603 4.604v5.592z" />
-              </svg>
-              Vitor
-            </a>
+          {/* Coluna 2: Módulos */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-white font-semibold tracking-wider">./módulos</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <Link href="/#graphics" className="hover:text-sky-400 transition-colors">Computação Gráfica</Link>
+              </li>
+              <li>
+                <Link href="/#multimidia" className="hover:text-fuchsia-400 transition-colors">Multimídia</Link>
+              </li>
+              <li>
+                <Link href="/#ia" className="hover:text-green-400 transition-colors">Inteligência Computacional</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Coluna 3: Recursos */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-white font-semibold tracking-wider">./recursos</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <Link href="/infos" className="hover:text-sky-400 transition-colors">Material Teórico</Link>
+              </li>
+              <li>
+                <Link href="/pricing" className="hover:text-sky-400 transition-colors">Planos e Preços</Link>
+              </li>
+              <li>
+                <Link href="/" className="hover:text-sky-400 transition-colors">Página Inicial</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Coluna 4: Legal & Social */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-white font-semibold tracking-wider">./links</h3>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <Link href="/privacy" className="hover:text-sky-400 transition-colors">Política de Privacidade</Link>
+              </li>
+              <li>
+                <Link href="/cookies" className="hover:text-sky-400 transition-colors">Política de Cookies</Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Copyright e créditos */}
-        <div className="mt-8 text-center text-white/40 text-xs">
-          Pixel Forge | Desenvolvido por Marco Di Toro com Vitor Torres | Fetin 2025, orientado por Prof. Me. Marcelo Cysneiros
+        {/* Rodapé Inferior */}
+        <div className="flex justify-center sm:justify-start items-center pt-8 border-t border-neutral-800/60 w-full">
+          <p className="text-[10px] text-neutral-600 uppercase tracking-widest text-center sm:text-left">
+            © 2026 Inatel // Desenvolvido por{" "}
+            <a href="https://www.linkedin.com/in/marcoditoro/" target="_blank" rel="noopener noreferrer" className="text-neutral-400 hover:text-sky-400 transition-colors underline decoration-neutral-800 underline-offset-4 hover:decoration-sky-400">
+              Marco Di Toro
+            </a>
+          </p>
         </div>
       </div>
     </footer>

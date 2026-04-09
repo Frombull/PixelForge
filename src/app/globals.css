@@ -1,16 +1,32 @@
 @import "tailwindcss";
 
-/* Reset básico - pode manter ou usar @tailwind base */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
 
-/* Body customizations - MANTER (Tailwind não sobrescreve tudo) */
+:root {
+  --mono: var(--font-mono);
+  --app-noise-opacity: 0.2;
+}
+
+.app-noise {
+  opacity: var(--app-noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+  background-size: 480px 480px;
+  background-repeat: repeat;
+  mix-blend-mode: soft-light;
+}
+
+/* Body customizations */
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Smooth scrolling - MANTER (útil para navegação) */
+/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
@@ -30,7 +46,7 @@ video {
   height: auto;
 }
 
-/* Custom scrollbar - MANTER (visual customizado) */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -48,13 +64,13 @@ video {
   background: linear-gradient(135deg, #5a67d8, #6b46c1);
 }
 
-/* Selection styles - MANTER (melhora UX) */
+/* Selection styles */
 ::selection {
   background: rgba(102, 126, 234, 0.3);
   color: white;
 }
 
-/* Custom animations - MANTER (não existem no Tailwind) */
+/* Custom animations */
 @keyframes gradientShift {
   0%,
   100% {
@@ -138,7 +154,17 @@ video {
   }
 }
 
-/* Custom utility classes - MANTER */
+@keyframes scrollHint {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
+  }
+}
+
+/* Custom utility classes */
 .animate-gradient-shift {
   animation: gradientShift 20s ease infinite;
 }
@@ -161,6 +187,10 @@ video {
   animation: bounce 2s ease-in-out infinite;
 }
 
+.scroll-cue {
+  animation: scrollHint 3.2s ease-in-out infinite;
+}
+
 /* No scrollbar helper */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -170,11 +200,15 @@ video {
   scrollbar-width: none;
 }
 
-/* Respeita preferências de movimento reduzido */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+
+  .scroll-cue {
+    transform: translate(-50%, 0) !important;
+    opacity: 0.9 !important;
   }
 }

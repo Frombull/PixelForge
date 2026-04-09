@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface ImageInfo {
   dimensions: string;
@@ -17,8 +17,9 @@ interface CompressionStats {
 
 export default function CompressPage() {
   const [originalImageData, setOriginalImageData] = useState<File | null>(null);
+  const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string>("");
   const [originalImageInfo, setOriginalImageInfo] = useState<ImageInfo | null>(
-    null
+    null,
   );
   const [compressedImageUrl, setCompressedImageUrl] = useState<string>("");
   const [compressedInfo, setCompressedInfo] = useState<ImageInfo | null>(null);
@@ -32,13 +33,24 @@ export default function CompressPage() {
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadSampleImage(); 
+    loadSampleImage();
   }, []);
 
-  const loadSampleImage = async () => { 
+  useEffect(() => {
+    if (!originalImageData) {
+      setOriginalPreviewUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(originalImageData);
+    setOriginalPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [originalImageData]);
+
+  const loadSampleImage = async () => {
     try {
       const response = await fetch("/images/mandrill.png");
       const blob = await response.blob();
@@ -93,6 +105,11 @@ export default function CompressPage() {
     setOriginalImageData(file);
     loadOriginalImage(file);
     setIsImageLoaded(true);
+
+    // Limpa a imagem comprimida anterior para evitar comparação visual enganosa.
+    setCompressedImageUrl("");
+    setCompressedInfo(null);
+    setCompressionStats(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -115,16 +132,15 @@ export default function CompressPage() {
 
   const simulateFractalCompression = (
     canvas: HTMLCanvasElement,
-    ctx: CanvasRenderingContext2D
+    ctx: CanvasRenderingContext2D,
   ): string => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    // Aplicar um filtro que simula perda de dados fractais
     for (let i = 0; i < data.length; i += 4) {
-      data[i] = Math.floor(data[i] / 16) * 16; // Red
-      data[i + 1] = Math.floor(data[i + 1] / 16) * 16; // Green
-      data[i + 2] = Math.floor(data[i + 2] / 16) * 16; // Blue
+      data[i] = Math.floor(data[i] / 16) * 16;
+      data[i + 1] = Math.floor(data[i + 1] / 16) * 16;
+      data[i + 2] = Math.floor(data[i + 2] / 16) * 16;
     }
 
     ctx.putImageData(imageData, 0, 0);
@@ -134,13 +150,12 @@ export default function CompressPage() {
   const simulateDCTCompression = (
     canvas: HTMLCanvasElement,
     ctx: CanvasRenderingContext2D,
-    quality: number
+    compressionQuality: number,
   ): string => {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
-    // Aplicar quantização simulada
-    const quantFactor = (1 - quality / 100) * 32 + 1;
+    const quantFactor = (1 - compressionQuality / 100) * 32 + 1;
     for (let i = 0; i < data.length; i += 4) {
       data[i] = Math.round(data[i] / quantFactor) * quantFactor;
       data[i + 1] = Math.round(data[i + 1] / quantFactor) * quantFactor;
@@ -148,7 +163,7 @@ export default function CompressPage() {
     }
 
     ctx.putImageData(imageData, 0, 0);
-    return canvas.toDataURL("image/jpeg", quality / 100);
+    return canvas.toDataURL("image/jpeg", compressionQuality / 100);
   };
 
   const compressImage = () => {
@@ -159,7 +174,10 @@ export default function CompressPage() {
     setTimeout(() => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) {
+        setIsProcessing(false);
+        return;
+      }
 
       const img = new Image();
       img.onload = () => {
@@ -195,27 +213,24 @@ export default function CompressPage() {
         displayCompressedImage(compressedDataUrl, mimeType);
       };
       img.src = URL.createObjectURL(originalImageData);
-    }, 100);
+    }, 120);
   };
 
   const displayCompressedImage = (dataUrl: string, mimeType: string) => {
     setCompressedImageUrl(dataUrl);
 
-    // Calculate compressed size (approximation from data URL)
-    const compressedSize = Math.max(
-      1,
-      Math.round(((dataUrl.length - 22) * 3) / 4)
-    ); // nunca zero
-    const originalSize = originalImageData?.size || 1; // nunca zero
+    const compressedSize = Math.max(1, Math.round(((dataUrl.length - 22) * 3) / 4));
+    const originalSize = originalImageData?.size || 1;
 
-    const compressedInfo: ImageInfo = {
-      dimensions: originalImageInfo?.dimensions || "",
+    const compressedFormat = mimeType.split("/")[1]?.toUpperCase() || "JPEG";
+
+    const info: ImageInfo = {
+      dimensions: originalImageInfo?.dimensions || "-",
       size: formatFileSize(compressedSize),
-      format: currentCompressionType.toUpperCase(),
+      format: compressedFormat,
     };
-    setCompressedInfo(compressedInfo);
+    setCompressedInfo(info);
 
-    // Calculate and display comparison stats
     const sizeReduction = Math.max(0, originalSize - compressedSize);
     const reductionPercentage =
       originalSize > 0
@@ -234,284 +249,283 @@ export default function CompressPage() {
     setIsProcessing(false);
   };
 
-  return (
-    <div className="min-h-screen bg-slate-900 p-8">
-      {/* Back button */}
-      <Link
-        href="/"
-        className="fixed top-5 left-5 z-500 text-white px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 hover:-translate-y-0.5"
-      >
-        ← Voltar
-      </Link>
+  const inputClasses =
+    "w-full h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
 
-      <div className="max-w-7xl mx-auto mt-20">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Compressão de Imagens
+  return (
+    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',sans-serif]">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+        input[type=range]::-webkit-slider-thumb { cursor: grab; }
+        input[type=range]::-moz-range-thumb { cursor: grab; border-radius: 0; }
+      `}</style>
+
+      <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 pt-10 px-5 sm:px-8 lg:px-16 pb-6 border-b border-[#222]">
+        <div>
+          <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
+            Multimidia - Compressao de Imagens
+          </div>
+          <h1 className="flex items-center gap-4 text-3xl sm:text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
+            <a
+              href="/"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              title="Voltar para a Home"
+            >
+              <ArrowLeft size={32} strokeWidth={1} />
+            </a>
+            <span>
+              <strong className="font-medium text-white">Compressao</strong> e{" "}
+              <strong className="font-medium text-white">Qualidade Visual</strong>
+            </span>
           </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Compare diferentes algoritmos de compressão e veja como eles afetam
-            o tamanho e qualidade das suas imagens
-          </p>
+        </div>
+        <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#444] text-right leading-[1.8]">
+          <div>JPEG - WEBP - DCT - Fractal - Compressao com perda</div>
+        </div>
+      </header>
+
+      <div className="px-5 sm:px-8 lg:px-16">
+        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-4 border-b border-[#1a1a1a]">
+          01 <span className="text-[#333]">-</span> Laboratorio de Compressao Interativo
         </div>
 
-        {/* Upload Section */}
-        <div
-          ref={uploadSectionRef}
-          className={`bg-white/10 border-2 border-dashed border-white/30 rounded-2xl p-10 text-center mb-8 backdrop-blur-md transition-all duration-300 ${
-            isDragging
-              ? "border-green-400 bg-green-400/10"
-              : "hover:border-white/50 hover:bg-white/15"
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="flex gap-3 items-center justify-center">
-            <div className="text-4xl mb-6 opacity-70">
-              {isImageLoaded ? "✅" : "📁"}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-0.5 bg-[#1a1a1a] mb-0.5">
+          <div className="bg-[#0d0d0d] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                Entrada
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Imagem Original
+              </span>
             </div>
-            <div className="text-xl text-white mb-6">
-              {isImageLoaded
-                ? "Imagem carregada com sucesso!"
-                : "Arraste uma imagem aqui ou clique para selecionar"}
+
+
+
+            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] items-center justify-center p-2 mb-6">
+              {originalPreviewUrl ? (
+                <img
+                  src={originalPreviewUrl}
+                  alt="Imagem original"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555]">
+                  Nenhuma imagem carregada
+                </div>
+              )}
+            </div>
+
+                        <div
+              className={`mb-6 border border-dashed rounded bg-[#111] transition-colors ${
+                isDragging
+                  ? "border-[#6f8f6f]"
+                  : "border-[#2a2a2a] hover:border-[#454545]"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full text-center px-4 py-3 font-['IBM_Plex_Mono',monospace] text-[11px] text-[#777] hover:text-[#b8b8b8] transition-colors"
+              >
+                {isImageLoaded
+                  ? "Trocar imagem (arraste ou clique)"
+                  : "Carregar imagem (arraste ou clique)"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </div>
+
+            <div className="bg-[#101010] border border-[#1e1e1e] p-4">
+              <div className="flex justify-between mb-2">
+                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  Dimensoes
+                </span>
+                <span className="text-[13px] text-[#cfcfcf]">
+                  {originalImageInfo?.dimensions || "-"}
+                </span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  Tamanho
+                </span>
+                <span className="text-[13px] text-[#cfcfcf]">
+                  {originalImageInfo?.size || "-"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  Formato
+                </span>
+                <span className="text-[13px] text-[#cfcfcf]">
+                  {originalImageInfo?.format || "-"}
+                </span>
+              </div>
             </div>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="bg-gradient-to-r from-green-500 to-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold cursor-pointer"
-          >
-            {isImageLoaded ? "Trocar Imagem" : "Escolher Imagem"}
-          </button>
-        </div>
 
-        {/* Content Grid */}
-        {isImageLoaded && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Original Image Panel */}
-            <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-md border border-white/20">
-              <h3 className="flex justify-center text-2xl font-semibold text-white mb-4 pb-2 border-b border-white/20">
-                Imagem Original
-              </h3>
+          <div className="bg-[#0d0d0d] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                Saida
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Imagem Comprimida
+              </span>
+            </div>
 
-              <div className="bg-black/30 rounded-xl p-5 mb-6 min-h-[300px] flex items-center justify-center">
-                {originalImageData && (
-                  <img
-                    src={URL.createObjectURL(originalImageData)}
-                    alt="Imagem original"
-                    className="max-w-full max-h-[300px] rounded-lg shadow-lg"
-                  />
-                )}
+            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] items-center justify-center p-2 mb-6">
+              {compressedImageUrl ? (
+                <img
+                  src={compressedImageUrl}
+                  alt="Imagem comprimida"
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] text-center px-4">
+                  Selecione um algoritmo e clique em "Comprimir"
+                </div>
+              )}
+            </div>
+
+            <div className="pt-6 border-t border-[#1a1a1a]">
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                {["jpeg", "webp", "dct", "fractal"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setCurrentCompressionType(type)}
+                    className={`font-['IBM_Plex_Mono',monospace] text-[11px] tracking-[0.08em] uppercase px-3 py-1.5 border transition-colors ${
+                      currentCompressionType === type
+                        ? "border-[#6a3f3f] bg-[#1c0f0f] text-[#d9a6a6]"
+                        : "border-[#252525] bg-[#111] text-[#747474] hover:text-[#b8b8b8]"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
 
-              <div className="bg-black/20 rounded-xl p-4">
+              {currentCompressionType !== "fractal" && (
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                      Qualidade
+                    </span>
+                    <span className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#a8a8a8]">
+                      {quality}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={quality}
+                    onChange={(e) => setQuality(parseInt(e.target.value, 10))}
+                    className={inputClasses}
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={compressImage}
+                disabled={isProcessing || !isImageLoaded}
+                className="w-full font-['IBM_Plex_Mono',monospace] text-[11px] tracking-widest uppercase text-[#d2b0b0] px-3 py-2 border border-[#4a2323] bg-[#1a0c0c] hover:border-[#6a2f2f] hover:text-[#f1c7c7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? "Processando..." : "Comprimir"}
+              </button>
+            </div>
+
+            {isProcessing && (
+              <div className="mt-5 font-['IBM_Plex_Mono',monospace] text-[11px] text-[#9d6d6d]">
+                Gerando imagem comprimida...
+              </div>
+            )}
+
+            {compressedInfo && compressionStats && (
+              <div className="mt-6 bg-[#101010] border border-[#1e1e1e] p-4">
                 <div className="flex justify-between mb-2">
-                  <span className="text-white/80 font-medium">Dimensões:</span>
-                  <span className="text-green-400 font-bold">
-                    {originalImageInfo?.dimensions || "-"}
+                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                    Novo tamanho
                   </span>
+                  <span className="text-[13px] text-[#cfcfcf]">{compressedInfo.size}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-white/80 font-medium">Tamanho:</span>
-                  <span className="text-green-400 font-bold">
-                    {originalImageInfo?.size || "-"}
+                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                    Formato
                   </span>
+                  <span className="text-[13px] text-[#cfcfcf]">{compressedInfo.format}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                    Reducao
+                  </span>
+                  <span className="text-[13px] text-[#cfcfcf]">{compressionStats.reductionPercentage}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                    Economia
+                  </span>
+                  <span className="text-[13px] text-[#cfcfcf]">{compressionStats.sizeReduction}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/80 font-medium">Formato:</span>
-                  <span className="text-green-400 font-bold">
-                    {originalImageInfo?.format || "-"}
+                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                    Taxa
                   </span>
+                  <span className="text-[13px] text-[#cfcfcf]">{compressionStats.compressionRatio}</span>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            {/* Compressed Image Panel */}
-            <div className="bg-white/10 rounded-2xl p-6 backdrop-blur-md border border-white/20">
-              <h3 className="flex justify-center text-2xl font-semibold text-white mb-4 pb-2 border-b border-white/20">
-                Imagem Comprimida
+        <div className="bg-[#0d0d0d] py-10 px-5 sm:px-8 lg:px-10 border-t-2 border-[#1a1a1a]">
+          <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-4 mb-6 border-b border-[#1a1a1a]">
+            02 <span className="text-[#333]">-</span> Teoria e Analise de Compressao
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+            <div>
+              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+                Como a compressao reduz o tamanho?
               </h3>
-
-              <div className="bg-black/30 rounded-xl p-5 mb-6 min-h-[300px] flex items-center justify-center">
-                {compressedImageUrl ? (
-                  <img
-                    src={compressedImageUrl}
-                    alt="Imagem comprimida"
-                    className="max-w-full max-h-[300px] rounded-lg shadow-lg"
-                  />
-                ) : (
-                  <div className="text-white/60">
-                    Configure a compressão e clique em &apos;Comprimir&apos;
-                  </div>
-                )}
-              </div>
-
-              {/* Compression Controls */}
-              <div className="mb-6">
-                <div className="mb-4">
-                  <label className="block text-white/80 font-medium mb-3">
-                    Tipo de Compressão:
-                  </label>
-                  <div className="flex gap-3 flex-wrap">
-                    {["jpeg", "webp", "fractal", "dct"].map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setCurrentCompressionType(type)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                          currentCompressionType === type
-                            ? "bg-gradient-to-r from-orange-800 to-red-800 text-white"
-                            : "bg-white/10 text-white hover:bg-white/20"
-                        }`}
-                      >
-                        {type.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {currentCompressionType !== "fractal" && (
-                  <div className="mb-4">
-                    <label className="block text-white/80 font-medium mb-3">
-                      Qualidade:{" "}
-                      <span className="text-orange-400 px-2 py-1 rounded text-sm font-bold">
-                        {quality}%
-                      </span>
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="100"
-                      value={quality}
-                      onChange={(e) => setQuality(parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                    />
-                  </div>
-                )}
-
-                <button
-                  onClick={compressImage}
-                  disabled={isProcessing}
-                  className="w-full bg-gradient-to-r  from-orange-800 to-red-800 text-white py-3 rounded-full font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? "Processando..." : "Comprimir Imagem"}
-                </button>
-              </div>
-
-              {/* Processing Indicator */}
-              {isProcessing && (
-                <div className="text-center text-orange-400 font-semibold mb-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-400 mx-auto mb-2"></div>
-                  Processando...
-                </div>
-              )}
-
-              {/* Compressed Image Info */}
-              {compressedInfo && (
-                <div className="bg-black/20 rounded-xl p-4 mb-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-white/80 font-medium">
-                      Novo Tamanho:
-                    </span>
-                    <span className="text-green-400 font-bold">
-                      {compressedInfo.size}
-                    </span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-white/80 font-medium">
-                      Algoritmo:
-                    </span>
-                    <span className="text-green-400 font-bold">
-                      {compressedInfo.format}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/80 font-medium">
-                      Qualidade:
-                    </span>
-                    <span className="text-green-400 font-bold">
-                      {currentCompressionType === "fractal"
-                        ? "Automática"
-                        : quality + "%"}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Comparison Stats */}
-              {compressionStats && (
-                <div className="bg-black/30 rounded-xl p-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-white/80 font-medium">
-                      Redução de Tamanho:
-                    </span>
-                    <span
-                      className={`font-bold ${
-                        parseFloat(compressionStats.reductionPercentage) > 0
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
-                    >
-                      {compressionStats.sizeReduction}
-                    </span>
-                  </div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-white/80 font-medium">
-                      Percentual de Redução:
-                    </span>
-                    <span
-                      className={`font-bold ${
-                        parseFloat(compressionStats.reductionPercentage) > 0
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
-                    >
-                      {compressionStats.reductionPercentage}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/80 font-medium">
-                      Taxa de Compressão:
-                    </span>
-                    <span className="text-green-400 font-bold">
-                      {compressionStats.compressionRatio}
-                    </span>
-                  </div>
-                </div>
-              )}
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+                Algoritmos de compressao removem redundancias de cor e detalhe que
+                o olho humano percebe menos. O resultado e um arquivo menor,
+                mais leve para armazenamento e transmissao.
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+                Nesta interface, voce compara algoritmos com perda e observa o
+                impacto direto na nitidez, nas texturas finas e no peso final da
+                imagem.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+                Leitura rapida dos algoritmos
+              </h3>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+                <strong>JPEG / WEBP:</strong> codecs padrao com ajuste continuo
+                de qualidade para equilibrar fidelidade e tamanho.
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+                <strong>DCT simulada:</strong> mostra o efeito de quantizacao,
+                reduzindo variacoes sutis de pixel para economizar dados.
+              </p>
+              <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+                <strong>Fractal simulada:</strong> prioriza padroes globais da
+                imagem e tende a criar aspecto mais suavizado em detalhes finos.
+              </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .slider::-moz-range-thumb {
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-      `}</style>
     </div>
   );
 }

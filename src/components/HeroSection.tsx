@@ -5,9 +5,8 @@ import HeroLogo3D from "@/components/HeroLogo3D";
 
 export default function HeroSection() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-6 pt-32 pb-20 sm:px-10">
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
       <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-sky-500/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-2">

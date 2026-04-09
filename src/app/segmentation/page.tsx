@@ -2,12 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface ImageInfo {
   width: number;
   height: number;
   data: ImageData | null;
 }
+
+const FontImport = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
+    input[type=range]::-webkit-slider-thumb { cursor: grab; }
+    input[type=range]::-moz-range-thumb { cursor: grab; border-radius: 0; }
+  `}</style>
+);
 
 export default function SegmentationPage() {
   const imageCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,9 +45,11 @@ export default function SegmentationPage() {
 
   const loadDefaultImage = async () => {
     try {
-      const response = await fetch("images/mandrill.png");
+      const response = await fetch("/images/ArchLinux_logo.jpg");
       const blob = await response.blob();
-      const file = new File([blob], "mandrill.png", { type: "image/png" });
+      const file = new File([blob], "ArchLinux_logo.jpg", {
+        type: "image/jpeg",
+      });
       handleFile(file);
     } catch (error) {
       console.error("Erro ao carregar imagem padrão:", error);
@@ -376,237 +387,284 @@ export default function SegmentationPage() {
     { hex: "#800080", name: "Roxo" },
   ];
 
+  const inputClasses =
+    "flex-1 h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
+
+  const ghostButtonClasses =
+    "px-4 py-2 border border-[#252525] text-[#8d8d8d] text-[11px] tracking-[0.08em] uppercase font-['IBM_Plex_Mono',monospace] transition-colors duration-200 hover:text-[#efefef] hover:border-[#3a3a3a]";
+
   return (
-    <div className="min-h-screen bg-slate-900  p-8">
-      {/* Back button */}
-      <Link
-        href="/"
-        className="fixed top-5 left-5 z-50 text-white px-6 py-3 rounded-full text-base font-semibold transition-all duration-300 cursor-pointer"
-      >
-        ← Voltar
-      </Link>
+    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',sans-serif]">
+      <FontImport />
 
-      {/* Navigation buttons */}
-
-      <div className="max-w-7xl mx-auto mt-20">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Segmentação de Imagens
-          </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Ferramenta interativa para segmentação inteligente e manual de
-            imagens
-          </p>
-        </div>
-
-        {/* Upload Section */}
-        <div className="flex gap-10">
-          <div
-            ref={uploadAreaRef}
-            className={`bg-white/10 border-2 border-dashed border-white/30 rounded-2xl p-10 text-center mb-8 ${
-              isDragging
-                ? "border-green-400 bg-green-400/10"
-                : "hover:border-white/50 hover:bg-white/15"
-            }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-          >
-            <div className="text-4xl mb-6 opacity-70">
-              {imageLoaded ? "✅" : "📁"}
-            </div>
-            <div className="text-xl text-white mb-6">
-              {imageLoaded
-                ? "Imagem carregada com sucesso!"
-                : "Arraste uma imagem aqui ou clique para selecionar"}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white mt-4 px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-green-500/40"
+      <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 pt-10 px-6 lg:px-16 pb-6 border-b border-[#222]">
+        <div>
+          <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 lg:pl-12">
+            Processamento de Imagem - Segmentação
+          </div>
+          <h1 className="flex items-center gap-4 text-[30px] lg:text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
+            <Link
+              href="/"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              title="Voltar para a Home"
             >
-              {imageLoaded ? "Trocar Imagem" : "Escolher Imagem"}
-            </button>
-          </div>
+              <ArrowLeft size={32} strokeWidth={1} />
+            </Link>
+            <span>
+              <strong className="font-medium text-white">Segmentação</strong> de
+              Imagens
+            </span>
+          </h1>
+        </div>
+        <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#444] text-left lg:text-right leading-[1.8]">
+          <div>Flood Fill · Brush Overlay · PNG Export</div>
+        </div>
+      </header>
 
-          {/* Tools Panel */}
-          {imageLoaded && (
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-8 border border-white/20">
-              {/* Mode Selection */}
-              <div className="flex flex-wrap items-center gap-6 mb-6">
-                <div className="flex items-center gap-4">
-                  <label className="text-white font-semibold">Modo:</label>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setMode("smart")}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                        mode === "smart"
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                          : "bg-white/10 text-white hover:bg-white/20"
-                      }`}
-                    >
-                      Segmentação Inteligente
-                    </button>
-                    <button
-                      onClick={() => setMode("paint")}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                        mode === "paint"
-                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                          : "bg-white/10 text-white hover:bg-white/20"
-                      }`}
-                    >
-                      Pincel Manual
-                    </button>
-                  </div>
-                </div>
-
-                {/* Color Palette */}
-                <div className="flex items-center gap-4">
-                  <label className="text-white font-semibold">Cores:</label>
-                  <div className="flex gap-2">
-                    {colors.map((color) => (
-                      <button
-                        key={color.hex}
-                        onClick={() => setCurrentColor(color.hex)}
-                        className={`w-10 h-10 rounded-full border-3 transition-all duration-300 hover:scale-110 ${
-                          currentColor === color.hex
-                            ? "border-white scale-110"
-                            : "border-white/30"
-                        }`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div className="flex flex-wrap items-center gap-6 mb-6">
-                <div className="flex items-center gap-4">
-                  <label className="text-white font-semibold">
-                    Tamanho do Pincel:
-                  </label>
-                  <input
-                    type="range"
-                    min="5"
-                    max="50"
-                    value={brushSize}
-                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                    className="w-32 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <span className="text-white font-bold min-w-[40px]">
-                    {brushSize}px
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <label className="text-white font-semibold">
-                    Tolerância:
-                  </label>
-                  <input
-                    type="range"
-                    min="5"
-                    max="100"
-                    value={tolerance}
-                    onChange={(e) => setTolerance(parseInt(e.target.value))}
-                    className="w-32 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <span className="text-white font-bold min-w-[40px]">
-                    {tolerance}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <label className="text-white font-semibold">Opacidade:</label>
-                  <input
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.1"
-                    value={opacity}
-                    onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                    className="w-32 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <span className="text-white font-bold min-w-[40px]">
-                    {Math.round(opacity * 100)}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button
-                  onClick={clearSegmentation}
-                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-500/40"
-                >
-                  Limpar Tudo
-                </button>
-                <button
-                  onClick={undo}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-500/40"
-                >
-                  ↶ Desfazer
-                </button>
-                <button
-                  onClick={saveSegmentation}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-green-500/40"
-                >
-                  Salvar (2 imagens)
-                </button>
-              </div>
-            </div>
-          )}
+      <div className="px-6 lg:px-16">
+        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-8 border-b border-[#1a1a1a]">
+          01 <span className="text-[#333]">-</span> Ferramenta interativa
         </div>
 
-        {/* Canvas Container */}
-        {imageLoaded && (
-          <div className="text-center">
-            <div className="inline-block relative border-4 border-white/20 rounded-2xl overflow-hidden shadow-2xl">
-              <canvas
-                ref={imageCanvasRef}
-                className="block max-w-full h-auto"
+        <div className="grid grid-cols-1 xl:grid-cols-[390px_1fr] gap-0.5 bg-[#1a1a1a] mb-0.5">
+          <div className="bg-[#0d0d0d] p-6 lg:p-8">
+            <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                painel
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Controles
+              </span>
+              <span className="font-['IBM_Plex_Mono',monospace] text-xs text-[#3a3a3a] ml-auto">
+                .png
+              </span>
+            </div>
+
+            <div
+              ref={uploadAreaRef}
+              className={`border border-dashed p-5 mb-6 transition-colors ${
+                isDragging
+                  ? "border-[#6b6b6b] bg-[#151515]"
+                  : "border-[#272727] bg-[#111]"
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <p className="text-[13px] font-light text-[#888] leading-[1.7] mb-4">
+                {imageLoaded
+                  ? "Imagem carregada. Você pode arrastar outra imagem para substituir."
+                  : "Arraste uma imagem para cá ou selecione um arquivo para iniciar a segmentação."}
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
               />
-              <canvas
-                ref={segmentationCanvasRef}
-                className="absolute top-0 left-0 cursor-crosshair"
-                style={{ opacity }}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full px-4 py-2.5 border border-[#2c2c2c] text-[#b4b4b4] text-[11px] tracking-[0.08em] uppercase font-['IBM_Plex_Mono',monospace] transition-colors duration-200 hover:text-[#efefef] hover:border-[#4a4a4a]"
+              >
+                {imageLoaded ? "Trocar imagem" : "Escolher imagem"}
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <div className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] mb-3">
+                MODO
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  onClick={() => setMode("smart")}
+                  className={`${ghostButtonClasses} ${
+                    mode === "smart"
+                      ? "border-[#5a5a5a] text-[#f0f0f0] bg-[#151515]"
+                      : ""
+                  }`}
+                >
+                  Inteligente
+                </button>
+                <button
+                  onClick={() => setMode("paint")}
+                  className={`${ghostButtonClasses} ${
+                    mode === "paint"
+                      ? "border-[#5a5a5a] text-[#f0f0f0] bg-[#151515]"
+                      : ""
+                  }`}
+                >
+                  Pincel
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <div className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] mb-3">
+                PALETA
+              </div>
+              <div className="grid grid-cols-8 gap-2">
+                {colors.map((color) => (
+                  <button
+                    key={color.hex}
+                    onClick={() => setCurrentColor(color.hex)}
+                    className={`w-full aspect-square border transition-all duration-150 ${
+                      currentColor === color.hex
+                        ? "border-[#f0f0f0]"
+                        : "border-[#2b2b2b] hover:border-[#595959]"
+                    }`}
+                    style={{ backgroundColor: color.hex }}
+                    title={color.name}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3.5 mb-6">
+              <div className="flex items-center gap-4">
+                <span className="w-32.5 shrink-0 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.08em]">
+                  TAMANHO PINCEL
+                </span>
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                  className={inputClasses}
+                />
+                <span className="w-10.5 shrink-0 text-right font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555]">
+                  {brushSize}px
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <span className="w-32.5 shrink-0 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.08em]">
+                  TOLERANCIA
+                </span>
+                <input
+                  type="range"
+                  min="5"
+                  max="100"
+                  value={tolerance}
+                  onChange={(e) => setTolerance(parseInt(e.target.value))}
+                  className={inputClasses}
+                />
+                <span className="w-10.5 shrink-0 text-right font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555]">
+                  {tolerance}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <span className="w-32.5 shrink-0 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.08em]">
+                  OPACIDADE
+                </span>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.1"
+                  value={opacity}
+                  onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                  className={inputClasses}
+                />
+                <span className="w-10.5 shrink-0 text-right font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555]">
+                  {Math.round(opacity * 100)}%
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button onClick={clearSegmentation} className={ghostButtonClasses}>
+                Limpar
+              </button>
+              <button onClick={undo} className={ghostButtonClasses}>
+                Desfazer
+              </button>
+              <button onClick={saveSegmentation} className={ghostButtonClasses}>
+                Salvar 2x
+              </button>
             </div>
           </div>
-        )}
+
+          <div className="bg-[#0d0d0d] p-6 lg:p-8">
+            <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
+              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+                area
+              </span>
+              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+                Preview
+              </span>
+              <span className="font-['IBM_Plex_Mono',monospace] text-xs text-[#3a3a3a] ml-auto">
+                overlay
+              </span>
+            </div>
+
+            <div className="relative overflow-hidden min-h-105 bg-[#111] border border-[#1e1e1e] flex items-center justify-center p-4">
+              <div
+                className="absolute inset-0 z-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                }}
+              />
+
+              {imageLoaded ? (
+                <div className="inline-block relative z-10">
+                  <canvas
+                    ref={imageCanvasRef}
+                    className="block max-w-full h-auto"
+                  />
+                  <canvas
+                    ref={segmentationCanvasRef}
+                    className="absolute top-0 left-0 cursor-crosshair"
+                    style={{ opacity }}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                  />
+                </div>
+              ) : (
+                <div className="relative z-10 text-center px-8">
+                  <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+                    Carregue uma imagem para habilitar o canvas de segmentação.
+                    No modo inteligente, clique em uma região para aplicar flood
+                    fill com base na tolerância. No modo pincel, desenhe
+                    livremente sobre o overlay.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5 flex flex-col">
+              <div className="flex py-2.25 border-b border-[#181818] border-t">
+                <span className="w-37.5 shrink-0 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-px">
+                  MODO ATIVO
+                </span>
+                <span className="text-[12.5px] text-[#777] font-light">
+                  {mode === "smart" ? "Segmentacao inteligente" : "Pintura manual"}
+                </span>
+              </div>
+              <div className="flex py-2.25 border-b border-[#181818]">
+                <span className="w-37.5 shrink-0 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#3e3e3e] tracking-[0.08em] pt-px">
+                  RESOLUCAO
+                </span>
+                <span className="text-[12.5px] text-[#777] font-light">
+                  {imageInfo.width > 0
+                    ? `${imageInfo.width} x ${imageInfo.height}px`
+                    : "Sem imagem"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
+        button {
           cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .slider::-moz-range-thumb {
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          cursor: pointer;
-          border: none;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
       `}</style>
     </div>

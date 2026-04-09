@@ -286,11 +286,12 @@ html, body {
 @media (max-width: 1024px) {
   .container {
     flex-direction: column;
+    min-height: 100dvh;
   }
   
   .sidebar {
     width: 100%;
-    max-height: none;
+    max-height: 48dvh;
     height: auto;
     border-right: none;
     border-bottom: 1px solid #2a2d3e;
@@ -313,8 +314,19 @@ html, body {
   
   .sidebar-content {
     padding: 12px 16px;
-    max-height: none;
-    overflow-y: visible;
+    overflow-y: auto;
+    max-height: calc(48dvh - 140px);
+  }
+
+  .controls-section {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .section-title {
+    grid-column: 1 / -1;
+    margin-bottom: 2px;
   }
   
   .control-item {
@@ -335,23 +347,13 @@ html, body {
   }
   
   .info-box {
-    padding: 12px 16px;
-  }
-  
-  .info-title {
-    font-size: 13px;
-    margin-bottom: 8px;
-  }
-  
-  .info-item {
-    font-size: 11px;
-    margin-bottom: 6px;
+    display: none;
   }
   
   #canvas-container {
     flex: 1;
-    min-height: 0;
-    height: auto;
+    min-height: 52dvh;
+    height: 52dvh;
   }
 }
 
@@ -360,10 +362,24 @@ html, body {
   body {
     overflow: auto;
     position: static;
+    touch-action: auto;
   }
 
   .container {
     min-height: 100dvh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sidebar {
+    max-height: 52dvh;
+  }
+
+  .sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: linear-gradient(180deg, #1a1b26 0%, #171824 100%);
   }
 
   .sidebar-header h1 {
@@ -384,11 +400,16 @@ html, body {
   }
   
   .section-title {
-    font-size: 13px;
+    font-size: 12px;
+  }
+
+  .controls-section {
+    grid-template-columns: 1fr;
   }
   
   .control-item {
-    padding: 8px 10px;
+    padding: 9px 10px;
+    min-height: 40px;
   }
   
   .control-label {
@@ -401,10 +422,47 @@ html, body {
   }
 
   #canvas-container {
-    min-height: 45vh;
+    min-height: 48dvh;
+    height: 48dvh;
+    touch-action: none;
+  }
+
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    background: linear-gradient(0deg, #1a1b26 0%, #171824 100%);
   }
   
   .info-box {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-header {
+    padding: 10px 12px;
+  }
+
+  .sidebar-header h1 {
+    font-size: 14px;
+    padding: 0 36px;
+  }
+
+  .back-button {
+    width: 32px;
+    height: 32px;
+    left: 8px;
+    top: 8px;
+  }
+
+  .sidebar-content,
+  .sidebar-footer {
+    padding: 10px 12px;
+  }
+
+  .reset-button {
+    font-size: 11px;
+    letter-spacing: 0.08em;
   }
 }

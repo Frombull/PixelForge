@@ -12,7 +12,28 @@ const FACE_COLORS = [
   "#395064",
 ];
 
-function createFaceTexture(baseColor: string) {
+const DEV_FONT_STACK =
+  '"Cascadia Code", "Fira Code", "Source Code Pro", "Consolas", "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace';
+
+function hexToRgba(hex: string, alpha: number) {
+  const value = hex.replace("#", "");
+  const normalized =
+    value.length === 3
+      ? value
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : value;
+
+  const int = Number.parseInt(normalized, 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function createFaceTexture(baseColor: string, includeText: boolean) {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 256;
@@ -23,7 +44,8 @@ function createFaceTexture(baseColor: string) {
     return new THREE.CanvasTexture(canvas);
   }
 
-  context.fillStyle = baseColor;
+  context.clearRect(0, 0, 256, 256);
+  context.fillStyle = hexToRgba(baseColor, 0.3);
   context.fillRect(0, 0, 256, 256);
 
   context.strokeStyle = "rgba(10, 16, 24, 0.28)";
@@ -46,15 +68,17 @@ function createFaceTexture(baseColor: string) {
     context.stroke();
   }
 
-  context.fillStyle = "#f8fbff";
-  context.strokeStyle = "#0f1722";
-  context.lineJoin = "round";
-  context.lineWidth = 10;
-  context.font = "900 138px Segoe UI";
-  context.textAlign = "center";
-  context.textBaseline = "middle";
-  context.strokeText("3D", 128, 130);
-  context.fillText("3D", 128, 130);
+  if (includeText) {
+    context.fillStyle = "#f8fbff";
+    context.strokeStyle = "#0f1722";
+    context.lineJoin = "round";
+    context.lineWidth = 10;
+    context.font = `900 156px ${DEV_FONT_STACK}`;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.strokeText("3D", 128, 130);
+    context.fillText("3D", 128, 130);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -96,15 +120,36 @@ export default function HeroLogo3D() {
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-    const textures = FACE_COLORS.map((color) => createFaceTexture(color));
-    const materials = textures.map(
+    const faceTexturesWithText = FACE_COLORS.map((color) => createFaceTexture(color, true));
+    const faceTexturesNoText = FACE_COLORS.map((color) => createFaceTexture(color, false));
+    const materials = faceTexturesWithText.map(
       (texture) =>
         new THREE.MeshStandardMaterial({
           map: texture,
-          metalness: 0.22,
-          roughness: 0.52,
+          transparent: true,
+          opacity: 0.5,
+          metalness: 0.3,
+          roughness: 0.5,
+          side: THREE.DoubleSide,
+          depthWrite: false,
         }),
     );
+
+    // BoxGeometry material index order: +X, -X, +Y, -Y, +Z, -Z
+    const localFaceNormals = [
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(0, 0, -1),
+    ];
+
+    const worldNormal = new THREE.Vector3();
+    const toCamera = new THREE.Vector3();
+    const cubeWorldPosition = new THREE.Vector3();
+    const faceCenterOffset = new THREE.Vector3();
+    const faceCenterWorld = new THREE.Vector3();
 
     const geometry = new THREE.BoxGeometry(2.05, 2.05, 2.05);
     const cube = new THREE.Mesh(geometry, materials);
@@ -208,6 +253,25 @@ export default function HeroLogo3D() {
       cube.rotation.y += (targetY - cube.rotation.y) * 0.07;
       cube.rotation.z = Math.sin(t * 1.3) * 0.03;
 
+      cube.getWorldPosition(cubeWorldPosition);
+      for (let faceIndex = 0; faceIndex < materials.length; faceIndex += 1) {
+        worldNormal.copy(localFaceNormals[faceIndex]).applyQuaternion(cube.quaternion).normalize();
+
+        faceCenterOffset.copy(worldNormal).multiplyScalar(1.025);
+        faceCenterWorld.copy(cubeWorldPosition).add(faceCenterOffset);
+        toCamera.copy(camera.position).sub(faceCenterWorld).normalize();
+
+        const isFaceVisible = worldNormal.dot(toCamera) > 0;
+        const expectedMap = isFaceVisible
+          ? faceTexturesWithText[faceIndex]
+          : faceTexturesNoText[faceIndex];
+
+        if (materials[faceIndex].map !== expectedMap) {
+          materials[faceIndex].map = expectedMap;
+          materials[faceIndex].needsUpdate = true;
+        }
+      }
+
       renderer.render(scene, camera);
     };
 
@@ -228,7 +292,8 @@ export default function HeroLogo3D() {
       (wireframe.material as THREE.Material).dispose();
 
       materials.forEach((material) => material.dispose());
-      textures.forEach((texture) => texture.dispose());
+      faceTexturesWithText.forEach((texture) => texture.dispose());
+      faceTexturesNoText.forEach((texture) => texture.dispose());
       renderer.dispose();
       scene.clear();
     };

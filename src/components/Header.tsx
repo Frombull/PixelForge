@@ -47,7 +47,7 @@ export default function Header() {
               href="/#graphics"
               className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              comp. gráfica
+              computação gráfica
             </Link>
             <Link
               href="/#multimidia"
@@ -59,7 +59,7 @@ export default function Header() {
               href="/#ia"
               className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
-              inteligência comp.
+              inteligência computacional
             </Link>
             <Link
               href="/infos"
@@ -126,7 +126,7 @@ export default function Header() {
                 className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                comp. gráfica
+                computação gráfica
               </Link>
               <Link
                 href="/#multimidia"
@@ -140,7 +140,7 @@ export default function Header() {
                 className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-4 py-3 rounded transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                inteligência comp.
+                inteligência computacional
               </Link>
               <Link
                 href="/infos"

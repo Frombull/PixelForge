@@ -154,6 +154,16 @@ video {
   }
 }
 
+@keyframes scrollHint {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
+  }
+}
+
 /* Custom utility classes */
 .animate-gradient-shift {
   animation: gradientShift 20s ease infinite;
@@ -177,6 +187,10 @@ video {
   animation: bounce 2s ease-in-out infinite;
 }
 
+.scroll-cue {
+  animation: scrollHint 3.2s ease-in-out infinite;
+}
+
 /* No scrollbar helper */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -191,5 +205,10 @@ video {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+
+  .scroll-cue {
+    transform: translate(-50%, 0) !important;
+    opacity: 0.9 !important;
   }
 }

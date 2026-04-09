@@ -52,6 +52,23 @@ export default function HeroSection() {
           </p>
         </div>
       </div>
+
+      <Link
+        href="#graphics"
+        aria-label="Descer"
+        className="scroll-cue group absolute bottom-7 left-1/2 z-20 -translate-x-1/2 text-neutral-400 transition-colors hover:text-sky-300 focus-visible:text-sky-300">
+        <svg
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-y-0.5"
+          aria-hidden="true">
+          <path d="M5.5 7.5L10 12l4.5-4.5" />
+        </svg>
+      </Link>
     </section>
   );
 }

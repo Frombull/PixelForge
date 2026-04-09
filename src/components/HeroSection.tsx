@@ -17,7 +17,7 @@ export default function HeroSection() {
         </div>
 
         <p className="max-w-2xl text-lg sm:text-xl text-neutral-400 font-medium leading-relaxed font-mono mt-4">
-          <span className="text-neutral-500">// </span>Um laboratório de visualização para
+          <span className="text-neutral-500"></span>Plataforma educacional interativa para
           <span className="text-white"> computação gráfica</span>,
           <span className="text-white"> multimídia</span> e
           <span className="text-white"> IA</span>.

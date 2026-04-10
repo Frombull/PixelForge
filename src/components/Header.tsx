@@ -22,7 +22,7 @@ export default function Header() {
     <header
       className={`fixed left-0 top-0 w-full z-50 border-b border-[#2a2d3e] bg-[rgb(22,23,31)]`}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-1.5 sm:px-2 lg:px-3">
         <div className="flex items-center justify-between h-12 lg:h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
@@ -42,7 +42,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6 font-mono text-xs">
+          <nav className="hidden lg:flex items-center gap-1f font-mono text-sm">
             <Link
               href="/#graphics"
               className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
@@ -61,12 +61,20 @@ export default function Header() {
             >
               inteligência computacional
             </Link>
+            <span
+              aria-hidden="true"
+              className="h-4 w-px bg-neutral-700/70"
+            />
             <Link
               href="/infos"
               className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
             >
               material teórico
             </Link>
+            <span
+              aria-hidden="true"
+              className="h-4 w-px bg-neutral-700/70"
+            />
             <Link
               href="/pricing"
               className="text-neutral-400 hover:text-white hover:bg-neutral-900/50 px-3 py-1.5 rounded transition-all duration-300"
@@ -77,26 +85,32 @@ export default function Header() {
 
           {/* Badge */}
           <div className="hidden lg:flex items-center">
-            <div className="font-mono text-[10px] text-green-400 border border-green-400/30 bg-green-400/5 px-2.5 py-1 rounded tracking-widest">
+            <Link
+              href="https://inatel.br/fetin/"
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-mono text-[10px] text-green-400 border border-green-400/30 bg-green-400/5 px-2.5 py-1 rounded tracking-widest hover:underline transition-opacity duration-300">
               FETIN 2026
-            </div>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden items-center gap-4">
-            <div className="font-mono text-[10px] text-green-400 border border-green-400/30 bg-green-400/5 px-2 py-0.5 rounded tracking-widest">
+            <Link
+              href="https://inatel.br/fetin/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[10px] text-green-400 border border-green-400/30 bg-green-400/5 px-2 py-0.5 rounded tracking-widest hover:underline transition-opacity duration-300">
               FETIN 2026
-            </div>
+            </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded text-neutral-400 hover:text-white hover:bg-neutral-900/50 transition-all duration-300"
-            >
+              className="p-2 rounded text-neutral-400 hover:text-white hover:bg-neutral-900/50 transition-all duration-300">
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               {mobileMenuOpen ? (
                 <path
                   strokeLinecap="round"

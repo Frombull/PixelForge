@@ -6,6 +6,7 @@ import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
 import { TransformHandler } from '/canvas-3d/transforms/transformHandler.js';
 import { DEFAULT_VALUES, MODES } from '/canvas-3d/utils/constants.js';
+import { ViewportGizmo } from 'three-viewport-gizmo';
 
 const STATE_EVENT_NAME = 'canvas3d:state';
 
@@ -83,11 +84,15 @@ class App {
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
+        this.viewportGizmo = null;
 
         this.animationFrameId = null;
         this.isDestroyed = false;
 
-        this.handleWindowResize = () => this.sceneManager.onResize();
+        this.handleWindowResize = () => {
+            this.sceneManager.onResize();
+            this.viewportGizmo?.update();
+        };
         this.handleWindowKeyDown = (e) => this.onKeyDown(e);
 
         this.init();
@@ -102,6 +107,20 @@ class App {
             this.sceneManager.camera,
             this.sceneManager.renderer.domElement
         );
+        this.viewportGizmo = new ViewportGizmo(
+            this.sceneManager.camera,
+            this.sceneManager.renderer,
+            {
+                container: this.sceneManager.container,
+                placement: 'bottom-right',
+                size: 96,
+                offset: {
+                    right: 12,
+                    bottom: 12
+                }
+            }
+        );
+        this.viewportGizmo.attachControls(this.controlsManager.controls);
 
         this.objectManager = new ObjectManager(this.sceneManager.scene);
         this.booleanOps = new BooleanOperations(this.objectManager.objects);
@@ -265,6 +284,10 @@ class App {
 
     toggleCameraType() {
         const isOrtho = this.sceneManager.toggleCameraType(this.controlsManager.controls);
+        if (this.viewportGizmo) {
+            this.viewportGizmo.camera = this.sceneManager.camera;
+            this.viewportGizmo.update();
+        }
         this.emitState();
         return isOrtho;
     }
@@ -546,6 +569,7 @@ class App {
         this.controlsManager.update();
         this.booleanOps.update();
         this.sceneManager.render();
+        this.viewportGizmo?.render();
     }
 
     destroy() {
@@ -560,6 +584,8 @@ class App {
         window.removeEventListener('keydown', this.handleWindowKeyDown);
 
         this.controlsManager?.controls?.dispose?.();
+        this.viewportGizmo?.dispose();
+        this.viewportGizmo = null;
 
         if (this.sceneManager?.secondRenderer?.domElement) {
             this.sceneManager.secondRenderer.domElement.remove();

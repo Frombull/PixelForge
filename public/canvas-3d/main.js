@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SceneManager } from '/canvas-3d/core/sceneManager.js';
 import { ControlsManager } from '/canvas-3d/core/controlsManager.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
@@ -85,6 +86,7 @@ class App {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
         this.viewportGizmo = null;
+        this.transformControls = null;
 
         this.animationFrameId = null;
         this.isDestroyed = false;
@@ -107,6 +109,21 @@ class App {
             this.sceneManager.camera,
             this.sceneManager.renderer.domElement
         );
+        this.transformControls = new TransformControls(
+            this.sceneManager.camera,
+            this.sceneManager.renderer.domElement
+        );
+        this.transformControls.setSpace('world');
+        this.transformControls.setSize(0.9);
+        this.transformControls.enabled = false;
+        this.transformControls.addEventListener('dragging-changed', (event) => {
+            this.controlsManager.controls.enabled = !event.value;
+        });
+        this.transformControls.addEventListener('objectChange', () => {
+            this.emitState();
+        });
+        this.sceneManager.scene.add(this.transformControls);
+
         this.viewportGizmo = new ViewportGizmo(
             this.sceneManager.camera,
             this.sceneManager.renderer,
@@ -162,7 +179,11 @@ class App {
         const obj = this.objectManager.selectedObject;
         if (!obj) return null;
 
-        const rotation = this.transformHandler.getRotationDegrees();
+        const rotation = {
+            x: obj.rotation.x * 180 / Math.PI,
+            y: obj.rotation.y * 180 / Math.PI,
+            z: obj.rotation.z * 180 / Math.PI
+        };
         const skew = this.objectManager.getSkew(obj);
 
         const material = obj.material;
@@ -228,6 +249,16 @@ class App {
         };
     }
 
+    applyTransformSnapSettings() {
+        if (!this.transformControls) return;
+
+        if (this.transformHandler.snapToGrid) {
+            this.transformControls.setTranslationSnap(this.transformHandler.gridSize);
+        } else {
+            this.transformControls.setTranslationSnap(null);
+        }
+    }
+
     emitState() {
         window.dispatchEvent(new CustomEvent(STATE_EVENT_NAME, {
             detail: this.getStateSnapshot()
@@ -244,7 +275,25 @@ class App {
 
     setMode(mode) {
         this.gizmoManager.setMode(mode);
-        this.gizmoManager.update(this.objectManager.selectedObject);
+
+        if (mode === MODES.SKEW) {
+            this.transformControls.detach();
+            this.transformControls.enabled = false;
+            this.gizmoManager.update(this.objectManager.selectedObject);
+        } else {
+            this.gizmoManager.remove();
+            this.transformControls.setMode(mode);
+            this.applyTransformSnapSettings();
+
+            if (this.objectManager.selectedObject) {
+                this.transformControls.attach(this.objectManager.selectedObject);
+                this.transformControls.enabled = true;
+            } else {
+                this.transformControls.detach();
+                this.transformControls.enabled = false;
+            }
+        }
+
         this.emitState();
     }
 
@@ -253,7 +302,6 @@ class App {
         if (!obj) return;
 
         this.objectManager.select(obj);
-        this.transformHandler.resetWorldRotations();
         this.updateSelection();
     }
 
@@ -284,6 +332,7 @@ class App {
 
     toggleCameraType() {
         const isOrtho = this.sceneManager.toggleCameraType(this.controlsManager.controls);
+        this.transformControls.camera = this.sceneManager.camera;
         if (this.viewportGizmo) {
             this.viewportGizmo.camera = this.sceneManager.camera;
             this.viewportGizmo.update();
@@ -305,6 +354,7 @@ class App {
 
     setSnapEnabled(enabled) {
         this.transformHandler.snapToGrid = enabled;
+        this.applyTransformSnapSettings();
         this.emitState();
     }
 
@@ -313,6 +363,7 @@ class App {
         if (!Number.isFinite(next) || next <= 0) return;
 
         this.transformHandler.gridSize = next;
+        this.applyTransformSnapSettings();
         this.emitState();
     }
 
@@ -349,6 +400,7 @@ class App {
             this.sceneManager.setClipPlanes(undefined, DEFAULT_VALUES.farClip);
         } else if (target === 'snap-size') {
             this.transformHandler.gridSize = DEFAULT_VALUES.snapSize;
+            this.applyTransformSnapSettings();
         }
 
         this.emitState();
@@ -366,15 +418,12 @@ class App {
             const current = { x: obj.position.x, y: obj.position.y, z: obj.position.z };
             current[axis] = parsed;
             this.transformHandler.setPosition(obj, current.x, current.y, current.z);
-            this.gizmoManager.updatePosition(obj.position);
         } else if (field.startsWith('scale-')) {
             const axis = field.split('-')[1];
             obj.scale[axis] = Math.max(0.1, parsed);
         } else if (field.startsWith('rot-')) {
             const axis = field.split('-')[1];
-            const current = this.transformHandler.getRotationDegrees();
-            current[axis] = parsed;
-            this.transformHandler.setRotationFromDegrees(obj, current.x, current.y, current.z);
+            obj.rotation[axis] = parsed * Math.PI / 180;
         } else if (field.startsWith('skew-')) {
             const axes = field.split('-')[1];
             const skew = this.objectManager.getSkew(obj);
@@ -393,13 +442,12 @@ class App {
         if (target.startsWith('pos-')) {
             const axis = target.split('-')[1];
             obj.position[axis] = 0;
-            this.gizmoManager.updatePosition(obj.position);
         } else if (target.startsWith('scale-')) {
             const axis = target.split('-')[1];
             obj.scale[axis] = 1;
         } else if (target.startsWith('rot-')) {
             const axis = target.split('-')[1];
-            this.transformHandler.resetRotation(axis, obj);
+            obj.rotation[axis] = 0;
         } else if (target.startsWith('skew-')) {
             const axes = target.split('-')[1];
             const skew = this.objectManager.getSkew(obj);
@@ -462,23 +510,26 @@ class App {
         this.updateMouse(e);
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
 
-        const gizmoHits = this.gizmoManager.raycast(this.raycaster);
-        if (gizmoHits.length > 0 && gizmoHits[0].object.userData.isGizmo) {
-            const axis = gizmoHits[0].object.userData.axis;
-            this.transformHandler.startDrag(
-                this.objectManager.selectedObject,
-                axis,
-                gizmoHits[0].point,
-                this.gizmoManager.currentMode
-            );
-            this.controlsManager.disable();
+        if (this.gizmoManager.currentMode === MODES.SKEW) {
+            const gizmoHits = this.gizmoManager.raycast(this.raycaster);
+            if (gizmoHits.length > 0 && gizmoHits[0].object.userData.isGizmo) {
+                const axis = gizmoHits[0].object.userData.axis;
+                this.transformHandler.startDrag(
+                    this.objectManager.selectedObject,
+                    axis,
+                    gizmoHits[0].point,
+                    this.gizmoManager.currentMode
+                );
+                this.controlsManager.disable();
+                return;
+            }
+        } else if (this.transformControls?.axis || this.transformControls?.dragging) {
             return;
         }
 
         const hits = this.objectManager.raycastObjects(this.raycaster);
         if (hits.length > 0) {
             this.objectManager.select(hits[0].object);
-            this.transformHandler.resetWorldRotations();
             this.updateSelection();
         } else {
             this.objectManager.deselect();
@@ -489,7 +540,7 @@ class App {
     onMouseMove(e) {
         this.updateMouse(e);
 
-        if (this.transformHandler.isDragging) {
+        if (this.gizmoManager.currentMode === MODES.SKEW && this.transformHandler.isDragging) {
             this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
             const intersection = new THREE.Vector3();
             this.raycaster.ray.intersectPlane(this.transformHandler.dragPlane, intersection);
@@ -513,12 +564,28 @@ class App {
             }
         } else {
             this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
-            const hoveredAxis = this.gizmoManager.checkHover(this.raycaster);
+            if (this.gizmoManager.currentMode === MODES.SKEW) {
+                const hoveredAxis = this.gizmoManager.checkHover(this.raycaster);
 
-            if (hoveredAxis) {
-                this.sceneManager.renderer.domElement.style.cursor = 'pointer';
-                this.objectManager.clearHover();
+                if (hoveredAxis) {
+                    this.sceneManager.renderer.domElement.style.cursor = 'pointer';
+                    this.objectManager.clearHover();
+                } else {
+                    const hits = this.objectManager.raycastObjects(this.raycaster);
+                    if (hits.length > 0) {
+                        this.objectManager.setHovered(hits[0].object);
+                    } else {
+                        this.objectManager.clearHover();
+                    }
+                    this.sceneManager.renderer.domElement.style.cursor =
+                        this.objectManager.hoveredObject ? 'pointer' : 'default';
+                }
             } else {
+                if (this.transformControls?.axis || this.transformControls?.dragging) {
+                    this.objectManager.clearHover();
+                    return;
+                }
+
                 const hits = this.objectManager.raycastObjects(this.raycaster);
                 if (hits.length > 0) {
                     this.objectManager.setHovered(hits[0].object);
@@ -532,6 +599,8 @@ class App {
     }
 
     onMouseUp() {
+        if (this.gizmoManager.currentMode !== MODES.SKEW) return;
+
         this.transformHandler.stopDrag();
         this.controlsManager.enable();
         this.emitState();
@@ -558,7 +627,22 @@ class App {
     }
 
     updateSelection() {
-        this.gizmoManager.update(this.objectManager.selectedObject);
+        if (this.gizmoManager.currentMode === MODES.SKEW) {
+            this.transformControls.detach();
+            this.transformControls.enabled = false;
+            this.gizmoManager.update(this.objectManager.selectedObject);
+        } else {
+            this.gizmoManager.remove();
+
+            if (this.objectManager.selectedObject) {
+                this.transformControls.attach(this.objectManager.selectedObject);
+                this.transformControls.enabled = true;
+            } else {
+                this.transformControls.detach();
+                this.transformControls.enabled = false;
+            }
+        }
+
         this.emitState();
     }
 
@@ -585,6 +669,9 @@ class App {
         window.removeEventListener('resize', this.handleWindowResize);
         window.removeEventListener('keydown', this.handleWindowKeyDown);
 
+        this.transformControls?.detach();
+        this.transformControls?.dispose?.();
+        this.transformControls = null;
         this.controlsManager?.controls?.dispose?.();
         this.viewportGizmo?.dispose();
         this.viewportGizmo = null;

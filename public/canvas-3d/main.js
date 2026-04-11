@@ -5,47 +5,112 @@ import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
 import { TransformHandler } from '/canvas-3d/transforms/transformHandler.js';
-import { InspectorPanel } from '/canvas-3d/ui/inspectorPanel.js';
-import { ColorPickerUI } from '/canvas-3d/ui/colorPicker.js';
-import { SettingsMenu } from '/canvas-3d/ui/settingsMenu.js';
-import { HierarchyManager } from '/canvas-3d/ui/hierarchyManager.js';
-import { MODES } from '/canvas-3d/utils/constants.js';
+import { DEFAULT_VALUES, MODES } from '/canvas-3d/utils/constants.js';
+
+const STATE_EVENT_NAME = 'canvas3d:state';
+
+function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+}
+
+function hsvToRgb(h, s, v) {
+    const sat = clamp(s, 0, 100) / 100;
+    const val = clamp(v, 0, 100) / 100;
+    const hue = ((h % 360) + 360) % 360;
+
+    const c = val * sat;
+    const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+    const m = val - c;
+
+    let rPrime = 0;
+    let gPrime = 0;
+    let bPrime = 0;
+
+    if (hue < 60) {
+        rPrime = c;
+        gPrime = x;
+    } else if (hue < 120) {
+        rPrime = x;
+        gPrime = c;
+    } else if (hue < 180) {
+        gPrime = c;
+        bPrime = x;
+    } else if (hue < 240) {
+        gPrime = x;
+        bPrime = c;
+    } else if (hue < 300) {
+        rPrime = x;
+        bPrime = c;
+    } else {
+        rPrime = c;
+        bPrime = x;
+    }
+
+    return {
+        r: Math.round((rPrime + m) * 255),
+        g: Math.round((gPrime + m) * 255),
+        b: Math.round((bPrime + m) * 255)
+    };
+}
+
+function rgbToHsv(r, g, b) {
+    const red = clamp(r, 0, 255) / 255;
+    const green = clamp(g, 0, 255) / 255;
+    const blue = clamp(b, 0, 255) / 255;
+
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
+    const delta = max - min;
+
+    let h = 0;
+    if (delta !== 0) {
+        if (max === red) h = 60 * (((green - blue) / delta) % 6);
+        else if (max === green) h = 60 * ((blue - red) / delta + 2);
+        else h = 60 * ((red - green) / delta + 4);
+    }
+
+    const s = max === 0 ? 0 : delta / max;
+    const v = max;
+
+    return {
+        h: Math.round((h + 360) % 360),
+        s: Math.round(s * 100),
+        v: Math.round(v * 100)
+    };
+}
 
 class App {
     constructor() {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
+        this.animationFrameId = null;
+        this.isDestroyed = false;
+
+        this.handleWindowResize = () => this.sceneManager.onResize();
+        this.handleWindowKeyDown = (e) => this.onKeyDown(e);
+
         this.init();
     }
 
     init() {
         const container = document.getElementById('canvas-container');
+        if (!container) throw new Error('Canvas container nao encontrado.');
 
-        // Core
         this.sceneManager = new SceneManager(container);
         this.controlsManager = new ControlsManager(
             this.sceneManager.camera,
             this.sceneManager.renderer.domElement
         );
 
-        // Objects & Transforms
         this.objectManager = new ObjectManager(this.sceneManager.scene);
         this.booleanOps = new BooleanOperations(this.objectManager.objects);
         this.gizmoManager = new GizmoManager(this.sceneManager.scene);
         this.transformHandler = new TransformHandler();
 
-        // UI
-        this.inspectorPanel = new InspectorPanel(
-            this.transformHandler, this.objectManager, this.gizmoManager
-        );
-        this.colorPicker = new ColorPickerUI(this.objectManager);
-        this.settingsMenu = new SettingsMenu(this.sceneManager, this.transformHandler);
-        this.hierarchy = new HierarchyManager(this.objectManager, this);
-
         this.setupEventListeners();
-        this.setupToolbar();
         this.animate();
+        this.emitState();
     }
 
     setupEventListeners() {
@@ -56,143 +121,310 @@ class App {
         canvas.addEventListener('mouseup', () => this.onMouseUp());
         canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        window.addEventListener('resize', () => this.sceneManager.onResize());
-        window.addEventListener('keydown', (e) => this.onKeyDown(e));
-
-        document.getElementById('btn-info')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.getElementById('info-tooltip')?.classList.toggle('hidden');
-            document.getElementById('settings-menu')?.classList.add('hidden');
-        });
-
-        document.getElementById('close-info')?.addEventListener('click', () => {
-            document.getElementById('info-tooltip')?.classList.add('hidden');
-        });
-
-        // Close info/settings on outside click
-        document.addEventListener('click', (e) => {
-            const info = document.getElementById('info-tooltip');
-            const settings = document.getElementById('settings-menu');
-            const infoBtn = document.getElementById('btn-info');
-            const settingsBtn = document.getElementById('btn-settings');
-
-            if (info && !info.contains(e.target) && e.target !== infoBtn) {
-                info.classList.add('hidden');
-            }
-            if (settings && !settings.contains(e.target) && e.target !== settingsBtn) {
-                settings.classList.add('hidden');
-            }
-        });
-
-        document.getElementById('settings-menu')?.addEventListener('click', e => e.stopPropagation());
-        document.getElementById('info-tooltip')?.addEventListener('click', e => e.stopPropagation());
-
-        this.setupResetButtons();
+        window.addEventListener('resize', this.handleWindowResize);
+        window.addEventListener('keydown', this.handleWindowKeyDown);
     }
 
-    setupToolbar() {
-        // Add objects
-        document.getElementById('addCube')?.addEventListener('click', () => {
-            this.objectManager.addCube();
-            this.hierarchy.refresh();
-        });
-        document.getElementById('addCylinder')?.addEventListener('click', () => {
-            this.objectManager.addCylinder();
-            this.hierarchy.refresh();
-        });
-        document.getElementById('addSphere')?.addEventListener('click', () => {
-            console.log('Adicionar Esfera - Em breve!');
-        });
-        document.getElementById('addCone')?.addEventListener('click', () => {
-            console.log('Adicionar Cone - Em breve!');
-        });
-        document.getElementById('addTorus')?.addEventListener('click', () => {
-            console.log('Adicionar Torus - Em breve!');
-        });
-        document.getElementById('addZFighting')?.addEventListener('click', () => {
-            this.objectManager.addZFightingDemo();
-            this.hierarchy.refresh();
-        });
-        document.getElementById('addSubtractCube')?.addEventListener('click', () => {
-            this.objectManager.addSubtractCube();
-            this.hierarchy.refresh();
-        });
-        document.getElementById('addSkewDemo')?.addEventListener('click', () => {});
+    getGridColorHex() {
+        const material = this.sceneManager.gridHelper?.material;
 
-        // Mode buttons
-        document.getElementById('btn-translate')?.addEventListener('click', () => this.setMode(MODES.TRANSLATE));
-        document.getElementById('btn-scale')?.addEventListener('click', () => this.setMode(MODES.SCALE));
-        document.getElementById('btn-rotate')?.addEventListener('click', () => this.setMode(MODES.ROTATE));
-        document.getElementById('btn-skew')?.addEventListener('click', () => this.setMode(MODES.SKEW));
+        if (Array.isArray(material) && material[0]?.color) {
+            return `#${material[0].color.getHexString()}`;
+        }
 
-        // Camera/View
-        document.getElementById('btn-reset-camera')?.addEventListener('click', () =>
-            this.sceneManager.resetCamera(this.controlsManager.controls)
-        );
-        document.getElementById('btn-toggle-camera')?.addEventListener('click', () => {
-            const isOrtho = this.sceneManager.toggleCameraType(this.controlsManager.controls);
-            document.getElementById('btn-toggle-camera')?.classList.toggle('active', isOrtho);
-        });
-        document.getElementById('btn-toggle-culling')?.addEventListener('click', () => {
-            const show = this.sceneManager.toggleSecondViewport();
-            document.getElementById('btn-toggle-culling')?.classList.toggle('active', show);
-        });
+        if (material?.color) {
+            return `#${material.color.getHexString()}`;
+        }
+
+        return '#bbbbbb';
     }
 
-    setupResetButtons() {
-        document.querySelectorAll('.reset-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = btn.dataset.reset;
+    getSelectedSnapshot() {
+        const obj = this.objectManager.selectedObject;
+        if (!obj) return null;
 
-                // Settings resets
-                if (['near-clip', 'far-clip', 'snap-size'].includes(target)) {
-                    this.settingsMenu.resetValue(target);
-                    return;
-                }
+        const rotation = this.transformHandler.getRotationDegrees();
+        const skew = this.objectManager.getSkew(obj);
 
-                const obj = this.objectManager.selectedObject;
-                if (!obj) return;
+        const material = obj.material;
+        const color = material?.color || new THREE.Color('#ffffff');
+        const rgb = {
+            r: Math.round(color.r * 255),
+            g: Math.round(color.g * 255),
+            b: Math.round(color.b * 255)
+        };
 
-                // Position resets
-                if (target.startsWith('pos-')) {
-                    const axis = target.split('-')[1];
-                    obj.position[axis] = 0;
-                    this.gizmoManager.updatePosition(obj.position);
-                }
-                // Scale resets
-                else if (target.startsWith('scale-')) {
-                    const axis = target.split('-')[1];
-                    obj.scale[axis] = 1;
-                }
-                // Rotation resets
-                else if (target.startsWith('rot-')) {
-                    const axis = target.split('-')[1];
-                    this.transformHandler.resetRotation(axis, obj);
-                }
-                // Skew resets
-                else if (target.startsWith('skew-')) {
-                    const axes = target.split('-')[1];
-                    const skew = this.objectManager.getSkew(obj);
-                    skew[axes] = 0;
-                    this.objectManager.setSkew(obj, skew);
-                    this.objectManager.applySkew(obj);
-                }
+        return {
+            uuid: obj.uuid,
+            name: obj.userData.name || obj.userData.type || 'Object',
+            position: {
+                x: obj.position.x,
+                y: obj.position.y,
+                z: obj.position.z
+            },
+            scale: {
+                x: obj.scale.x,
+                y: obj.scale.y,
+                z: obj.scale.z
+            },
+            rotation,
+            skew,
+            material: {
+                hex: `#${color.getHexString()}`,
+                rgb,
+                hsv: rgbToHsv(rgb.r, rgb.g, rgb.b),
+                alpha: Math.round((material?.opacity ?? 1) * 100)
+            }
+        };
+    }
 
-                this.inspectorPanel.update();
-            });
-        });
+    getSettingsSnapshot() {
+        const background = this.sceneManager.scene.background;
+        const bgColor = background?.isColor ? `#${background.getHexString()}` : '#ffffff';
+
+        return {
+            gridVisible: this.sceneManager.gridHelper?.visible ?? true,
+            snapToGrid: this.transformHandler.snapToGrid,
+            snapSize: this.transformHandler.gridSize,
+            backgroundColor: bgColor,
+            gridColor: this.getGridColorHex(),
+            nearClip: this.sceneManager.perspectiveCamera.near,
+            farClip: this.sceneManager.perspectiveCamera.far
+        };
+    }
+
+    getStateSnapshot() {
+        return {
+            mode: this.gizmoManager.currentMode,
+            isOrthographic: !this.sceneManager.isPerspective,
+            isCullingViewEnabled: this.sceneManager.showSecondViewport,
+            selectedUuid: this.objectManager.selectedObject?.uuid || null,
+            objects: this.objectManager.objects.map(obj => ({
+                uuid: obj.uuid,
+                name: obj.userData.name || obj.userData.type || 'Object',
+                type: obj.userData.type || 'Object'
+            })),
+            selected: this.getSelectedSnapshot(),
+            settings: this.getSettingsSnapshot()
+        };
+    }
+
+    emitState() {
+        window.dispatchEvent(new CustomEvent(STATE_EVENT_NAME, {
+            detail: this.getStateSnapshot()
+        }));
+    }
+
+    addObject(kind) {
+        if (kind === 'cube') this.objectManager.addCube();
+        else if (kind === 'cylinder') this.objectManager.addCylinder();
+        else if (kind === 'subtractCube') this.objectManager.addSubtractCube();
+        else if (kind === 'zFighting') this.objectManager.addZFightingDemo();
+        this.emitState();
     }
 
     setMode(mode) {
         this.gizmoManager.setMode(mode);
-
-        document.getElementById('btn-translate')?.classList.toggle('active', mode === MODES.TRANSLATE);
-        document.getElementById('btn-scale')?.classList.toggle('active', mode === MODES.SCALE);
-        document.getElementById('btn-rotate')?.classList.toggle('active', mode === MODES.ROTATE);
-        document.getElementById('btn-skew')?.classList.toggle('active', mode === MODES.SKEW);
-
         this.gizmoManager.update(this.objectManager.selectedObject);
+        this.emitState();
+    }
+
+    selectObjectByUuid(uuid) {
+        const obj = this.objectManager.objects.find(item => item.uuid === uuid);
+        if (!obj) return;
+
+        this.objectManager.select(obj);
+        this.transformHandler.resetWorldRotations();
+        this.updateSelection();
+    }
+
+    focusObjectByUuid(uuid) {
+        const obj = this.objectManager.objects.find(item => item.uuid === uuid);
+        if (!obj) return;
+
+        this.controlsManager.focusOnObject(obj, this.sceneManager.camera);
+    }
+
+    deleteSelected() {
+        const deleted = this.objectManager.deleteSelected();
+        if (!deleted) return false;
+
+        this.updateSelection();
+        return true;
+    }
+
+    deleteObjectByUuid(uuid) {
+        this.selectObjectByUuid(uuid);
+        this.deleteSelected();
+    }
+
+    resetCamera() {
+        this.sceneManager.resetCamera(this.controlsManager.controls);
+        this.emitState();
+    }
+
+    toggleCameraType() {
+        const isOrtho = this.sceneManager.toggleCameraType(this.controlsManager.controls);
+        this.emitState();
+        return isOrtho;
+    }
+
+    toggleCullingView() {
+        const show = this.sceneManager.toggleSecondViewport();
+        this.emitState();
+        return show;
+    }
+
+    setGridVisible(visible) {
+        this.sceneManager.setGridVisible(visible);
+        this.emitState();
+    }
+
+    setSnapEnabled(enabled) {
+        this.transformHandler.snapToGrid = enabled;
+        this.emitState();
+    }
+
+    setSnapSize(value) {
+        const next = Number(value);
+        if (!Number.isFinite(next) || next <= 0) return;
+
+        this.transformHandler.gridSize = next;
+        this.emitState();
+    }
+
+    setBackgroundColor(hex) {
+        this.sceneManager.setBackgroundColor(hex);
+        this.emitState();
+    }
+
+    setGridColor(hex) {
+        this.sceneManager.setGridColor(hex);
+        this.emitState();
+    }
+
+    setNearClip(value) {
+        const near = Number(value);
+        if (!Number.isFinite(near) || near <= 0) return;
+
+        this.sceneManager.setClipPlanes(near, undefined);
+        this.emitState();
+    }
+
+    setFarClip(value) {
+        const far = Number(value);
+        if (!Number.isFinite(far) || far <= 0) return;
+
+        this.sceneManager.setClipPlanes(undefined, far);
+        this.emitState();
+    }
+
+    resetSetting(target) {
+        if (target === 'near-clip') {
+            this.sceneManager.setClipPlanes(DEFAULT_VALUES.nearClip, undefined);
+        } else if (target === 'far-clip') {
+            this.sceneManager.setClipPlanes(undefined, DEFAULT_VALUES.farClip);
+        } else if (target === 'snap-size') {
+            this.transformHandler.gridSize = DEFAULT_VALUES.snapSize;
+        }
+
+        this.emitState();
+    }
+
+    updateSelectedTransform(field, value) {
+        const obj = this.objectManager.selectedObject;
+        if (!obj) return;
+
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return;
+
+        if (field.startsWith('pos-')) {
+            const axis = field.split('-')[1];
+            const current = { x: obj.position.x, y: obj.position.y, z: obj.position.z };
+            current[axis] = parsed;
+            this.transformHandler.setPosition(obj, current.x, current.y, current.z);
+            this.gizmoManager.updatePosition(obj.position);
+        } else if (field.startsWith('scale-')) {
+            const axis = field.split('-')[1];
+            obj.scale[axis] = Math.max(0.1, parsed);
+        } else if (field.startsWith('rot-')) {
+            const axis = field.split('-')[1];
+            const current = this.transformHandler.getRotationDegrees();
+            current[axis] = parsed;
+            this.transformHandler.setRotationFromDegrees(obj, current.x, current.y, current.z);
+        } else if (field.startsWith('skew-')) {
+            const axes = field.split('-')[1];
+            const skew = this.objectManager.getSkew(obj);
+            skew[axes] = parsed;
+            this.objectManager.setSkew(obj, skew);
+            this.objectManager.applySkew(obj);
+        }
+
+        this.emitState();
+    }
+
+    resetTransformField(target) {
+        const obj = this.objectManager.selectedObject;
+        if (!obj) return;
+
+        if (target.startsWith('pos-')) {
+            const axis = target.split('-')[1];
+            obj.position[axis] = 0;
+            this.gizmoManager.updatePosition(obj.position);
+        } else if (target.startsWith('scale-')) {
+            const axis = target.split('-')[1];
+            obj.scale[axis] = 1;
+        } else if (target.startsWith('rot-')) {
+            const axis = target.split('-')[1];
+            this.transformHandler.resetRotation(axis, obj);
+        } else if (target.startsWith('skew-')) {
+            const axes = target.split('-')[1];
+            const skew = this.objectManager.getSkew(obj);
+            skew[axes] = 0;
+            this.objectManager.setSkew(obj, skew);
+            this.objectManager.applySkew(obj);
+        }
+
+        this.emitState();
+    }
+
+    setSelectedColorHex(hex) {
+        const obj = this.objectManager.selectedObject;
+        if (!obj?.material) return;
+
+        const value = String(hex || '').trim();
+        const normalized = value.startsWith('#') ? value : `#${value}`;
+        if (!/^#[0-9A-F]{6}$/i.test(normalized)) return;
+
+        obj.material.color.set(normalized);
+        obj.material.needsUpdate = true;
+        this.emitState();
+    }
+
+    setSelectedColorHSV(h, s, v) {
+        const obj = this.objectManager.selectedObject;
+        if (!obj?.material) return;
+
+        const hue = Number(h);
+        const sat = Number(s);
+        const val = Number(v);
+        if (!Number.isFinite(hue) || !Number.isFinite(sat) || !Number.isFinite(val)) return;
+
+        const rgb = hsvToRgb(hue, sat, val);
+        obj.material.color.setRGB(rgb.r / 255, rgb.g / 255, rgb.b / 255);
+        obj.material.needsUpdate = true;
+        this.emitState();
+    }
+
+    setSelectedAlpha(alphaPercent) {
+        const obj = this.objectManager.selectedObject;
+        if (!obj?.material) return;
+
+        const alpha = clamp(Number(alphaPercent), 0, 100) / 100;
+        obj.material.transparent = alpha < 1;
+        obj.material.opacity = alpha;
+        obj.material.needsUpdate = true;
+        this.emitState();
     }
 
     updateMouse(e) {
@@ -207,7 +439,6 @@ class App {
         this.updateMouse(e);
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
 
-        // Check gizmo first
         const gizmoHits = this.gizmoManager.raycast(this.raycaster);
         if (gizmoHits.length > 0 && gizmoHits[0].object.userData.isGizmo) {
             const axis = gizmoHits[0].object.userData.axis;
@@ -221,7 +452,6 @@ class App {
             return;
         }
 
-        // Check objects
         const hits = this.objectManager.raycastObjects(this.raycaster);
         if (hits.length > 0) {
             this.objectManager.select(hits[0].object);
@@ -256,6 +486,7 @@ class App {
                 }
 
                 this.gizmoManager.updatePosition(obj.position);
+                this.emitState();
             }
         } else {
             this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
@@ -280,10 +511,11 @@ class App {
     onMouseUp() {
         this.transformHandler.stopDrag();
         this.controlsManager.enable();
+        this.emitState();
     }
 
     onKeyDown(e) {
-        if (document.activeElement.tagName === 'INPUT') return;
+        if (document.activeElement?.tagName === 'INPUT') return;
 
         const key = e.key.toLowerCase();
 
@@ -298,40 +530,92 @@ class App {
         else if (key === 't') this.setMode(MODES.TRANSLATE);
         else if (key === 'k') this.setMode(MODES.SKEW);
         else if (key === 'delete' && this.objectManager.selectedObject) {
-            this.objectManager.deleteSelected();
-            this.hierarchy.refresh();
-            this.updateSelection();
+            this.deleteSelected();
         }
     }
 
     updateSelection() {
         this.gizmoManager.update(this.objectManager.selectedObject);
-
-        if (this.objectManager.selectedObject) {
-            this.inspectorPanel.show();
-            this.inspectorPanel.update();
-            this.colorPicker.updateFromObject();
-        } else {
-            this.inspectorPanel.hide();
-        }
-
-        this.hierarchy.selectSelected();
+        this.emitState();
     }
 
     animate() {
-        requestAnimationFrame(() => this.animate());
+        if (this.isDestroyed) return;
 
+        this.animationFrameId = requestAnimationFrame(() => this.animate());
         this.controlsManager.update();
-
-        if (this.objectManager.selectedObject &&
-            !this.inspectorPanel.isUpdating &&
-            document.activeElement.type !== 'number') {
-            this.inspectorPanel.update();
-        }
-
         this.booleanOps.update();
         this.sceneManager.render();
     }
+
+    destroy() {
+        this.isDestroyed = true;
+
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+
+        window.removeEventListener('resize', this.handleWindowResize);
+        window.removeEventListener('keydown', this.handleWindowKeyDown);
+
+        this.controlsManager?.controls?.dispose?.();
+
+        if (this.sceneManager?.secondRenderer?.domElement) {
+            this.sceneManager.secondRenderer.domElement.remove();
+            this.sceneManager.secondRenderer.dispose();
+        }
+
+        if (this.sceneManager?.renderer?.domElement) {
+            this.sceneManager.renderer.domElement.remove();
+            this.sceneManager.renderer.dispose();
+        }
+    }
 }
 
-new App();
+let appInstance = null;
+
+export function mountCanvas3DApp() {
+    if (appInstance) return appInstance;
+    appInstance = new App();
+    return appInstance;
+}
+
+export function unmountCanvas3DApp() {
+    if (!appInstance) return;
+    appInstance.destroy();
+    appInstance = null;
+}
+
+window.Canvas3DBridge = {
+    mount: mountCanvas3DApp,
+    unmount: unmountCanvas3DApp,
+    getState: () => appInstance?.getStateSnapshot() || null,
+
+    addObject: (kind) => appInstance?.addObject(kind),
+    setMode: (mode) => appInstance?.setMode(mode),
+
+    selectObject: (uuid) => appInstance?.selectObjectByUuid(uuid),
+    focusObject: (uuid) => appInstance?.focusObjectByUuid(uuid),
+    deleteSelected: () => appInstance?.deleteSelected(),
+    deleteObject: (uuid) => appInstance?.deleteObjectByUuid(uuid),
+
+    resetCamera: () => appInstance?.resetCamera(),
+    toggleCameraType: () => appInstance?.toggleCameraType(),
+    toggleCullingView: () => appInstance?.toggleCullingView(),
+
+    setGridVisible: (visible) => appInstance?.setGridVisible(visible),
+    setSnapEnabled: (enabled) => appInstance?.setSnapEnabled(enabled),
+    setSnapSize: (size) => appInstance?.setSnapSize(size),
+    setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),
+    setGridColor: (hex) => appInstance?.setGridColor(hex),
+    setNearClip: (value) => appInstance?.setNearClip(value),
+    setFarClip: (value) => appInstance?.setFarClip(value),
+    resetSetting: (target) => appInstance?.resetSetting(target),
+
+    updateSelectedTransform: (field, value) => appInstance?.updateSelectedTransform(field, value),
+    resetTransformField: (target) => appInstance?.resetTransformField(target),
+    setSelectedColorHex: (hex) => appInstance?.setSelectedColorHex(hex),
+    setSelectedColorHSV: (h, s, v) => appInstance?.setSelectedColorHSV(h, s, v),
+    setSelectedAlpha: (alphaPercent) => appInstance?.setSelectedAlpha(alphaPercent)
+};

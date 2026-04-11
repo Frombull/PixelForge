@@ -5,7 +5,6 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
-import { TransformHandler } from '/canvas-3d/transforms/transformHandler.js';
 import { DEFAULT_VALUES, MODES } from '/canvas-3d/utils/constants.js';
 import { ViewportGizmo } from 'three-viewport-gizmo';
 
@@ -88,6 +87,13 @@ class App {
         this.viewportGizmo = null;
         this.transformControls = null;
 
+        this.snapToGrid = false;
+        this.snapSize = DEFAULT_VALUES.snapSize;
+        this.isSkewDragging = false;
+        this.skewDragAxis = null;
+        this.skewDragPlane = null;
+        this.skewIntersectionStart = new THREE.Vector3();
+
         this.animationFrameId = null;
         this.isDestroyed = false;
 
@@ -142,7 +148,6 @@ class App {
         this.objectManager = new ObjectManager(this.sceneManager.scene);
         this.booleanOps = new BooleanOperations(this.objectManager.objects);
         this.gizmoManager = new GizmoManager(this.sceneManager.scene);
-        this.transformHandler = new TransformHandler();
 
         this.setupEventListeners();
         this.animate();
@@ -224,8 +229,8 @@ class App {
 
         return {
             gridVisible: this.sceneManager.gridHelper?.visible ?? true,
-            snapToGrid: this.transformHandler.snapToGrid,
-            snapSize: this.transformHandler.gridSize,
+            snapToGrid: this.snapToGrid,
+            snapSize: this.snapSize,
             backgroundColor: bgColor,
             gridColor: this.getGridColorHex(),
             nearClip: this.sceneManager.perspectiveCamera.near,
@@ -252,11 +257,58 @@ class App {
     applyTransformSnapSettings() {
         if (!this.transformControls) return;
 
-        if (this.transformHandler.snapToGrid) {
-            this.transformControls.setTranslationSnap(this.transformHandler.gridSize);
+        if (this.snapToGrid) {
+            this.transformControls.setTranslationSnap(this.snapSize);
         } else {
             this.transformControls.setTranslationSnap(null);
         }
+    }
+
+    setPositionWithSnap(object, x, y, z) {
+        let nextX = x;
+        let nextY = y;
+        let nextZ = z;
+
+        if (this.snapToGrid) {
+            nextX = Math.round(nextX / this.snapSize) * this.snapSize;
+            nextY = Math.round(nextY / this.snapSize) * this.snapSize;
+            nextZ = Math.round(nextZ / this.snapSize) * this.snapSize;
+        }
+
+        object.position.set(nextX, nextY, nextZ);
+    }
+
+    startSkewDrag(object, axis, intersectPoint) {
+        if (!object) return;
+
+        this.isSkewDragging = true;
+        this.skewDragAxis = axis;
+        this.skewIntersectionStart.copy(intersectPoint);
+
+        const normal = new THREE.Vector3();
+        if (axis === 'xy') normal.set(0, 0, 1);
+        else if (axis === 'xz') normal.set(0, 1, 0);
+        else normal.set(1, 0, 0);
+
+        this.skewDragPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, object.position);
+    }
+
+    stopSkewDrag() {
+        this.isSkewDragging = false;
+        this.skewDragAxis = null;
+        this.skewDragPlane = null;
+    }
+
+    handleSkewDrag(object, intersection) {
+        const delta = new THREE.Vector3().subVectors(intersection, this.skewIntersectionStart);
+        const skew = this.objectManager.getSkew(object);
+
+        if (this.skewDragAxis === 'xy') skew.xy = delta.y * 0.5;
+        else if (this.skewDragAxis === 'xz') skew.xz = delta.z * 0.5;
+        else if (this.skewDragAxis === 'yz') skew.yz = delta.z * 0.5;
+
+        this.objectManager.setSkew(object, skew);
+        this.objectManager.applySkew(object);
     }
 
     emitState() {
@@ -353,7 +405,7 @@ class App {
     }
 
     setSnapEnabled(enabled) {
-        this.transformHandler.snapToGrid = enabled;
+        this.snapToGrid = enabled;
         this.applyTransformSnapSettings();
         this.emitState();
     }
@@ -362,7 +414,7 @@ class App {
         const next = Number(value);
         if (!Number.isFinite(next) || next <= 0) return;
 
-        this.transformHandler.gridSize = next;
+        this.snapSize = next;
         this.applyTransformSnapSettings();
         this.emitState();
     }
@@ -399,7 +451,7 @@ class App {
         } else if (target === 'far-clip') {
             this.sceneManager.setClipPlanes(undefined, DEFAULT_VALUES.farClip);
         } else if (target === 'snap-size') {
-            this.transformHandler.gridSize = DEFAULT_VALUES.snapSize;
+            this.snapSize = DEFAULT_VALUES.snapSize;
             this.applyTransformSnapSettings();
         }
 
@@ -417,7 +469,7 @@ class App {
             const axis = field.split('-')[1];
             const current = { x: obj.position.x, y: obj.position.y, z: obj.position.z };
             current[axis] = parsed;
-            this.transformHandler.setPosition(obj, current.x, current.y, current.z);
+            this.setPositionWithSnap(obj, current.x, current.y, current.z);
         } else if (field.startsWith('scale-')) {
             const axis = field.split('-')[1];
             obj.scale[axis] = Math.max(0.1, parsed);
@@ -514,11 +566,10 @@ class App {
             const gizmoHits = this.gizmoManager.raycast(this.raycaster);
             if (gizmoHits.length > 0 && gizmoHits[0].object.userData.isGizmo) {
                 const axis = gizmoHits[0].object.userData.axis;
-                this.transformHandler.startDrag(
+                this.startSkewDrag(
                     this.objectManager.selectedObject,
                     axis,
-                    gizmoHits[0].point,
-                    this.gizmoManager.currentMode
+                    gizmoHits[0].point
                 );
                 this.controlsManager.disable();
                 return;
@@ -540,24 +591,16 @@ class App {
     onMouseMove(e) {
         this.updateMouse(e);
 
-        if (this.gizmoManager.currentMode === MODES.SKEW && this.transformHandler.isDragging) {
+        if (this.gizmoManager.currentMode === MODES.SKEW && this.isSkewDragging) {
             this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
             const intersection = new THREE.Vector3();
-            this.raycaster.ray.intersectPlane(this.transformHandler.dragPlane, intersection);
+            this.raycaster.ray.intersectPlane(this.skewDragPlane, intersection);
 
             if (intersection) {
                 const obj = this.objectManager.selectedObject;
-                const mode = this.gizmoManager.currentMode;
+                if (!obj) return;
 
-                if (mode === MODES.TRANSLATE) {
-                    this.transformHandler.handleTranslate(obj, intersection);
-                } else if (mode === MODES.SCALE) {
-                    this.transformHandler.handleScale(obj, intersection);
-                } else if (mode === MODES.ROTATE) {
-                    this.transformHandler.handleRotate(obj, intersection);
-                } else if (mode === MODES.SKEW) {
-                    this.transformHandler.handleSkew(obj, intersection, this.objectManager);
-                }
+                this.handleSkewDrag(obj, intersection);
 
                 this.gizmoManager.updatePosition(obj.position);
                 this.emitState();
@@ -601,7 +644,7 @@ class App {
     onMouseUp() {
         if (this.gizmoManager.currentMode !== MODES.SKEW) return;
 
-        this.transformHandler.stopDrag();
+        this.stopSkewDrag();
         this.controlsManager.enable();
         this.emitState();
     }

@@ -59,6 +59,7 @@ export class SceneManager {
     createRenderer() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        this.renderer.domElement.classList.add('main-canvas3d');
         this.container.appendChild(this.renderer.domElement);
     }
     
@@ -68,15 +69,36 @@ export class SceneManager {
         this.secondCamera.lookAt(0, 0, 0);
         
         this.secondRenderer = new THREE.WebGLRenderer({ antialias: true });
-        this.secondRenderer.setSize(800, 450);
+        this.secondRenderer.domElement.classList.add('culling-preview-canvas');
         
         const el = this.secondRenderer.domElement;
         Object.assign(el.style, {
-            position: 'fixed', bottom: '12px', right: '12px',
-            border: '1px solid #8b5cf6', borderRadius: '4px',
-            display: 'none', zIndex: '999'
+            position: 'absolute',
+            bottom: '12px',
+            right: '12px',
+            border: '1px solid rgba(125, 207, 255, 0.7)',
+            borderRadius: '6px',
+            background: '#0f1017',
+            boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35)',
+            display: 'none',
+            zIndex: '40',
+            pointerEvents: 'none'
         });
+
+        this.updateSecondViewportSize();
         this.container.appendChild(el);
+    }
+
+    updateSecondViewportSize() {
+        if (!this.secondRenderer || !this.secondCamera) return;
+
+        const rect = this.container.getBoundingClientRect();
+        const width = Math.round(Math.min(360, Math.max(220, rect.width * 0.28)));
+        const height = Math.round((width * 9) / 16);
+
+        this.secondRenderer.setSize(width, height);
+        this.secondCamera.aspect = width / height;
+        this.secondCamera.updateProjectionMatrix();
     }
     
     createLights() {
@@ -120,6 +142,10 @@ export class SceneManager {
     toggleSecondViewport() {
         this.showSecondViewport = !this.showSecondViewport;
         this.secondRenderer.domElement.style.display = this.showSecondViewport ? 'block' : 'none';
+
+        if (this.showSecondViewport) {
+            this.updateSecondViewportSize();
+        }
         
         if (!this.showSecondViewport && this.cameraHelper) {
             this.scene.remove(this.cameraHelper);
@@ -161,8 +187,7 @@ export class SceneManager {
         }
 
         this.renderer.setSize(rect.width, rect.height);
-        this.secondCamera.aspect = 1;
-        this.secondCamera.updateProjectionMatrix();
+        this.updateSecondViewportSize();
     }
     
     resetCamera(controls) {

@@ -400,176 +400,7 @@ export default function Canvas3DWorkspace() {
         </div>
       )}
 
-      <div id="topbar" className="fixed left-0 right-0 top-0 z-1000 flex h-10 items-center justify-between border-b border-[#2a2d3e] bg-[#1a1b26] px-3">
-        <div id="topbar-title" className="text-xs font-semibold tracking-wider text-[#7dcfff]">
-          Canvas 3D
-        </div>
-
-        <div id="topbar-actions" className="flex items-center gap-2">
-          <button
-            className="topbar-btn"
-            onClick={() => {
-              setIsInfoOpen((prev) => !prev);
-              setIsSettingsOpen(false);
-            }}
-            ref={infoButtonRef}
-            title="Controles"
-            type="button"
-          >
-            i
-          </button>
-
-          <button
-            className="topbar-btn"
-            onClick={() => {
-              setIsSettingsOpen((prev) => !prev);
-              setIsInfoOpen(false);
-            }}
-            ref={settingsButtonRef}
-            title="Configuracoes"
-            type="button"
-          >
-            ⚙
-          </button>
-        </div>
-      </div>
-
-      <div className={`settings-menu ${isSettingsOpen ? "" : "hidden"}`} ref={settingsRef}>
-        <div className="settings-item">
-          <label className="settings-label" htmlFor="toggle-grid">
-            <input
-              checked={engineState.settings.gridVisible}
-              id="toggle-grid"
-              onChange={(event) => window.Canvas3DBridge?.setGridVisible(event.target.checked)}
-              type="checkbox"
-            />
-            <span>Mostrar Grid</span>
-          </label>
-        </div>
-
-        <div className="settings-item">
-          <label className="settings-label" htmlFor="toggle-snap">
-            <input
-              checked={engineState.settings.snapToGrid}
-              id="toggle-snap"
-              onChange={(event) => window.Canvas3DBridge?.setSnapEnabled(event.target.checked)}
-              type="checkbox"
-            />
-            <span>Snap to Grid</span>
-          </label>
-        </div>
-
-        <div className="settings-item">
-          <label className="settings-label" htmlFor="snap-size">
-            <span>Snap Size</span>
-          </label>
-          <div className="settings-input-group">
-            <input
-              className={`snap-size-item ${engineState.settings.snapToGrid ? "enabled" : ""}`}
-              id="snap-size"
-              min="0.1"
-              onChange={(event) => window.Canvas3DBridge?.setSnapSize(Number(event.target.value))}
-              step="0.1"
-              type="number"
-              value={numberValue(engineState.settings.snapSize, 2)}
-            />
-            <button
-              className={`reset-btn settings-reset-btn snap-size-item ${engineState.settings.snapToGrid ? "enabled" : ""}`}
-              onClick={() => window.Canvas3DBridge?.resetSetting("snap-size")}
-              title="Reset Snap Size"
-              type="button"
-            >
-              ↺
-            </button>
-          </div>
-        </div>
-
-        <div className="settings-item">
-          <label className="settings-label" htmlFor="bg-color">
-            <span>Cor do Background</span>
-          </label>
-          <input
-            id="bg-color"
-            onChange={(event) => window.Canvas3DBridge?.setBackgroundColor(event.target.value)}
-            type="color"
-            value={engineState.settings.backgroundColor}
-          />
-        </div>
-
-        <div className="settings-item">
-          <label className="settings-label" htmlFor="grid-color">
-            <span>Cor do Grid</span>
-          </label>
-          <input
-            id="grid-color"
-            onChange={(event) => window.Canvas3DBridge?.setGridColor(event.target.value)}
-            type="color"
-            value={engineState.settings.gridColor}
-          />
-        </div>
-
-        <div className="settings-item">
-          <label className="settings-label">
-            <span>Far Clip: {numberValue(engineState.settings.farClip, 0)}</span>
-            <span>Near Clip: {numberValue(engineState.settings.nearClip, 2)}</span>
-          </label>
-
-          <div className="settings-slider-group">
-            <input
-              id="far-clip"
-              max="100"
-              min="5"
-              onChange={(event) => window.Canvas3DBridge?.setFarClip(Number(event.target.value))}
-              step="1"
-              type="range"
-              value={numberValue(engineState.settings.farClip, 0)}
-            />
-            <button
-              className="reset-btn settings-reset-btn"
-              onClick={() => window.Canvas3DBridge?.resetSetting("far-clip")}
-              title="Reset Far Clip"
-              type="button"
-            >
-              ↺
-            </button>
-          </div>
-
-          <div className="settings-slider-group">
-            <input
-              id="near-clip"
-              max="5"
-              min="0.01"
-              onChange={(event) => window.Canvas3DBridge?.setNearClip(Number(event.target.value))}
-              step="0.01"
-              type="range"
-              value={numberValue(engineState.settings.nearClip, 2)}
-            />
-            <button
-              className="reset-btn settings-reset-btn"
-              onClick={() => window.Canvas3DBridge?.resetSetting("near-clip")}
-              title="Reset Near Clip"
-              type="button"
-            >
-              ↺
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className={`info-tooltip ${isInfoOpen ? "" : "hidden"}`} ref={infoRef}>
-        <button className="close-info-btn" onClick={() => setIsInfoOpen(false)} type="button">
-          ×
-        </button>
-        <strong>Controles</strong>
-        <div>Rodar camera: botao do meio ou botao direito</div>
-        <div>Pan: Shift + botao do meio</div>
-        <div>Zoom: scroll do mouse</div>
-        <div>Focar objeto: F</div>
-        <strong className="mt-2">Keybinds</strong>
-        <div>T: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
-      </div>
-
-      <div id="app-layout" className="fixed inset-0 top-10 z-10 flex">
+      <div id="app-layout" className="fixed inset-0 z-10 flex">
         <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#151623]/95 p-3 max-md:hidden">
           <div className="sidebar-section" id="hierarchy-section">
             <div className="sidebar-header">
@@ -676,6 +507,169 @@ export default function Canvas3DWorkspace() {
 
         <main id="center-area" className="relative flex-1 bg-[#0f1017]">
           <div id="canvas-container" className="absolute inset-0" />
+          <div id="canvas-actions" className="absolute right-3 top-3 z-50 flex items-center gap-2">
+            <button
+              className="topbar-btn"
+              onClick={() => {
+                setIsInfoOpen((prev) => !prev);
+                setIsSettingsOpen(false);
+              }}
+              ref={infoButtonRef}
+              title="Controles"
+              type="button"
+            >
+              i
+            </button>
+
+            <button
+              className="topbar-btn"
+              onClick={() => {
+                setIsSettingsOpen((prev) => !prev);
+                setIsInfoOpen(false);
+              }}
+              ref={settingsButtonRef}
+              title="Configuracoes"
+              type="button"
+            >
+              ⚙
+            </button>
+          </div>
+
+          <div className={`settings-menu ${isSettingsOpen ? "" : "hidden"}`} ref={settingsRef}>
+            <div className="settings-item">
+              <label className="settings-label" htmlFor="toggle-grid">
+                <input
+                  checked={engineState.settings.gridVisible}
+                  id="toggle-grid"
+                  onChange={(event) => window.Canvas3DBridge?.setGridVisible(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>Mostrar Grid</span>
+              </label>
+            </div>
+
+            <div className="settings-item">
+              <label className="settings-label" htmlFor="toggle-snap">
+                <input
+                  checked={engineState.settings.snapToGrid}
+                  id="toggle-snap"
+                  onChange={(event) => window.Canvas3DBridge?.setSnapEnabled(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>Snap to Grid</span>
+              </label>
+            </div>
+
+            <div className="settings-item">
+              <label className="settings-label" htmlFor="snap-size">
+                <span>Snap Size</span>
+              </label>
+              <div className="settings-input-group">
+                <input
+                  className={`snap-size-item ${engineState.settings.snapToGrid ? "enabled" : ""}`}
+                  id="snap-size"
+                  min="0.1"
+                  onChange={(event) => window.Canvas3DBridge?.setSnapSize(Number(event.target.value))}
+                  step="0.1"
+                  type="number"
+                  value={numberValue(engineState.settings.snapSize, 2)}
+                />
+                <button
+                  className={`reset-btn settings-reset-btn snap-size-item ${engineState.settings.snapToGrid ? "enabled" : ""}`}
+                  onClick={() => window.Canvas3DBridge?.resetSetting("snap-size")}
+                  title="Reset Snap Size"
+                  type="button"
+                >
+                  ↺
+                </button>
+              </div>
+            </div>
+
+            <div className="settings-item">
+              <label className="settings-label" htmlFor="bg-color">
+                <span>Cor do Background</span>
+              </label>
+              <input
+                id="bg-color"
+                onChange={(event) => window.Canvas3DBridge?.setBackgroundColor(event.target.value)}
+                type="color"
+                value={engineState.settings.backgroundColor}
+              />
+            </div>
+
+            <div className="settings-item">
+              <label className="settings-label" htmlFor="grid-color">
+                <span>Cor do Grid</span>
+              </label>
+              <input
+                id="grid-color"
+                onChange={(event) => window.Canvas3DBridge?.setGridColor(event.target.value)}
+                type="color"
+                value={engineState.settings.gridColor}
+              />
+            </div>
+
+            <div className="settings-item">
+              <label className="settings-label">
+                <span>Far Clip: {numberValue(engineState.settings.farClip, 0)}</span>
+                <span>Near Clip: {numberValue(engineState.settings.nearClip, 2)}</span>
+              </label>
+
+              <div className="settings-slider-group">
+                <input
+                  id="far-clip"
+                  max="100"
+                  min="5"
+                  onChange={(event) => window.Canvas3DBridge?.setFarClip(Number(event.target.value))}
+                  step="1"
+                  type="range"
+                  value={numberValue(engineState.settings.farClip, 0)}
+                />
+                <button
+                  className="reset-btn settings-reset-btn"
+                  onClick={() => window.Canvas3DBridge?.resetSetting("far-clip")}
+                  title="Reset Far Clip"
+                  type="button"
+                >
+                  ↺
+                </button>
+              </div>
+
+              <div className="settings-slider-group">
+                <input
+                  id="near-clip"
+                  max="5"
+                  min="0.01"
+                  onChange={(event) => window.Canvas3DBridge?.setNearClip(Number(event.target.value))}
+                  step="0.01"
+                  type="range"
+                  value={numberValue(engineState.settings.nearClip, 2)}
+                />
+                <button
+                  className="reset-btn settings-reset-btn"
+                  onClick={() => window.Canvas3DBridge?.resetSetting("near-clip")}
+                  title="Reset Near Clip"
+                  type="button"
+                >
+                  ↺
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className={`info-tooltip ${isInfoOpen ? "" : "hidden"}`} ref={infoRef}>
+            <button className="close-info-btn" onClick={() => setIsInfoOpen(false)} type="button">
+              ×
+            </button>
+            <strong>Controles</strong>
+            <div>Rodar camera: botao do meio ou botao direito</div>
+            <div>Pan: Shift + botao do meio</div>
+            <div>Zoom: scroll do mouse</div>
+            <div>Focar objeto: F</div>
+            <strong className="mt-2">Keybinds</strong>
+            <div>T: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
+          </div>
+
           <div id="viewport-header" className="pointer-events-none absolute left-4 top-4 rounded-md border border-[#2a2d3e] bg-[#1a1b26]/80 px-3 py-1 text-xs text-[#7dcfff]">
             Viewport
           </div>

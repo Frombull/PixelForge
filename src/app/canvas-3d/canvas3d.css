@@ -239,23 +239,28 @@
   text-transform: uppercase;
 }
 
-.prop-xyz,
-.skew-grid {
+.transform-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.axis-inputs {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.35rem;
 }
 
-.skew-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.skew-inputs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.prop-field,
-.skew-pair,
+.axis-input-wrap,
 .color-field {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
 }
 
 .prop-letter {
@@ -264,8 +269,7 @@
   min-width: 0.75rem;
 }
 
-.prop-field input,
-.skew-pair input,
+.axis-input-wrap input,
 .color-field input,
 .hex-row input {
   width: 100%;
@@ -275,7 +279,15 @@
   background: #13141c;
   color: #c0caf5;
   font-size: 0.72rem;
-  padding: 0.2rem 0.35rem;
+  padding: 0.2rem 1.6rem 0.2rem 0.35rem;
+}
+
+.axis-suffix {
+  position: absolute;
+  right: 0.42rem;
+  color: #7dcfff;
+  font-size: 0.68rem;
+  pointer-events: none;
 }
 
 .reset-btn {
@@ -285,6 +297,13 @@
   color: #a9b1d6;
   width: 1.4rem;
   height: 1.4rem;
+}
+
+.group-reset-btn {
+  width: auto;
+  min-width: 1rem;
+  padding: 0 0.45rem;
+  font-size: 0.68rem;
 }
 
 .reset-btn:hover {

@@ -336,6 +336,10 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.updateSelectedTransform(field, parsed);
   };
 
+  const resetTransformGroup = (targets: string[]) => {
+    targets.forEach((target) => window.Canvas3DBridge?.resetTransformField(target));
+  };
+
   const updateHexColor = (rawHex: string) => {
     let hex = rawHex.trim();
     if (!hex.startsWith("#")) hex = `#${hex}`;
@@ -698,34 +702,53 @@ export default function Canvas3DWorkspace() {
 
                 <div className={isTransformOpen ? "" : "collapsed"} id="transform-content">
                   <div className="prop-row"><span className="prop-label">Position</span></div>
-                  <div className="prop-xyz">
-                    <div className="prop-field"><label className="prop-letter" htmlFor="pos-x">X</label><input id="pos-x" onChange={(event) => updateTransform("pos-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.x)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("pos-x")} title="Reset X" type="button">↺</button></div>
-                    <div className="prop-field"><label className="prop-letter" htmlFor="pos-y">Y</label><input id="pos-y" onChange={(event) => updateTransform("pos-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.y)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("pos-y")} title="Reset Y" type="button">↺</button></div>
-                    <div className="prop-field"><label className="prop-letter" htmlFor="pos-z">Z</label><input id="pos-z" onChange={(event) => updateTransform("pos-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.z)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("pos-z")} title="Reset Z" type="button">↺</button></div>
+                  <div className="transform-row">
+                    <div className="axis-inputs">
+                      <div className="axis-input-wrap"><input id="pos-x" onChange={(event) => updateTransform("pos-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.x)} /><span className="axis-suffix">X</span></div>
+                      <div className="axis-input-wrap"><input id="pos-y" onChange={(event) => updateTransform("pos-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.y)} /><span className="axis-suffix">Y</span></div>
+                      <div className="axis-input-wrap"><input id="pos-z" onChange={(event) => updateTransform("pos-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.z)} /><span className="axis-suffix">Z</span></div>
+                    </div>
+                    <button className="reset-btn group-reset-btn" onClick={() => resetTransformGroup(["pos-x", "pos-y", "pos-z"])} title="Reset Position" type="button">R</button>
                   </div>
 
                   <div className="prop-row"><span className="prop-label">Rotation</span></div>
-                  <div className="prop-xyz">
-                    <div className="prop-field"><label className="prop-letter" htmlFor="rot-x">X</label><input id="rot-x" onChange={(event) => updateTransform("rot-x", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.x)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("rot-x")} title="Reset X" type="button">↺</button></div>
-                    <div className="prop-field"><label className="prop-letter" htmlFor="rot-y">Y</label><input id="rot-y" onChange={(event) => updateTransform("rot-y", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.y)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("rot-y")} title="Reset Y" type="button">↺</button></div>
-                    <div className="prop-field"><label className="prop-letter" htmlFor="rot-z">Z</label><input id="rot-z" onChange={(event) => updateTransform("rot-z", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.z)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("rot-z")} title="Reset Z" type="button">↺</button></div>
+                  <div className="transform-row">
+                    <div className="axis-inputs">
+                      <div className="axis-input-wrap"><input id="rot-x" onChange={(event) => updateTransform("rot-x", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.x)} /><span className="axis-suffix">X</span></div>
+                      <div className="axis-input-wrap"><input id="rot-y" onChange={(event) => updateTransform("rot-y", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.y)} /><span className="axis-suffix">Y</span></div>
+                      <div className="axis-input-wrap"><input id="rot-z" onChange={(event) => updateTransform("rot-z", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.z)} /><span className="axis-suffix">Z</span></div>
+                    </div>
+                    <button className="reset-btn group-reset-btn" onClick={() => resetTransformGroup(["rot-x", "rot-y", "rot-z"])} title="Reset Rotation" type="button">R</button>
                   </div>
 
                   <div className="prop-row"><span className="prop-label">Scale</span></div>
-                  <div className="prop-xyz">
-                    <div className="prop-field"><label className="prop-letter" htmlFor="scale-x">X</label><input id="scale-x" min="0.1" onChange={(event) => updateTransform("scale-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.x)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("scale-x")} title="Reset X" type="button">↺</button></div>
-                    <div className="prop-field"><label className="prop-letter" htmlFor="scale-y">Y</label><input id="scale-y" min="0.1" onChange={(event) => updateTransform("scale-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.y)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("scale-y")} title="Reset Y" type="button">↺</button></div>
-                    <div className="prop-field"><label className="prop-letter" htmlFor="scale-z">Z</label><input id="scale-z" min="0.1" onChange={(event) => updateTransform("scale-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.z)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("scale-z")} title="Reset Z" type="button">↺</button></div>
+                  <div className="transform-row">
+                    <div className="axis-inputs">
+                      <div className="axis-input-wrap"><input id="scale-x" min="0.1" onChange={(event) => updateTransform("scale-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.x)} /><span className="axis-suffix">X</span></div>
+                      <div className="axis-input-wrap"><input id="scale-y" min="0.1" onChange={(event) => updateTransform("scale-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.y)} /><span className="axis-suffix">Y</span></div>
+                      <div className="axis-input-wrap"><input id="scale-z" min="0.1" onChange={(event) => updateTransform("scale-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.z)} /><span className="axis-suffix">Z</span></div>
+                    </div>
+                    <button className="reset-btn group-reset-btn" onClick={() => resetTransformGroup(["scale-x", "scale-y", "scale-z"])} title="Reset Scale" type="button">R</button>
                   </div>
 
                   <div className="prop-row"><span className="prop-label">Skew</span></div>
-                  <div className="skew-grid">
-                    <div className="skew-pair"><label className="prop-letter" htmlFor="skew-xy">XY</label><input id="skew-xy" onChange={(event) => updateTransform("skew-xy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xy)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("skew-xy")} title="Reset XY" type="button">↺</button></div>
-                    <div className="skew-pair"><label className="prop-letter" htmlFor="skew-xz">XZ</label><input id="skew-xz" onChange={(event) => updateTransform("skew-xz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xz)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("skew-xz")} title="Reset XZ" type="button">↺</button></div>
-                    <div className="skew-pair"><label className="prop-letter" htmlFor="skew-yx">YX</label><input id="skew-yx" onChange={(event) => updateTransform("skew-yx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yx)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("skew-yx")} title="Reset YX" type="button">↺</button></div>
-                    <div className="skew-pair"><label className="prop-letter" htmlFor="skew-yz">YZ</label><input id="skew-yz" onChange={(event) => updateTransform("skew-yz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yz)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("skew-yz")} title="Reset YZ" type="button">↺</button></div>
-                    <div className="skew-pair"><label className="prop-letter" htmlFor="skew-zx">ZX</label><input id="skew-zx" onChange={(event) => updateTransform("skew-zx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zx)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("skew-zx")} title="Reset ZX" type="button">↺</button></div>
-                    <div className="skew-pair"><label className="prop-letter" htmlFor="skew-zy">ZY</label><input id="skew-zy" onChange={(event) => updateTransform("skew-zy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zy)} /><button className="reset-btn" onClick={() => window.Canvas3DBridge?.resetTransformField("skew-zy")} title="Reset ZY" type="button">↺</button></div>
+                  <div className="transform-row">
+                    <div className="axis-inputs skew-inputs">
+                      <div className="axis-input-wrap"><input id="skew-xy" onChange={(event) => updateTransform("skew-xy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xy)} /><span className="axis-suffix">XY</span></div>
+                      <div className="axis-input-wrap"><input id="skew-xz" onChange={(event) => updateTransform("skew-xz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xz)} /><span className="axis-suffix">XZ</span></div>
+                      <div className="axis-input-wrap"><input id="skew-yx" onChange={(event) => updateTransform("skew-yx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yx)} /><span className="axis-suffix">YX</span></div>
+                      <div className="axis-input-wrap"><input id="skew-yz" onChange={(event) => updateTransform("skew-yz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yz)} /><span className="axis-suffix">YZ</span></div>
+                      <div className="axis-input-wrap"><input id="skew-zx" onChange={(event) => updateTransform("skew-zx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zx)} /><span className="axis-suffix">ZX</span></div>
+                      <div className="axis-input-wrap"><input id="skew-zy" onChange={(event) => updateTransform("skew-zy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zy)} /><span className="axis-suffix">ZY</span></div>
+                    </div>
+                    <button
+                      className="reset-btn group-reset-btn"
+                      onClick={() => resetTransformGroup(["skew-xy", "skew-xz", "skew-yx", "skew-yz", "skew-zx", "skew-zy"])}
+                      title="Reset Skew"
+                      type="button"
+                    >
+                      R
+                    </button>
                   </div>
                 </div>
               </div>

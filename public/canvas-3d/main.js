@@ -566,7 +566,9 @@ class App {
         if (this.isDestroyed) return;
 
         this.animationFrameId = requestAnimationFrame(() => this.animate());
-        this.controlsManager.update();
+        if (!this.viewportGizmo?.animating) {
+            this.controlsManager.update();
+        }
         this.booleanOps.update();
         this.sceneManager.render();
         this.viewportGizmo?.render();

@@ -102,14 +102,14 @@
 }
 
 .sidebar-section {
-  border: 1px solid #2a2d3e;
-  border-radius: 0.5rem;
-  background: #1a1b26;
+  border-bottom: 1px solid #2a2d3e;
+  padding: 0.7rem 0.75rem;
 }
 
 .sidebar-header {
-  border-bottom: 1px solid #2a2d3e;
-  padding: 0.5rem 0.75rem;
+  border-bottom: none;
+  padding: 0;
+  margin-bottom: 0.55rem;
   font-size: 0.75rem;
   color: #7dcfff;
   text-transform: uppercase;
@@ -117,7 +117,7 @@
 }
 
 .sidebar-content {
-  padding: 0.65rem;
+  padding: 0;
 }
 
 .prim-grid,
@@ -198,17 +198,17 @@
 }
 
 .inspector-group {
-  border: 1px solid #2a2d3e;
-  border-radius: 0.5rem;
-  background: #1a1b26;
+  border-bottom: 1px solid #2a2d3e;
+  padding: 0.7rem 0;
 }
 
 .group-header {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  border-bottom: 1px solid #2a2d3e;
-  padding: 0.45rem 0.6rem;
+  border-bottom: none;
+  padding: 0;
+  margin-bottom: 0.55rem;
   cursor: pointer;
   color: #7dcfff;
   font-size: 0.75rem;
@@ -290,7 +290,7 @@
 
 #transform-content,
 #material-content {
-  padding: 0.6rem;
+  padding: 0;
 }
 
 #transform-content.collapsed,
@@ -354,10 +354,10 @@
   font-size: 0.78rem;
   color: #565f89;
   text-align: center;
-  border: 1px dashed #2a2d3e;
-  border-radius: 0.5rem;
+  border: none;
+  border-radius: 0;
   margin-top: 0.65rem;
-  padding: 1rem;
+  padding: 0;
 }
 
 .tool-btn.active,

@@ -228,7 +228,7 @@ export default function Canvas3DWorkspace() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isTransformOpen, setIsTransformOpen] = useState(true);
-  const [isMaterialOpen, setIsMaterialOpen] = useState(false);
+  const [isMaterialOpen, setIsMaterialOpen] = useState(true);
 
   const [colorMode, setColorMode] = useState<ColorMode>("rgb");
   const [colorInputs, setColorInputs] = useState<ColorInputState>(EMPTY_COLOR_INPUTS);
@@ -670,7 +670,7 @@ export default function Canvas3DWorkspace() {
             <div>T: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
           </div>
 
-          <div id="viewport-header" className="pointer-events-none absolute left-4 top-4 rounded-md border border-[#2a2d3e] bg-[#1a1b26]/80 px-3 py-1 text-xs text-[#7dcfff]">
+          <div id="viewport-header" className="pointer-events-none absolute left-2 top-2 text-xs">
             Viewport
           </div>
         </main>

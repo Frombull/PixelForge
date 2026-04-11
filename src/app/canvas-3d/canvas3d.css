@@ -136,10 +136,10 @@
 .view-btn,
 .demo-btn {
   border: 1px solid #2a2d3e;
-  border-radius: 0.45rem;
+  border-radius: 0.1rem;
   background: #13141c;
   color: #c0caf5;
-  transition: all 150ms ease;
+  transition: all 100ms ease;
 }
 
 .prim-btn,
@@ -381,23 +381,22 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  border: 1px solid #2a2d3e;
-  border-radius: 0.45rem;
-  background: #13141c;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: #c0caf5;
   font-size: 0.73rem;
-  padding: 0.35rem 0.45rem;
-  margin-bottom: 0.35rem;
+  padding: 0.3rem 0.2rem;
+  margin-bottom: 0.1rem;
   cursor: pointer;
 }
 
 #hierarchy-list .hierarchy-item:hover {
-  border-color: #7dcfff;
+  background: rgba(125, 207, 255, 0.1);
 }
 
 #hierarchy-list .hierarchy-item.selected {
-  border-color: #7dcfff;
-  background: #1f2a3d;
+  background: rgba(125, 207, 255, 0.18);
 }
 
 #hierarchy-list .hierarchy-name {
@@ -411,8 +410,8 @@
 }
 
 #hierarchy-list .hierarchy-delete {
-  border: 1px solid #2a2d3e;
-  border-radius: 0.25rem;
+  border: none;
+  border-radius: 0;
   width: 1rem;
   height: 1rem;
   line-height: 0.8rem;
@@ -422,7 +421,6 @@
 }
 
 #hierarchy-list .hierarchy-delete:hover {
-  border-color: #f7768e;
   color: #f7768e;
 }
 

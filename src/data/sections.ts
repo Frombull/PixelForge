@@ -16,13 +16,18 @@ export const graphicsTools: ToolCard[] = [
     ],
   },
   {
-    title: "Canvas 3D (WIP)",
-    description: "Work In Progress",
+    title: "Canvas 3D",
+    description: "Canvas 3D feito com three.js e WebGL",
     icon: "🎨",
     href: "/canvas-3d",
     color: "purple",
     features: [
       "Transformações 3D",
+      "z-fighting",
+      "câmeras",
+      "z-buffer",
+      "color-picker",
+      "gizmos"
     ],
   },
   {

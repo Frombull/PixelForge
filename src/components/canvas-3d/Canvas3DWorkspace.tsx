@@ -431,7 +431,7 @@ export default function Canvas3DWorkspace() {
 
             <div className="max-h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
               {engineState.objects.length === 0 && (
-                <div className="p-1 text-xs text-[#565f89]">Nenhum objeto na cena</div>
+                <div className="p-1 text-xs text-[#565f89] text-center">Nenhum objeto na cena</div>
               )}
 
               {engineState.objects.map((obj) => (

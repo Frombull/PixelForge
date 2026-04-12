@@ -224,8 +224,9 @@ class App {
     }
 
     getSettingsSnapshot() {
-        const background = this.sceneManager.scene.background;
-        const bgColor = background?.isColor ? `#${background.getHexString()}` : '#ffffff';
+        const bgColor = this.sceneManager.getBackgroundColorHex
+            ? this.sceneManager.getBackgroundColorHex()
+            : '#ffffff';
 
         return {
             gridVisible: this.sceneManager.gridHelper?.visible ?? true,

@@ -512,7 +512,7 @@ export default function Canvas3DWorkspace() {
 
         <main id="center-area" className="relative flex-1 bg-[#0f1017]">
           <div id="canvas-container" className="absolute inset-0" />
-          <div id="canvas-actions" className="absolute right-3 top-3 z-50 flex items-center gap-2">
+          <div id="canvas-actions" className="absolute right-3 top-2 z-50 flex items-center gap-2">
             <button
               className="topbar-btn"
               onClick={() => {
@@ -675,7 +675,7 @@ export default function Canvas3DWorkspace() {
             <div>T: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
           </div>
 
-          <div id="viewport-header" className="pointer-events-none absolute left-2 top-2 text-xs">
+          <div id="viewport-header" className="pointer-events-none absolute left-2 top-3 text-[10px] text-[#f3f3f3]">
             Viewport
           </div>
         </main>

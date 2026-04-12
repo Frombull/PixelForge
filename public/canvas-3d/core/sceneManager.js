@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Sky } from 'three/addons/objects/Sky.js';
 import { CAMERA_CONFIG, DEFAULT_VALUES, COLORS } from '/canvas-3d/utils/constants.js';
 
 export class SceneManager {
@@ -13,6 +14,8 @@ export class SceneManager {
         this.secondRenderer = null;
         this.gridHelper = null;
         this.cameraHelper = null;
+        this.sky = null;
+        this.backgroundColor = new THREE.Color(COLORS.background);
         this.isPerspective = true;
         this.showSecondViewport = false;
         
@@ -25,13 +28,34 @@ export class SceneManager {
         this.createRenderer();
         this.createSecondViewport();
         this.createLights();
+        this.createSky();
         this.createGrid();
         this.createAxes();
     }
     
     createScene() {
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(COLORS.background);
+        this.scene.background = this.backgroundColor.clone();
+        this.scene.fog = new THREE.Fog(this.backgroundColor.clone(), 20, 90);
+    }
+
+    createSky() {
+        this.sky = new Sky();
+        this.sky.scale.setScalar(this.perspectiveCamera.far * 0.9);
+
+        const uniforms = this.sky.material.uniforms;
+        uniforms.turbidity.value = 0.3;
+        uniforms.rayleigh.value = 103;
+        uniforms.mieCoefficient.value = 0.005;
+        uniforms.mieDirectionalG.value = 0.86;
+
+        const sun = new THREE.Vector3();
+        const phi = THREE.MathUtils.degToRad(88);
+        const theta = THREE.MathUtils.degToRad(180);
+        sun.setFromSphericalCoords(1, phi, theta);
+        uniforms.sunPosition.value.copy(sun);
+
+        this.scene.add(this.sky);
     }
     
     createCameras() {
@@ -163,10 +187,20 @@ export class SceneManager {
     }
     
     render() {
+        if (this.sky) {
+            this.sky.position.copy(this.camera.position);
+        }
+
         this.renderer.render(this.scene, this.camera);
         if (this.showSecondViewport) {
             this.updateCameraHelper();
+            if (this.sky) {
+                this.sky.position.copy(this.secondCamera.position);
+            }
             this.secondRenderer.render(this.scene, this.secondCamera);
+            if (this.sky) {
+                this.sky.position.copy(this.camera.position);
+            }
         }
     }
     
@@ -199,7 +233,21 @@ export class SceneManager {
     }
     
     setBackgroundColor(color) {
-        this.scene.background = new THREE.Color(color);
+        this.backgroundColor.set(color);
+
+        if (this.scene.background?.isColor) {
+            this.scene.background.copy(this.backgroundColor);
+        } else {
+            this.scene.background = this.backgroundColor.clone();
+        }
+
+        if (this.scene.fog?.isFog) {
+            this.scene.fog.color.copy(this.backgroundColor);
+        }
+    }
+
+    getBackgroundColorHex() {
+        return `#${this.backgroundColor.getHexString()}`;
     }
     
     setGridColor(color) {
@@ -219,5 +267,15 @@ export class SceneManager {
             if (far !== undefined) cam.far = far;
             cam.updateProjectionMatrix();
         });
+
+        const skyRadius = Math.max(10, this.perspectiveCamera.far * 0.9);
+        if (this.sky) {
+            this.sky.scale.setScalar(skyRadius);
+        }
+
+        if (this.scene.fog?.isFog) {
+            this.scene.fog.near = Math.max(5, skyRadius * 0.22);
+            this.scene.fog.far = skyRadius;
+        }
     }
 }

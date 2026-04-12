@@ -409,12 +409,12 @@ export default function Canvas3DWorkspace() {
         <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#151623]/95 p-3 max-md:hidden">
           <div className="sidebar-section" id="hierarchy-section">
             <div className="sidebar-header">
-              <span>Hierarchy</span>
+              <span>Hierarquia</span>
             </div>
 
             <div className="sidebar-content" id="hierarchy-list">
               {engineState.objects.length === 0 && (
-                <div className="hierarchy-empty">Nenhum objeto adicionado</div>
+                <div className="hierarchy-empty">Nenhum objeto na cena</div>
               )}
 
               {engineState.objects.map((obj) => (
@@ -484,7 +484,7 @@ export default function Canvas3DWorkspace() {
               <div className="tool-grid">
                 <button className={`tool-btn${engineState.mode === "translate" ? " active" : ""}`} onClick={() => setMode("translate")} type="button">
                   <span>Translate</span>
-                  <kbd>T</kbd>
+                  <kbd>W</kbd>
                 </button>
                 <button className={`tool-btn${engineState.mode === "rotate" ? " active" : ""}`} onClick={() => setMode("rotate")} type="button">
                   <span>Rotate</span>
@@ -499,13 +499,6 @@ export default function Canvas3DWorkspace() {
                   <kbd>K</kbd>
                 </button>
               </div>
-
-              <div className="view-controls">
-                <label className="view-label">Camera / Visualizacao</label>
-                <button className="view-btn" onClick={() => window.Canvas3DBridge?.resetCamera()} type="button">Reset Camera</button>
-                <button className={`view-btn${engineState.isOrthographic ? " active" : ""}`} onClick={() => window.Canvas3DBridge?.toggleCameraType()} type="button">Ortografica</button>
-                <button className={`view-btn${engineState.isCullingViewEnabled ? " active" : ""}`} onClick={() => window.Canvas3DBridge?.toggleCullingView()} type="button">Culling View</button>
-              </div>
             </div>
           </div>
         </aside>
@@ -513,8 +506,33 @@ export default function Canvas3DWorkspace() {
         <main id="center-area" className="relative flex-1 bg-[#0f1017]">
           <div id="canvas-container" className="absolute inset-0" />
           <div id="canvas-actions" className="absolute right-3 top-2 z-50 flex items-center gap-2">
+            <button className="topbar-btn hover:cursor-pointer" onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
+              <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 11.5 12 4l9 7.5" />
+                <path d="M6.5 10v9.5h11V10" />
+              </svg>
+            </button>
+
             <button
-              className="topbar-btn"
+              className={`topbar-btn topbar-text-btn hover:cursor-pointer ${engineState.isOrthographic ? " active" : ""}`}
+              onClick={() => window.Canvas3DBridge?.toggleCameraType()}
+              title="Ortografica"
+              type="button"
+            >
+              Ortografica
+            </button>
+
+            <button
+              className={`topbar-btn topbar-text-btn hover:cursor-pointer ${engineState.isCullingViewEnabled ? " active" : ""}`}
+              onClick={() => window.Canvas3DBridge?.toggleCullingView()}
+              title="Culling View"
+              type="button"
+            >
+              Culling View
+            </button>
+
+            <button
+              className="topbar-btn hover:cursor-pointer"
               onClick={() => {
                 setIsInfoOpen((prev) => !prev);
                 setIsSettingsOpen(false);
@@ -527,7 +545,7 @@ export default function Canvas3DWorkspace() {
             </button>
 
             <button
-              className="topbar-btn"
+              className="topbar-btn hover:cursor-pointer"
               onClick={() => {
                 setIsSettingsOpen((prev) => !prev);
                 setIsInfoOpen(false);
@@ -672,7 +690,7 @@ export default function Canvas3DWorkspace() {
             <div>Zoom: scroll do mouse</div>
             <div>Focar objeto: F</div>
             <strong className="mt-2">Keybinds</strong>
-            <div>T: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
+            <div>W: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
           </div>
 
           <div id="viewport-header" className="pointer-events-none absolute left-2 top-3 text-[10px] text-[#f3f3f3]">
@@ -682,7 +700,7 @@ export default function Canvas3DWorkspace() {
 
         <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] bg-[#151623]/95 p-3 max-lg:hidden">
           <div className="sidebar-header">
-            <span>Inspector</span>
+            <span>Inspetor</span>
           </div>
 
           {selected ? (

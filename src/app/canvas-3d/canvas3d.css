@@ -1,4 +1,7 @@
 .topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.55rem;
   height: 1.55rem;
   border-radius: 0.2rem;
@@ -7,10 +10,26 @@
   transition: all 150ms ease;
 }
 
+.topbar-btn svg {
+  width: 1em;
+  height: 1rem;
+}
+
+.topbar-text-btn {
+  width: auto;
+  min-width: 4rem;
+  padding: 0 0.5rem;
+  font-size: 0.7rem;
+}
+
 .topbar-btn:hover {
   border-color: rgba(229, 231, 235, 0.5);
   background: rgba(229, 231, 235, 0.24);
   color: #f3f4f6;
+}
+
+.topbar-btn.active {
+  background: #1f2a3d;
 }
 
 #canvas-actions {
@@ -106,7 +125,6 @@
 
 .sidebar-section {
   border-bottom: 1px solid #2a2d3e;
-  padding: 0.7rem 0.75rem;
 }
 
 .sidebar-header {

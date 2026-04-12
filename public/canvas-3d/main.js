@@ -5,10 +5,10 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
-import { DEFAULT_VALUES, MODES } from '/canvas-3d/utils/constants.js';
+import { APP_CONFIG, DEFAULT_VALUES, KEY_BINDINGS, MODES } from '/canvas-3d/utils/constants.js';
 import { ViewportGizmo } from 'three-viewport-gizmo';
 
-const STATE_EVENT_NAME = 'canvas3d:state';
+const STATE_EVENT_NAME = APP_CONFIG.stateEventName;
 
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -120,7 +120,7 @@ class App {
             this.sceneManager.renderer.domElement
         );
         this.transformControls.setSpace('world');
-        this.transformControls.setSize(0.9);
+        this.transformControls.setSize(APP_CONFIG.transformControlSize);
         this.transformControls.enabled = false;
         this.transformControls.addEventListener('dragging-changed', (event) => {
             this.controlsManager.controls.enabled = !event.value;
@@ -135,12 +135,9 @@ class App {
             this.sceneManager.renderer,
             {
                 container: this.sceneManager.container,
-                placement: 'bottom-right',
-                size: 96,
-                offset: {
-                    right: 12,
-                    bottom: 12
-                }
+                placement: APP_CONFIG.viewportGizmo.placement,
+                size: APP_CONFIG.viewportGizmo.size,
+                offset: APP_CONFIG.viewportGizmo.offset
             }
         );
         this.viewportGizmo.attachControls(this.controlsManager.controls);
@@ -177,7 +174,7 @@ class App {
             return `#${material.color.getHexString()}`;
         }
 
-        return '#bbbbbb';
+        return APP_CONFIG.defaultGridColorHex;
     }
 
     getSelectedSnapshot() {
@@ -192,7 +189,7 @@ class App {
         const skew = this.objectManager.getSkew(obj);
 
         const material = obj.material;
-        const color = material?.color || new THREE.Color('#ffffff');
+        const color = material?.color || new THREE.Color(APP_CONFIG.defaultMaterialColorHex);
         const rgb = {
             r: Math.round(color.r * 255),
             g: Math.round(color.g * 255),
@@ -304,9 +301,9 @@ class App {
         const delta = new THREE.Vector3().subVectors(intersection, this.skewIntersectionStart);
         const skew = this.objectManager.getSkew(object);
 
-        if (this.skewDragAxis === 'xy') skew.xy = delta.y * 0.5;
-        else if (this.skewDragAxis === 'xz') skew.xz = delta.z * 0.5;
-        else if (this.skewDragAxis === 'yz') skew.yz = delta.z * 0.5;
+        if (this.skewDragAxis === 'xy') skew.xy = delta.y * APP_CONFIG.skewDragFactor;
+        else if (this.skewDragAxis === 'xz') skew.xz = delta.z * APP_CONFIG.skewDragFactor;
+        else if (this.skewDragAxis === 'yz') skew.yz = delta.z * APP_CONFIG.skewDragFactor;
 
         this.objectManager.setSkew(object, skew);
         this.objectManager.applySkew(object);
@@ -473,7 +470,7 @@ class App {
             this.setPositionWithSnap(obj, current.x, current.y, current.z);
         } else if (field.startsWith('scale-')) {
             const axis = field.split('-')[1];
-            obj.scale[axis] = Math.max(0.1, parsed);
+            obj.scale[axis] = Math.max(APP_CONFIG.minScale, parsed);
         } else if (field.startsWith('rot-')) {
             const axis = field.split('-')[1];
             obj.rotation[axis] = parsed * Math.PI / 180;
@@ -655,17 +652,17 @@ class App {
 
         const key = e.key.toLowerCase();
 
-        if (key === 'f' && this.objectManager.selectedObject) {
+        if (key === KEY_BINDINGS.FOCUS_SELECTED && this.objectManager.selectedObject) {
             this.controlsManager.focusOnObject(
                 this.objectManager.selectedObject,
                 this.sceneManager.camera
             );
         }
-        else if (key === 'r') this.setMode(MODES.ROTATE);
-        else if (key === 's') this.setMode(MODES.SCALE);
-        else if (key === 't') this.setMode(MODES.TRANSLATE);
-        else if (key === 'k') this.setMode(MODES.SKEW);
-        else if (key === 'delete' && this.objectManager.selectedObject) {
+        else if (key === KEY_BINDINGS.ROTATE_MODE) this.setMode(MODES.ROTATE);
+        else if (key === KEY_BINDINGS.SCALE_MODE) this.setMode(MODES.SCALE);
+        else if (key === KEY_BINDINGS.TRANSLATE_MODE) this.setMode(MODES.TRANSLATE);
+        else if (key === KEY_BINDINGS.SKEW_MODE) this.setMode(MODES.SKEW);
+        else if (key === KEY_BINDINGS.DELETE_SELECTED && this.objectManager.selectedObject) {
             this.deleteSelected();
         }
     }

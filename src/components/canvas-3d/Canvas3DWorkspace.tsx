@@ -429,7 +429,7 @@ export default function Canvas3DWorkspace() {
               <span>Hierarquia</span>
             </div>
 
-            <div className="p-0" id="hierarchy-list">
+            <div className="max-h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
               {engineState.objects.length === 0 && (
                 <div className="p-1 text-xs text-[#565f89]">Nenhum objeto na cena</div>
               )}

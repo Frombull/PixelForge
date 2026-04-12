@@ -263,30 +263,30 @@ export default function CompressPage() {
       <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 pt-10 px-5 sm:px-8 lg:px-16 pb-6 border-b border-[#222]">
         <div>
           <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
-            Multimidia - Compressao de Imagens
+            Multimídia - Compressão de Imagens
           </div>
           <h1 className="flex items-center gap-4 text-3xl sm:text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
             <a
               href="/"
-              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white cursor-pointer"
               title="Voltar para a Home"
             >
               <ArrowLeft size={32} strokeWidth={1} />
             </a>
             <span>
-              <strong className="font-medium text-white">Compressao</strong> e{" "}
+              <strong className="font-medium text-white">Compressão</strong> e{" "}
               <strong className="font-medium text-white">Qualidade Visual</strong>
             </span>
           </h1>
         </div>
         <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#444] text-right leading-[1.8]">
-          <div>JPEG - WEBP - DCT - Fractal - Compressao com perda</div>
+          <div>JPEG - WEBP - DCT - Fractal - Compressão com perda</div>
         </div>
       </header>
 
       <div className="px-5 sm:px-8 lg:px-16">
         <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-4 border-b border-[#1a1a1a]">
-          01 <span className="text-[#333]">-</span> Laboratorio de Compressao Interativo
+          01 <span className="text-[#333]">-</span> Laboratório de Compressão Interativo
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-0.5 bg-[#1a1a1a] mb-0.5">
@@ -317,7 +317,7 @@ export default function CompressPage() {
             </div>
 
                         <div
-              className={`mb-6 border border-dashed rounded bg-[#111] transition-colors ${
+              className={`mb-6 border border-dashed rounded bg-[#111] transition-colors cursor-pointer ${
                 isDragging
                   ? "border-[#6f8f6f]"
                   : "border-[#2a2a2a] hover:border-[#454545]"
@@ -325,11 +325,11 @@ export default function CompressPage() {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
             >
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full text-center px-4 py-3 font-['IBM_Plex_Mono',monospace] text-[11px] text-[#777] hover:text-[#b8b8b8] transition-colors"
+                className="w-full text-center px-4 py-3 font-['IBM_Plex_Mono',monospace] text-[11px] text-[#777] hover:text-[#b8b8b8] transition-colors cursor-pointer"
               >
                 {isImageLoaded
                   ? "Trocar imagem (arraste ou clique)"
@@ -347,7 +347,7 @@ export default function CompressPage() {
             <div className="bg-[#101010] border border-[#1e1e1e] p-4">
               <div className="flex justify-between mb-2">
                 <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
-                  Dimensoes
+                  Dimensões
                 </span>
                 <span className="text-[13px] text-[#cfcfcf]">
                   {originalImageInfo?.dimensions || "-"}
@@ -375,7 +375,7 @@ export default function CompressPage() {
           <div className="bg-[#0d0d0d] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
             <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
               <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
-                Saida
+                Saída
               </span>
               <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
                 Imagem Comprimida
@@ -402,7 +402,7 @@ export default function CompressPage() {
                   <button
                     key={type}
                     onClick={() => setCurrentCompressionType(type)}
-                    className={`font-['IBM_Plex_Mono',monospace] text-[11px] tracking-[0.08em] uppercase px-3 py-1.5 border transition-colors ${
+                    className={`font-['IBM_Plex_Mono',monospace] text-[11px] tracking-[0.08em] uppercase px-3 py-1.5 border transition-colors cursor-pointer ${
                       currentCompressionType === type
                         ? "border-[#6a3f3f] bg-[#1c0f0f] text-[#d9a6a6]"
                         : "border-[#252525] bg-[#111] text-[#747474] hover:text-[#b8b8b8]"
@@ -437,7 +437,7 @@ export default function CompressPage() {
               <button
                 onClick={compressImage}
                 disabled={isProcessing || !isImageLoaded}
-                className="w-full font-['IBM_Plex_Mono',monospace] text-[11px] tracking-widest uppercase text-[#d2b0b0] px-3 py-2 border border-[#4a2323] bg-[#1a0c0c] hover:border-[#6a2f2f] hover:text-[#f1c7c7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full font-['IBM_Plex_Mono',monospace] text-[11px] tracking-widest uppercase text-[#d2b0b0] px-3 py-2 border border-[#4a2323] bg-[#1a0c0c] hover:border-[#6a2f2f] hover:text-[#f1c7c7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isProcessing ? "Processando..." : "Comprimir"}
               </button>
@@ -465,7 +465,7 @@ export default function CompressPage() {
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
-                    Reducao
+                    Redução
                   </span>
                   <span className="text-[13px] text-[#cfcfcf]">{compressionStats.reductionPercentage}</span>
                 </div>
@@ -488,38 +488,38 @@ export default function CompressPage() {
 
         <div className="bg-[#0d0d0d] py-10 px-5 sm:px-8 lg:px-10 border-t-2 border-[#1a1a1a]">
           <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-4 mb-6 border-b border-[#1a1a1a]">
-            02 <span className="text-[#333]">-</span> Teoria e Analise de Compressao
+            02 <span className="text-[#333]">-</span> Teoria e Análise de Compressão
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
             <div>
               <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
-                Como a compressao reduz o tamanho?
+                Como a compressão reduz o tamanho?
               </h3>
               <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
-                Algoritmos de compressao removem redundancias de cor e detalhe que
-                o olho humano percebe menos. O resultado e um arquivo menor,
-                mais leve para armazenamento e transmissao.
+                Algoritmos de compressão removem redundâncias de cor e detalhe que
+                o olho humano percebe menos. O resultado é um arquivo menor,
+                mais leve para armazenamento e transmissão.
               </p>
               <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
-                Nesta interface, voce compara algoritmos com perda e observa o
+                Nesta interface, você compara algoritmos com perda e observa o
                 impacto direto na nitidez, nas texturas finas e no peso final da
                 imagem.
               </p>
             </div>
             <div>
               <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
-                Leitura rapida dos algoritmos
+                Leitura rápida dos algoritmos
               </h3>
               <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
-                <strong>JPEG / WEBP:</strong> codecs padrao com ajuste continuo
+                <strong>JPEG / WEBP:</strong> codecs padrão com ajuste contínuo
                 de qualidade para equilibrar fidelidade e tamanho.
               </p>
               <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
-                <strong>DCT simulada:</strong> mostra o efeito de quantizacao,
-                reduzindo variacoes sutis de pixel para economizar dados.
+                <strong>DCT simulada:</strong> mostra o efeito de quantização,
+                reduzindo variações sutis de pixel para economizar dados.
               </p>
               <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
-                <strong>Fractal simulada:</strong> prioriza padroes globais da
+                <strong>Fractal simulada:</strong> prioriza padrões globais da
                 imagem e tende a criar aspecto mais suavizado em detalhes finos.
               </p>
             </div>

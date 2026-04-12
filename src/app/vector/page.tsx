@@ -92,7 +92,7 @@ export default function ImageComparison() {
     >
       <FontImport />
 
-      <header className="flex items-end justify-between gap-8 pt-10 px-16 pb-6 border-b border-[#222]">
+      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-6 border-b border-[#222]">
         <div>
           <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
             Multimídia - Vetorial vs Matricial

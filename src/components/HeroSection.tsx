@@ -48,7 +48,7 @@ export default function HeroSection() {
 
         <div className="mt-16 pt-8 w-full border-t border-neutral-900 flex justify-center">
           <p className="text-[11px] font-mono text-neutral-500">
-            <span className="text-green-400">~/pixelforge3d</span> $ ./start.sh --inatel --2026
+            <span className="text-green-400">~/pixelforge3d</span> $ ./start.sh --fetin --2026
           </p>
         </div>
       </div>

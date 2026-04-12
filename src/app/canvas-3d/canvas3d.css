@@ -48,8 +48,3 @@
   width: 100% !important;
   height: 100% !important;
 }
-
-#canvas-container > canvas.culling-preview-canvas {
-  width: auto !important;
-  height: auto !important;
-}

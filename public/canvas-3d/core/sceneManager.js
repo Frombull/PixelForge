@@ -21,6 +21,10 @@ export class SceneManager {
         
         this.init();
     }
+
+    getEffectivePixelRatio() {
+        return Math.min(window.devicePixelRatio || 1, 2);
+    }
     
     init() {
         this.createScene();
@@ -82,6 +86,7 @@ export class SceneManager {
     
     createRenderer() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setPixelRatio(this.getEffectivePixelRatio());
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.domElement.classList.add('main-canvas3d');
         this.container.appendChild(this.renderer.domElement);
@@ -93,6 +98,7 @@ export class SceneManager {
         this.secondCamera.lookAt(0, 0, 0);
         
         this.secondRenderer = new THREE.WebGLRenderer({ antialias: true });
+        this.secondRenderer.setPixelRatio(this.getEffectivePixelRatio());
         this.secondRenderer.domElement.classList.add('culling-preview-canvas');
         
         const el = this.secondRenderer.domElement;
@@ -207,6 +213,12 @@ export class SceneManager {
     onResize() {
         const rect = this.container.getBoundingClientRect();
         const aspect = rect.width / rect.height;
+        const pixelRatio = this.getEffectivePixelRatio();
+
+        this.renderer.setPixelRatio(pixelRatio);
+        if (this.secondRenderer) {
+            this.secondRenderer.setPixelRatio(pixelRatio);
+        }
 
         if (this.isPerspective) {
             this.perspectiveCamera.aspect = aspect;

@@ -1,7 +1,5 @@
 export const CONSTANTS = {
     DEFAULT_VALUES: {
-        nearClip: 0.01,
-        farClip: 100,
         snapSize: 0.5,
         gridSize: 40,
         frustumSize: 5
@@ -9,7 +7,7 @@ export const CONSTANTS = {
     CAMERA_CONFIG: {
         fov: 60,
         near: 0.01,
-        far: 100,
+        far: 50,
         position: { x: 3, y: 3, z: 3 }
     },
     GIZMO_CONFIG: {

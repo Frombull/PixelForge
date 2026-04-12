@@ -436,8 +436,10 @@ export default function Canvas3DWorkspace() {
 
               {engineState.objects.map((obj) => (
                 <div
-                  className={`mb-[0.1rem] flex cursor-pointer items-center gap-[0.4rem] bg-transparent px-[0.2rem] py-[0.3rem] text-[0.73rem] text-[#c0caf5] transition-colors hover:bg-[rgba(125,207,255,0.1)] ${
-                    engineState.selectedUuid === obj.uuid ? "bg-[rgba(125,207,255,0.18)]" : ""
+                  className={`mb-[0.1rem] flex cursor-pointer items-center gap-[0.4rem] px-[0.2rem] py-[0.3rem] text-[0.73rem] text-[#c0caf5] transition-colors hover:bg-[rgba(125,207,255,0.1)] ${
+                    engineState.selectedUuid === obj.uuid || engineState.selected?.uuid === obj.uuid
+                      ? "bg-[rgba(125,207,255,0.1)]!"
+                      : ""
                   }`}
                   key={obj.uuid}
                   onClick={() => window.Canvas3DBridge?.selectObject(obj.uuid)}
@@ -691,16 +693,14 @@ export default function Canvas3DWorkspace() {
             </div>
 
             <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
-              <label className="flex items-center justify-between gap-2 text-xs text-[#a9b1d6]">
-                <span>Far Clip: {numberValue(engineState.settings.farClip, 0)}</span>
-                <span>Near Clip: {numberValue(engineState.settings.nearClip, 2)}</span>
-              </label>
+              <div className="mb-[0.45rem] p-0 text-xs uppercase tracking-[0.08em]">Clip Planes</div>
 
-              <div className="mt-1.5 flex items-center gap-[0.4rem]">
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap text-xs text-[#a9b1d6]">far</span>
                 <input
-                  className="settings-slider flex-1 accent-[#7dcfff]"
+                  className="settings-slider flex-1 min-w-0 accent-[#7dcfff]"
                   id="far-clip"
-                  max="100"
+                  max="50"
                   min="5"
                   onChange={(event) => window.Canvas3DBridge?.setFarClip(Number(event.target.value))}
                   step="1"
@@ -708,7 +708,7 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.farClip, 0)}
                 />
                 <button
-                  className={resetButtonClass}
+                  className={`${resetButtonClass} h-[1rem] w-[1rem] text-[0.62rem]`}
                   onClick={() => window.Canvas3DBridge?.resetSetting("far-clip")}
                   title="Reset Far Clip"
                   type="button"
@@ -717,9 +717,10 @@ export default function Canvas3DWorkspace() {
                 </button>
               </div>
 
-              <div className="mt-1.5 flex items-center gap-[0.4rem]">
+              <div className="mt-2 flex items-center gap-2">
+                <span className="whitespace-nowrap text-xs text-[#a9b1d6]">near</span>
                 <input
-                  className="settings-slider flex-1 accent-[#7dcfff]"
+                  className="settings-slider flex-1 min-w-0 accent-[#7dcfff]"
                   id="near-clip"
                   max="5"
                   min="0.01"
@@ -729,7 +730,7 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.nearClip, 2)}
                 />
                 <button
-                  className={resetButtonClass}
+                  className={`${resetButtonClass} h-[1rem] w-[1rem] text-[0.62rem]`}
                   onClick={() => window.Canvas3DBridge?.resetSetting("near-clip")}
                   title="Reset Near Clip"
                   type="button"

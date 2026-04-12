@@ -196,6 +196,6 @@ export class ObjectManager {
     }
     
     raycastObjects(raycaster) {
-        return raycaster.intersectObjects(this.objects);
+        return raycaster.intersectObjects(this.objects, false);
     }
 }

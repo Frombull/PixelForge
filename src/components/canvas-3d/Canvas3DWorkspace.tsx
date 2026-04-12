@@ -383,6 +383,23 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setSelectedColorHSV(next.h, next.s, next.v);
   };
 
+  const panelSectionClass = "border-b border-[#2a2d3e]";
+  const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-[#7dcfff]";
+  const panelActionButtonClass =
+    "w-full rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.6rem] py-[0.45rem] text-xs text-[#c0caf5] transition-all duration-100 hover:border-[#7dcfff] hover:bg-[#232538]";
+  const panelToolButtonClass =
+    "flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-[#c0caf5] transition-all duration-100 hover:border-[#7dcfff] hover:bg-[#232538]";
+  const panelButtonActiveClass = "border-[#7dcfff] bg-[#1f2a3d] text-[#7dcfff]";
+  const topbarButtonClass =
+    "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] border border-transparent bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#f3f4f6]";
+  const topbarButtonActiveClass = "!border-[rgb(200,200,200)] !bg-[rgba(32,43,63,0.8)] !text-white";
+  const resetButtonClass =
+    "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-[#a9b1d6] transition-colors hover:border-[#7dcfff] hover:text-[#7dcfff]";
+  const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] p-0 text-xs text-[#7dcfff]";
+  const scalarInputClass =
+    "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] px-[0.35rem] py-[0.2rem] text-[0.72rem] text-[#c0caf5]";
+  const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-[#13141c] font-mono text-[#c0caf5]">
       <div className="app-noise pointer-events-none absolute inset-0 z-0" />
@@ -391,7 +408,7 @@ export default function Canvas3DWorkspace() {
         <div className="absolute inset-0 z-1200 flex items-center justify-center bg-[#0f1017]/85 backdrop-blur-sm">
           <div className="text-center">
             <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[#2a2d3e] border-t-[#7dcfff]" />
-            <p className="mt-3 text-sm text-[#a9b1d6]">Carregando Canvas 3D...</p>
+            <p className="mt-3 text-sm text-[#a9b1d6]">Carregando Canvas...</p>
           </div>
         </div>
       )}
@@ -399,27 +416,29 @@ export default function Canvas3DWorkspace() {
       {status === "error" && (
         <div className="absolute inset-0 z-1200 flex items-center justify-center bg-[#0f1017]/90 p-6 text-center">
           <div>
-            <h2 className="text-lg font-semibold text-[#f7768e]">Falha ao iniciar o Canvas 3D</h2>
-            <p className="mt-2 text-sm text-[#a9b1d6]">Recarregue a página para tentar novamente.</p>
+            <h2 className="text-lg font-semibold text-[#f7768e]">Falha ao iniciar o Canvas</h2>
+            <p className="mt-2 text-sm text-[#a9b1d6]">Recarregue a página para tentar novamente</p>
           </div>
         </div>
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
         <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#151623]/95 p-3 max-md:hidden">
-          <div className="sidebar-section" id="hierarchy-section">
-            <div className="sidebar-header">
+          <div className={panelSectionClass} id="hierarchy-section">
+            <div className={panelHeaderClass}>
               <span>Hierarquia</span>
             </div>
 
-            <div className="sidebar-content" id="hierarchy-list">
+            <div className="p-0" id="hierarchy-list">
               {engineState.objects.length === 0 && (
-                <div className="hierarchy-empty">Nenhum objeto na cena</div>
+                <div className="p-1 text-xs text-[#565f89]">Nenhum objeto na cena</div>
               )}
 
               {engineState.objects.map((obj) => (
                 <div
-                  className={`hierarchy-item${engineState.selectedUuid === obj.uuid ? " selected" : ""}`}
+                  className={`mb-[0.1rem] flex cursor-pointer items-center gap-[0.4rem] bg-transparent px-[0.2rem] py-[0.3rem] text-[0.73rem] text-[#c0caf5] transition-colors hover:bg-[rgba(125,207,255,0.1)] ${
+                    engineState.selectedUuid === obj.uuid ? "bg-[rgba(125,207,255,0.18)]" : ""
+                  }`}
                   key={obj.uuid}
                   onClick={() => window.Canvas3DBridge?.selectObject(obj.uuid)}
                   onDoubleClick={() => window.Canvas3DBridge?.focusObject(obj.uuid)}
@@ -432,12 +451,12 @@ export default function Canvas3DWorkspace() {
                   role="button"
                   tabIndex={0}
                 >
-                  <svg className="hierarchy-icon" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-[0.9rem] w-[0.9rem] text-[#7dcfff]" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   </svg>
-                  <span className="hierarchy-name">{obj.name}</span>
+                  <span className="flex-1">{obj.name}</span>
                   <button
-                    className="hierarchy-delete"
+                    className="h-4 w-4 border-none bg-transparent text-[0.8rem] leading-[0.8rem] text-[#a9b1d6] transition-colors hover:text-[#f7768e]"
                     onClick={(event) => {
                       event.stopPropagation();
                       window.Canvas3DBridge?.deleteObject(obj.uuid);
@@ -452,51 +471,71 @@ export default function Canvas3DWorkspace() {
             </div>
           </div>
 
-          <div className="sidebar-section mt-3" id="add-section">
-            <div className="sidebar-header">
+          <div className={`${panelSectionClass} mt-3`} id="add-section">
+            <div className={panelHeaderClass}>
               <span>Adicionar Objeto</span>
             </div>
-            <div className="sidebar-content">
-              <div className="prim-grid">
-                <button className="prim-btn" onClick={() => addObject("cube")} type="button">Cubo</button>
-                <button className="prim-btn" onClick={() => addObject("cylinder")} type="button">Cilindro</button>
-                <button className="prim-btn opacity-45" disabled type="button">Esfera</button>
-                <button className="prim-btn opacity-45" disabled type="button">Cone</button>
-                <button className="prim-btn opacity-45" disabled type="button">Torus</button>
-                <button className="prim-btn prim-btn-subtract" onClick={() => addObject("subtractCube")} type="button">
+            <div className="p-0">
+              <div className="grid grid-cols-2 gap-2">
+                <button className={panelActionButtonClass} onClick={() => addObject("cube")} type="button">Cubo</button>
+                <button className={panelActionButtonClass} onClick={() => addObject("cylinder")} type="button">Cilindro</button>
+                <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Esfera</button>
+                <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Cone</button>
+                <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Torus</button>
+                <button
+                  className={`${panelActionButtonClass} border-[#f7768e] text-[#f7768e]`}
+                  onClick={() => addObject("subtractCube")}
+                  type="button"
+                >
                   Sub. Cube
                 </button>
               </div>
-              <div className="demo-section">
-                <div className="demo-label">Demos</div>
-                <button className="demo-btn" onClick={() => addObject("zFighting")} type="button">Z-Fighting</button>
-                <button className="demo-btn opacity-45" disabled type="button">Skew Demo</button>
+              <div className="mt-[0.65rem]">
+                <div className="mb-1 text-[0.68rem] uppercase text-[#565f89]">Demos</div>
+                <button className={panelActionButtonClass} onClick={() => addObject("zFighting")} type="button">Z-Fighting</button>
+                <button className={`${panelActionButtonClass} mt-2 opacity-45`} disabled type="button">Skew Demo</button>
               </div>
             </div>
           </div>
 
-          <div className="sidebar-section mt-3" id="tools-section">
-            <div className="sidebar-header">
+          <div className={`${panelSectionClass} mt-3`} id="tools-section">
+            <div className={panelHeaderClass}>
               <span>Ferramentas</span>
             </div>
 
-            <div className="sidebar-content">
-              <div className="tool-grid">
-                <button className={`tool-btn${engineState.mode === "translate" ? " active" : ""}`} onClick={() => setMode("translate")} type="button">
+            <div className="p-0">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  className={`${panelToolButtonClass} ${engineState.mode === "translate" ? panelButtonActiveClass : ""}`}
+                  onClick={() => setMode("translate")}
+                  type="button"
+                >
                   <span>Translate</span>
-                  <kbd>W</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">W</kbd>
                 </button>
-                <button className={`tool-btn${engineState.mode === "rotate" ? " active" : ""}`} onClick={() => setMode("rotate")} type="button">
+                <button
+                  className={`${panelToolButtonClass} ${engineState.mode === "rotate" ? panelButtonActiveClass : ""}`}
+                  onClick={() => setMode("rotate")}
+                  type="button"
+                >
                   <span>Rotate</span>
-                  <kbd>R</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">R</kbd>
                 </button>
-                <button className={`tool-btn${engineState.mode === "scale" ? " active" : ""}`} onClick={() => setMode("scale")} type="button">
+                <button
+                  className={`${panelToolButtonClass} ${engineState.mode === "scale" ? panelButtonActiveClass : ""}`}
+                  onClick={() => setMode("scale")}
+                  type="button"
+                >
                   <span>Scale</span>
-                  <kbd>S</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">S</kbd>
                 </button>
-                <button className={`tool-btn${engineState.mode === "skew" ? " active" : ""}`} onClick={() => setMode("skew")} type="button">
+                <button
+                  className={`${panelToolButtonClass} ${engineState.mode === "skew" ? panelButtonActiveClass : ""}`}
+                  onClick={() => setMode("skew")}
+                  type="button"
+                >
                   <span>Skew</span>
-                  <kbd>K</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">K</kbd>
                 </button>
               </div>
             </div>
@@ -505,91 +544,106 @@ export default function Canvas3DWorkspace() {
 
         <main id="center-area" className="relative flex-1 bg-[#0f1017]">
           <div id="canvas-container" className="absolute inset-0" />
-          <div id="canvas-actions" className="absolute right-3 top-2 z-50 flex items-center gap-2">
-            <button className="topbar-btn hover:cursor-pointer" onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
-              <svg aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+          <div id="canvas-actions" className="absolute right-3 top-2 z-50 flex items-center gap-2 backdrop-blur-[2px]">
+            <button className={topbarButtonClass} onContextMenu={(e) => e.preventDefault()} onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
                 <path d="M3 11.5 12 4l9 7.5" />
                 <path d="M6.5 10v9.5h11V10" />
               </svg>
             </button>
 
             <button
-              className={`topbar-btn topbar-text-btn hover:cursor-pointer ${engineState.isOrthographic ? " active" : ""}`}
+              className={`${topbarButtonClass} w-auto min-w-16 px-2 text-[0.7rem] ${
+                engineState.isOrthographic ? topbarButtonActiveClass : ""
+              }`}
+              onContextMenu={(e) => e.preventDefault()}
               onClick={() => window.Canvas3DBridge?.toggleCameraType()}
               title="Ortografica"
-              type="button"
-            >
+              type="button">
               Ortografica
             </button>
 
             <button
-              className={`topbar-btn topbar-text-btn hover:cursor-pointer ${engineState.isCullingViewEnabled ? " active" : ""}`}
+              className={`${topbarButtonClass} w-auto min-w-16 px-2 text-[0.7rem] ${
+                engineState.isCullingViewEnabled ? topbarButtonActiveClass : ""
+              }`}
+              onContextMenu={(e) => e.preventDefault()}
               onClick={() => window.Canvas3DBridge?.toggleCullingView()}
               title="Culling View"
-              type="button"
-            >
+              type="button">
               Culling View
             </button>
 
             <button
-              className="topbar-btn hover:cursor-pointer"
+              className={`${topbarButtonClass} ${isInfoOpen ? topbarButtonActiveClass : ""}`}
+              onContextMenu={(e) => e.preventDefault()}
               onClick={() => {
                 setIsInfoOpen((prev) => !prev);
                 setIsSettingsOpen(false);
               }}
               ref={infoButtonRef}
               title="Controles"
-              type="button"
-            >
+              type="button">
               i
             </button>
 
             <button
-              className="topbar-btn hover:cursor-pointer"
+              className={`${topbarButtonClass} ${isSettingsOpen ? topbarButtonActiveClass : ""}`}
+              onContextMenu={(e) => e.preventDefault()}
               onClick={() => {
                 setIsSettingsOpen((prev) => !prev);
                 setIsInfoOpen(false);
               }}
               ref={settingsButtonRef}
               title="Configuracoes"
-              type="button"
-            >
+              type="button">
               ⚙
             </button>
           </div>
 
-          <div className={`settings-menu ${isSettingsOpen ? "" : "hidden"}`} ref={settingsRef}>
-            <div className="settings-item">
-              <label className="settings-label" htmlFor="toggle-grid">
+          <div
+            className={`absolute right-3 top-[2.65rem] z-60 w-60 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] py-1.5 backdrop-blur-[5px] ${
+              isSettingsOpen ? "" : "hidden"
+            }`}
+            ref={settingsRef}
+          >
+            <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
+              <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-grid">
                 <input
+                  className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
                   checked={engineState.settings.gridVisible}
                   id="toggle-grid"
                   onChange={(event) => window.Canvas3DBridge?.setGridVisible(event.target.checked)}
-                  type="checkbox"
-                />
+                  type="checkbox"/>
                 <span>Mostrar Grid</span>
               </label>
             </div>
 
-            <div className="settings-item">
-              <label className="settings-label" htmlFor="toggle-snap">
+            <div className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
+              <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-snap">
                 <input
+                  className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
                   checked={engineState.settings.snapToGrid}
                   id="toggle-snap"
                   onChange={(event) => window.Canvas3DBridge?.setSnapEnabled(event.target.checked)}
-                  type="checkbox"
-                />
+                  type="checkbox"/>
                 <span>Snap to Grid</span>
               </label>
-            </div>
 
-            <div className="settings-item">
-              <label className="settings-label" htmlFor="snap-size">
-                <span>Snap Size</span>
-              </label>
-              <div className="settings-input-group">
+              <div className="flex items-center gap-[0.4rem]">
                 <input
-                  className={`snap-size-item ${engineState.settings.snapToGrid ? "enabled" : ""}`}
+                  className={`h-[1.6rem] w-14 flex-none box-border rounded-md border border-[#2a2d3e] bg-[#13141c] px-[0.32rem] py-[0.12rem] text-[0.68rem] leading-none text-[#c0caf5] ${
+                    engineState.settings.snapToGrid ? "opacity-100" : "pointer-events-none opacity-50"
+                  }`}
                   id="snap-size"
                   min="0.1"
                   onChange={(event) => window.Canvas3DBridge?.setSnapSize(Number(event.target.value))}
@@ -598,21 +652,24 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.snapSize, 2)}
                 />
                 <button
-                  className={`reset-btn settings-reset-btn snap-size-item ${engineState.settings.snapToGrid ? "enabled" : ""}`}
+                  className={`${resetButtonClass} h-[1.6rem] w-[1.6rem] px-[0.3rem] text-[0.68rem] ${
+                    engineState.settings.snapToGrid ? "opacity-100" : "pointer-events-none opacity-50"
+                  }`}
                   onClick={() => window.Canvas3DBridge?.resetSetting("snap-size")}
                   title="Reset Snap Size"
                   type="button"
                 >
-                  ↺
+                  R
                 </button>
               </div>
             </div>
 
-            <div className="settings-item">
-              <label className="settings-label" htmlFor="bg-color">
+            <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
+              <label className="flex items-center justify-between gap-2 text-xs text-[#a9b1d6]" htmlFor="bg-color">
                 <span>Cor do Background</span>
               </label>
               <input
+                className="mt-[0.3rem] w-full rounded-md border border-[#2a2d3e] bg-[#13141c] text-[#c0caf5]"
                 id="bg-color"
                 onChange={(event) => window.Canvas3DBridge?.setBackgroundColor(event.target.value)}
                 type="color"
@@ -620,11 +677,12 @@ export default function Canvas3DWorkspace() {
               />
             </div>
 
-            <div className="settings-item">
-              <label className="settings-label" htmlFor="grid-color">
+            <div className="mb-[0.2rem] border-b border-[rgba(169,177,214,0.18)] px-3 py-2 pb-[0.65rem] hover:bg-[rgba(125,207,255,0.08)]">
+              <label className="flex items-center justify-between gap-2 text-xs text-[#a9b1d6]" htmlFor="grid-color">
                 <span>Cor do Grid</span>
               </label>
               <input
+                className="mt-[0.3rem] w-full rounded-md border border-[#2a2d3e] bg-[#13141c] text-[#c0caf5]"
                 id="grid-color"
                 onChange={(event) => window.Canvas3DBridge?.setGridColor(event.target.value)}
                 type="color"
@@ -632,14 +690,15 @@ export default function Canvas3DWorkspace() {
               />
             </div>
 
-            <div className="settings-item">
-              <label className="settings-label">
+            <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
+              <label className="flex items-center justify-between gap-2 text-xs text-[#a9b1d6]">
                 <span>Far Clip: {numberValue(engineState.settings.farClip, 0)}</span>
                 <span>Near Clip: {numberValue(engineState.settings.nearClip, 2)}</span>
               </label>
 
-              <div className="settings-slider-group">
+              <div className="mt-1.5 flex items-center gap-[0.4rem]">
                 <input
+                  className="settings-slider flex-1 accent-[#7dcfff]"
                   id="far-clip"
                   max="100"
                   min="5"
@@ -649,17 +708,18 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.farClip, 0)}
                 />
                 <button
-                  className="reset-btn settings-reset-btn"
+                  className={resetButtonClass}
                   onClick={() => window.Canvas3DBridge?.resetSetting("far-clip")}
                   title="Reset Far Clip"
                   type="button"
                 >
-                  ↺
+                  R
                 </button>
               </div>
 
-              <div className="settings-slider-group">
+              <div className="mt-1.5 flex items-center gap-[0.4rem]">
                 <input
+                  className="settings-slider flex-1 accent-[#7dcfff]"
                   id="near-clip"
                   max="5"
                   min="0.01"
@@ -669,26 +729,26 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.nearClip, 2)}
                 />
                 <button
-                  className="reset-btn settings-reset-btn"
+                  className={resetButtonClass}
                   onClick={() => window.Canvas3DBridge?.resetSetting("near-clip")}
                   title="Reset Near Clip"
                   type="button"
                 >
-                  ↺
+                  R
                 </button>
               </div>
             </div>
           </div>
-
-          <div className={`info-tooltip ${isInfoOpen ? "" : "hidden"}`} ref={infoRef}>
-            <button className="close-info-btn" onClick={() => setIsInfoOpen(false)} type="button">
-              ×
-            </button>
-            <strong>Controles</strong>
-            <div>Rodar camera: botao do meio ou botao direito</div>
-            <div>Pan: Shift + botao do meio</div>
-            <div>Zoom: scroll do mouse</div>
-            <div>Focar objeto: F</div>
+          <div
+            className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-[#c0caf5] ${
+              isInfoOpen ? "" : "hidden"
+            }`}
+            ref={infoRef}>
+            <strong>Controles:</strong>
+            <div>- Rodar camera: botao do meio ou botao direito</div>
+            <div>- Pan: Shift + botao do meio</div>
+            <div>- Zoom: scroll do mouse</div>
+            <div>- Focar objeto: F</div>
             <strong className="mt-2">Keybinds</strong>
             <div>W: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
           </div>
@@ -699,68 +759,74 @@ export default function Canvas3DWorkspace() {
         </main>
 
         <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] bg-[#151623]/95 p-3 max-lg:hidden">
-          <div className="sidebar-header">
+          <div className={panelHeaderClass}>
             <span>Inspetor</span>
           </div>
 
           {selected ? (
             <div id="inspector-panel">
-              <div className="inspector-group">
+              <div className="border-b border-[#2a2d3e] py-[0.7rem]">
                 <div
-                  className={`group-header collapsible ${isTransformOpen ? "open" : ""}`}
+                  className={inspectorHeaderClass}
                   onClick={() => setIsTransformOpen((prev) => !prev)}
                   role="button"
                   tabIndex={0}
                 >
-                  <svg className="chevron-sm" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg
+                    className={`h-[0.9rem] w-[0.9rem] transition-transform duration-150 ${isTransformOpen ? "" : "-rotate-90"}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                   <span className="group-title">Transform</span>
                 </div>
 
-                <div className={isTransformOpen ? "" : "collapsed"} id="transform-content">
-                  <div className="prop-row"><span className="prop-label">Position</span></div>
-                  <div className="transform-row">
-                    <div className="axis-inputs">
-                      <div className="axis-input-wrap"><input id="pos-x" onChange={(event) => updateTransform("pos-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.x)} /><span className="axis-suffix">X</span></div>
-                      <div className="axis-input-wrap"><input id="pos-y" onChange={(event) => updateTransform("pos-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.y)} /><span className="axis-suffix">Y</span></div>
-                      <div className="axis-input-wrap"><input id="pos-z" onChange={(event) => updateTransform("pos-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.z)} /><span className="axis-suffix">Z</span></div>
+                <div className={isTransformOpen ? "p-0" : "hidden p-0"} id="transform-content">
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Position</span></div>
+                  <div className="flex items-stretch gap-[0.35rem]">
+                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
+                      <div className="relative flex items-center"><input className={axisInputClass} id="pos-x" onChange={(event) => updateTransform("pos-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.x)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="pos-y" onChange={(event) => updateTransform("pos-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.y)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="pos-z" onChange={(event) => updateTransform("pos-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.z)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
                     </div>
-                    <button className="reset-btn group-reset-btn" onClick={() => resetTransformGroup(["pos-x", "pos-y", "pos-z"])} title="Reset Position" type="button">R</button>
+                    <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["pos-x", "pos-y", "pos-z"])} title="Reset Position" type="button">R</button>
                   </div>
 
-                  <div className="prop-row"><span className="prop-label">Rotation</span></div>
-                  <div className="transform-row">
-                    <div className="axis-inputs">
-                      <div className="axis-input-wrap"><input id="rot-x" onChange={(event) => updateTransform("rot-x", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.x)} /><span className="axis-suffix">X</span></div>
-                      <div className="axis-input-wrap"><input id="rot-y" onChange={(event) => updateTransform("rot-y", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.y)} /><span className="axis-suffix">Y</span></div>
-                      <div className="axis-input-wrap"><input id="rot-z" onChange={(event) => updateTransform("rot-z", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.z)} /><span className="axis-suffix">Z</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Rotation</span></div>
+                  <div className="flex items-stretch gap-[0.35rem]">
+                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
+                      <div className="relative flex items-center"><input className={axisInputClass} id="rot-x" onChange={(event) => updateTransform("rot-x", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.x)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="rot-y" onChange={(event) => updateTransform("rot-y", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.y)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="rot-z" onChange={(event) => updateTransform("rot-z", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.z)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
                     </div>
-                    <button className="reset-btn group-reset-btn" onClick={() => resetTransformGroup(["rot-x", "rot-y", "rot-z"])} title="Reset Rotation" type="button">R</button>
+                    <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["rot-x", "rot-y", "rot-z"])} title="Reset Rotation" type="button">R</button>
                   </div>
 
-                  <div className="prop-row"><span className="prop-label">Scale</span></div>
-                  <div className="transform-row">
-                    <div className="axis-inputs">
-                      <div className="axis-input-wrap"><input id="scale-x" min="0.1" onChange={(event) => updateTransform("scale-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.x)} /><span className="axis-suffix">X</span></div>
-                      <div className="axis-input-wrap"><input id="scale-y" min="0.1" onChange={(event) => updateTransform("scale-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.y)} /><span className="axis-suffix">Y</span></div>
-                      <div className="axis-input-wrap"><input id="scale-z" min="0.1" onChange={(event) => updateTransform("scale-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.z)} /><span className="axis-suffix">Z</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Scale</span></div>
+                  <div className="flex items-stretch gap-[0.35rem]">
+                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
+                      <div className="relative flex items-center"><input className={axisInputClass} id="scale-x" min="0.1" onChange={(event) => updateTransform("scale-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.x)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="scale-y" min="0.1" onChange={(event) => updateTransform("scale-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.y)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="scale-z" min="0.1" onChange={(event) => updateTransform("scale-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.z)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
                     </div>
-                    <button className="reset-btn group-reset-btn" onClick={() => resetTransformGroup(["scale-x", "scale-y", "scale-z"])} title="Reset Scale" type="button">R</button>
+                    <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["scale-x", "scale-y", "scale-z"])} title="Reset Scale" type="button">R</button>
                   </div>
 
-                  <div className="prop-row"><span className="prop-label">Skew</span></div>
-                  <div className="transform-row">
-                    <div className="axis-inputs skew-inputs">
-                      <div className="axis-input-wrap"><input id="skew-xy" onChange={(event) => updateTransform("skew-xy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xy)} /><span className="axis-suffix">XY</span></div>
-                      <div className="axis-input-wrap"><input id="skew-xz" onChange={(event) => updateTransform("skew-xz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xz)} /><span className="axis-suffix">XZ</span></div>
-                      <div className="axis-input-wrap"><input id="skew-yx" onChange={(event) => updateTransform("skew-yx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yx)} /><span className="axis-suffix">YX</span></div>
-                      <div className="axis-input-wrap"><input id="skew-yz" onChange={(event) => updateTransform("skew-yz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yz)} /><span className="axis-suffix">YZ</span></div>
-                      <div className="axis-input-wrap"><input id="skew-zx" onChange={(event) => updateTransform("skew-zx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zx)} /><span className="axis-suffix">ZX</span></div>
-                      <div className="axis-input-wrap"><input id="skew-zy" onChange={(event) => updateTransform("skew-zy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zy)} /><span className="axis-suffix">ZY</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Skew</span></div>
+                  <div className="flex items-stretch gap-[0.35rem]">
+                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
+                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-xy" onChange={(event) => updateTransform("skew-xy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xy)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XY</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-xz" onChange={(event) => updateTransform("skew-xz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xz)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XZ</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-yx" onChange={(event) => updateTransform("skew-yx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yx)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YX</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-yz" onChange={(event) => updateTransform("skew-yz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yz)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YZ</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-zx" onChange={(event) => updateTransform("skew-zx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zx)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZX</span></div>
+                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-zy" onChange={(event) => updateTransform("skew-zy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zy)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZY</span></div>
                     </div>
                     <button
-                      className="reset-btn group-reset-btn"
+                      className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`}
                       onClick={() => resetTransformGroup(["skew-xy", "skew-xz", "skew-yx", "skew-yz", "skew-zx", "skew-zy"])}
                       title="Reset Skew"
                       type="button"
@@ -771,42 +837,65 @@ export default function Canvas3DWorkspace() {
                 </div>
               </div>
 
-              <div className="inspector-group mt-3">
+              <div className="mt-3 border-b border-[#2a2d3e] py-[0.7rem]">
                 <div
-                  className={`group-header collapsible ${isMaterialOpen ? "open" : ""}`}
+                  className={inspectorHeaderClass}
                   onClick={() => setIsMaterialOpen((prev) => !prev)}
                   role="button"
                   tabIndex={0}
                 >
-                  <svg className="chevron-sm" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg
+                    className={`h-[0.9rem] w-[0.9rem] transition-transform duration-150 ${isMaterialOpen ? "" : "-rotate-90"}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                   <span className="group-title">Material</span>
                 </div>
 
-                <div className={isMaterialOpen ? "" : "collapsed"} id="material-content">
-                  <div className="color-mode-tabs">
-                    <button className={`color-tab ${colorMode === "rgb" ? "active" : ""}`} onClick={() => setColorMode("rgb")} type="button">RGB</button>
-                    <button className={`color-tab ${colorMode === "hsv" ? "active" : ""}`} onClick={() => setColorMode("hsv")} type="button">HSV</button>
+                <div className={isMaterialOpen ? "p-0" : "hidden p-0"} id="material-content">
+                  <div className="mb-[0.45rem] flex gap-[0.3rem]">
+                    <button
+                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-[#a9b1d6] ${
+                        colorMode === "rgb" ? panelButtonActiveClass : ""
+                      }`}
+                      onClick={() => setColorMode("rgb")}
+                      type="button"
+                    >
+                      RGB
+                    </button>
+                    <button
+                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-[#a9b1d6] ${
+                        colorMode === "hsv" ? panelButtonActiveClass : ""
+                      }`}
+                      onClick={() => setColorMode("hsv")}
+                      type="button"
+                    >
+                      HSV
+                    </button>
                   </div>
 
                   {colorMode === "rgb" ? (
-                    <div className="color-inputs" id="rgb-inputs">
-                      <div className="color-field"><label className="prop-letter" htmlFor="color-r">R</label><input id="color-r" max="255" min="0" onChange={(event) => updateRgbColor("r", event.target.value)} step="1" type="number" value={String(colorInputs.r)} /></div>
-                      <div className="color-field"><label className="prop-letter" htmlFor="color-g">G</label><input id="color-g" max="255" min="0" onChange={(event) => updateRgbColor("g", event.target.value)} step="1" type="number" value={String(colorInputs.g)} /></div>
-                      <div className="color-field"><label className="prop-letter" htmlFor="color-b">B</label><input id="color-b" max="255" min="0" onChange={(event) => updateRgbColor("b", event.target.value)} step="1" type="number" value={String(colorInputs.b)} /></div>
+                    <div className="grid grid-cols-3 gap-[0.35rem]" id="rgb-inputs">
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-r">R</label><input className={scalarInputClass} id="color-r" max="255" min="0" onChange={(event) => updateRgbColor("r", event.target.value)} step="1" type="number" value={String(colorInputs.r)} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-g">G</label><input className={scalarInputClass} id="color-g" max="255" min="0" onChange={(event) => updateRgbColor("g", event.target.value)} step="1" type="number" value={String(colorInputs.g)} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-b">B</label><input className={scalarInputClass} id="color-b" max="255" min="0" onChange={(event) => updateRgbColor("b", event.target.value)} step="1" type="number" value={String(colorInputs.b)} /></div>
                     </div>
                   ) : (
-                    <div className="color-inputs" id="hsv-inputs">
-                      <div className="color-field"><label className="prop-letter" htmlFor="color-h">H</label><input id="color-h" max="360" min="0" onChange={(event) => updateHsvColor("h", event.target.value)} step="1" type="number" value={String(colorInputs.h)} /></div>
-                      <div className="color-field"><label className="prop-letter" htmlFor="color-s">S</label><input id="color-s" max="100" min="0" onChange={(event) => updateHsvColor("s", event.target.value)} step="1" type="number" value={String(colorInputs.s)} /></div>
-                      <div className="color-field"><label className="prop-letter" htmlFor="color-v">V</label><input id="color-v" max="100" min="0" onChange={(event) => updateHsvColor("v", event.target.value)} step="1" type="number" value={String(colorInputs.v)} /></div>
+                    <div className="grid grid-cols-3 gap-[0.35rem]" id="hsv-inputs">
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-h">H</label><input className={scalarInputClass} id="color-h" max="360" min="0" onChange={(event) => updateHsvColor("h", event.target.value)} step="1" type="number" value={String(colorInputs.h)} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-s">S</label><input className={scalarInputClass} id="color-s" max="100" min="0" onChange={(event) => updateHsvColor("s", event.target.value)} step="1" type="number" value={String(colorInputs.s)} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-v">V</label><input className={scalarInputClass} id="color-v" max="100" min="0" onChange={(event) => updateHsvColor("v", event.target.value)} step="1" type="number" value={String(colorInputs.v)} /></div>
                     </div>
                   )}
 
-                  <div className="alpha-row">
-                    <span className="alpha-label">Alpha</span>
+                  <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
+                    <span className="text-[#565f89]">Alpha</span>
                     <input
+                      className="flex-1 accent-[#7dcfff]"
                       id="color-alpha"
                       max="100"
                       min="0"
@@ -822,9 +911,10 @@ export default function Canvas3DWorkspace() {
                     <span id="alpha-value">{`${colorInputs.alpha}%`}</span>
                   </div>
 
-                  <div className="hex-row">
-                    <span className="hex-label">Hex</span>
+                  <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
+                    <span className="text-[#565f89]">Hex</span>
                     <input
+                      className={scalarInputClass}
                       id="color-hex"
                       maxLength={7}
                       onBlur={(event) => updateHexColor(event.target.value)}
@@ -844,7 +934,7 @@ export default function Canvas3DWorkspace() {
               </div>
             </div>
           ) : (
-            <div className="inspector-empty" id="inspector-empty">
+            <div className="mt-[0.65rem] flex min-h-40 flex-col items-center justify-center gap-[0.35rem] p-0 text-center text-[0.78rem] text-[#565f89]" id="inspector-empty">
               <div className="text-2xl">◻</div>
               <div>Selecione um objeto para editar suas propriedades</div>
             </div>

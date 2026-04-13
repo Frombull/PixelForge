@@ -355,7 +355,7 @@ export default function Canvas3DWorkspace() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [isDebugOpen, setIsDebugOpen] = useState(true);
   const [isTransformOpen, setIsTransformOpen] = useState(true);
   const [isMaterialOpen, setIsMaterialOpen] = useState(true);
 
@@ -982,9 +982,9 @@ export default function Canvas3DWorkspace() {
               <div ref={tweakpaneContainerRef} className="w-full" />
             </div>
           </div>
-          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute right-3 top-[6.65rem] z-60 w-72 rounded-[0.2rem]" />
+          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute left-2 top-3 z-60 w-72 rounded-[0.1rem]" />
           <div
-            className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-[#c0caf5] ${
+            className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.1rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-[#c0caf5] ${
               isInfoOpen ? "" : "hidden"
             }`}
             ref={infoRef}>
@@ -995,21 +995,6 @@ export default function Canvas3DWorkspace() {
             <div>- Focar objeto: F</div>
             <strong className="mt-2">Keybinds</strong>
             <div>W: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
-          </div>
-
-          <div id="viewport-header" className="absolute left-2 top-3 text-[10px] text-[#f3f3f3] flex items-center">
-            <button
-              className={`${topbarButtonClass} ${isDebugOpen ? topbarButtonActiveClass : ""}`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => {
-                setIsDebugOpen((prev) => !prev);
-                setIsSettingsOpen(false);
-                setIsInfoOpen(false);
-              }}
-              title="Debug"
-              type="button">
-              DBG
-            </button>
           </div>
         </main>
 

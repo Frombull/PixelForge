@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import katex from "katex";
+import { Pane } from "tweakpane";
+import "katex/dist/katex.min.css";
 
 type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
@@ -145,7 +148,6 @@ declare global {
       setSelectedColorHSV: (h: number, s: number, v: number) => void;
       setSelectedAlpha: (alphaPercent: number) => void;
     };
-    katex?: any;
   }
 }
 
@@ -159,7 +161,7 @@ const IMPORT_MAP = {
   },
 };
 
-function ensureImportMap() {
+function injectImportMap() {
   if (document.getElementById("canvas3d-importmap")) return;
 
   const script = document.createElement("script");
@@ -169,9 +171,9 @@ function ensureImportMap() {
   document.head.appendChild(script);
 }
 
-function ensureScript(id: string, src: string, type = "text/javascript") {
+function loadCanvasRuntimeModule() {
   return new Promise<void>((resolve, reject) => {
-    const existing = document.getElementById(id) as HTMLScriptElement | null;
+    const existing = document.getElementById("canvas3d-main") as HTMLScriptElement | null;
     if (existing) {
       if (existing.dataset.loaded === "true") {
         resolve();
@@ -179,16 +181,16 @@ function ensureScript(id: string, src: string, type = "text/javascript") {
       }
 
       existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error(`Falha ao carregar ${src}`)), {
+      existing.addEventListener("error", () => reject(new Error("Falha ao carregar /canvas-3d/main.js")), {
         once: true,
       });
       return;
     }
 
     const script = document.createElement("script");
-    script.id = id;
-    script.src = src;
-    script.type = type;
+    script.id = "canvas3d-main";
+    script.type = "module";
+    script.src = "/canvas-3d/main.js";
     script.async = true;
 
     script.addEventListener(
@@ -200,46 +202,12 @@ function ensureScript(id: string, src: string, type = "text/javascript") {
       { once: true }
     );
 
-    script.addEventListener("error", () => reject(new Error(`Falha ao carregar ${src}`)), {
+    script.addEventListener("error", () => reject(new Error("Falha ao carregar /canvas-3d/main.js")), {
       once: true,
     });
 
     document.body.appendChild(script);
   });
-}
-
-function ensureKaTeX() {
-  if (document.getElementById("katex-js") && document.getElementById("katex-css")) return Promise.resolve();
-
-  if (!document.getElementById("katex-css")) {
-    const link = document.createElement("link");
-    link.id = "katex-css";
-    link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css";
-    document.head.appendChild(link);
-  }
-
-  return ensureScript("katex-js", "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js");
-}
-
-async function ensureTweakpane() {
-  try {
-    const mod = await import('tweakpane');
-    return mod;
-  } catch (e) {
-    if (!document.getElementById('tweakpane-css')) {
-      const link = document.createElement('link');
-      link.id = 'tweakpane-css';
-      link.rel = 'stylesheet';
-      link.href = 'https://cdn.jsdelivr.net/npm/tweakpane@3.0.7/dist/tweakpane.min.css';
-      document.head.appendChild(link);
-    }
-
-    await ensureScript('tweakpane-js', 'https://cdn.jsdelivr.net/npm/tweakpane@3.0.7/dist/tweakpane.min.js');
-
-    const anyWin = window as any;
-    return anyWin.tweakpane || anyWin.Tweakpane || anyWin.tp || anyWin.Pane || anyWin;
-  }
 }
 
 async function waitForBridge(retries = 50, delayMs = 50) {
@@ -419,8 +387,8 @@ export default function Canvas3DWorkspace() {
     window.addEventListener("canvas3d:state", handleStateChange as EventListener);
 
     const init = async () => {
-      ensureImportMap();
-      await ensureScript("canvas3d-main", "/canvas-3d/main.js", "module");
+      injectImportMap();
+      await loadCanvasRuntimeModule();
 
       const isBridgeReady = await waitForBridge();
       if (!isBridgeReady || cancelled) {
@@ -494,22 +462,12 @@ export default function Canvas3DWorkspace() {
   useEffect(() => {
     let cancelled = false;
 
-    async function initPane() {
+    function initPane() {
       if (!isSettingsOpen) return;
       if (!tweakpaneContainerRef.current) return;
 
       try {
-        const mod = await ensureTweakpane();
-        if (cancelled) return;
-
-        const anyWin = window as any;
-        const PaneCtor = mod?.Pane || mod?.default?.Pane || mod?.default || anyWin?.tweakpane?.Pane || anyWin?.tweakpane || anyWin?.Tweakpane?.Pane || anyWin?.Tweakpane || anyWin?.Pane;
-        if (!PaneCtor) {
-          console.error('Tweakpane Pane constructor not found');
-          return;
-        }
-
-        const pane = new PaneCtor({ container: tweakpaneContainerRef.current, title: 'Configurações' });
+        const pane: any = new Pane({ container: tweakpaneContainerRef.current, title: "Configurações" });
 
         const settingsObj = {
           gridVisible: engineState.settings.gridVisible,
@@ -524,35 +482,35 @@ export default function Canvas3DWorkspace() {
 
         const controllers: Record<string, any> = {};
 
-        controllers.grid = pane.addInput(settingsObj, 'gridVisible', { label: 'Mostrar Grid' });
-        controllers.grid.on('change', (ev: any) => window.Canvas3DBridge?.setGridVisible(ev.value));
+        controllers.grid = pane.addInput(settingsObj, "gridVisible", { label: "Mostrar Grid" });
+        controllers.grid.on("change", (ev: any) => window.Canvas3DBridge?.setGridVisible(ev.value));
 
-        controllers.axes = pane.addInput(settingsObj, 'axesVisible', { label: 'Mostrar Eixos' });
-        controllers.axes.on('change', (ev: any) => window.Canvas3DBridge?.setAxesVisible(ev.value));
+        controllers.axes = pane.addInput(settingsObj, "axesVisible", { label: "Mostrar Eixos" });
+        controllers.axes.on("change", (ev: any) => window.Canvas3DBridge?.setAxesVisible(ev.value));
 
-        controllers.snap = pane.addInput(settingsObj, 'snapToGrid', { label: 'Snap to Grid' });
-        controllers.snap.on('change', () => window.Canvas3DBridge?.setSnapEnabled(settingsObj.snapToGrid));
+        controllers.snap = pane.addInput(settingsObj, "snapToGrid", { label: "Snap to Grid" });
+        controllers.snap.on("change", () => window.Canvas3DBridge?.setSnapEnabled(settingsObj.snapToGrid));
 
-        controllers.snapSize = pane.addInput(settingsObj, 'snapSize', { min: 0.1, max: 10, step: 0.1, label: 'Snap Size' });
-        controllers.snapSize.on('change', (ev: any) => window.Canvas3DBridge?.setSnapSize(ev.value));
+        controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 10, step: 0.1, label: "Snap Size" });
+        controllers.snapSize.on("change", (ev: any) => window.Canvas3DBridge?.setSnapSize(ev.value));
 
-        controllers.bg = pane.addInput(settingsObj, 'backgroundColor', { view: 'color', label: 'Background' });
-        controllers.bg.on('change', (ev: any) => window.Canvas3DBridge?.setBackgroundColor(ev.value));
+        controllers.bg = pane.addInput(settingsObj, "backgroundColor", { view: "color", label: "Background" });
+        controllers.bg.on("change", (ev: any) => window.Canvas3DBridge?.setBackgroundColor(ev.value));
 
-        controllers.gridColor = pane.addInput(settingsObj, 'gridColor', { view: 'color', label: 'Grid Color' });
-        controllers.gridColor.on('change', (ev: any) => window.Canvas3DBridge?.setGridColor(ev.value));
+        controllers.gridColor = pane.addInput(settingsObj, "gridColor", { view: "color", label: "Grid Color" });
+        controllers.gridColor.on("change", (ev: any) => window.Canvas3DBridge?.setGridColor(ev.value));
 
-        controllers.far = pane.addInput(settingsObj, 'farClip', { min: 5, max: 50, step: 1, label: 'Far Clip' });
-        controllers.far.on('change', (ev: any) => window.Canvas3DBridge?.setFarClip(ev.value));
+        controllers.far = pane.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+        controllers.far.on("change", (ev: any) => window.Canvas3DBridge?.setFarClip(ev.value));
 
-        controllers.near = pane.addInput(settingsObj, 'nearClip', { min: 0.01, max: 5, step: 0.01, label: 'Near Clip' });
-        controllers.near.on('change', (ev: any) => window.Canvas3DBridge?.setNearClip(ev.value));
+        controllers.near = pane.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+        controllers.near.on("change", (ev: any) => window.Canvas3DBridge?.setNearClip(ev.value));
 
         tweakpaneRef.current = { pane, settingsObj, controllers };
       } catch (err) {
         // don't crash the UI if tweakpane fails to load
         // eslint-disable-next-line no-console
-        console.error('Failed to initialize Tweakpane', err);
+        console.error("Failed to initialize Tweakpane", err);
       }
     }
 
@@ -618,82 +576,76 @@ export default function Canvas3DWorkspace() {
     const el = scaleMatrixRef.current;
     if (!el) return;
 
-    ensureKaTeX()
-      .then(() => {
-        const katex = (window as any).katex;
-        if (!katex) return;
+    const tx = selected?.position.x ?? 0;
+    const ty = selected?.position.y ?? 0;
+    const tz = selected?.position.z ?? 0;
 
-        const tx = selected?.position.x ?? 0;
-        const ty = selected?.position.y ?? 0;
-        const tz = selected?.position.z ?? 0;
+    const sx = selected?.scale.x ?? 1;
+    const sy = selected?.scale.y ?? 1;
+    const sz = selected?.scale.z ?? 1;
 
-        const sx = selected?.scale.x ?? 1;
-        const sy = selected?.scale.y ?? 1;
-        const sz = selected?.scale.z ?? 1;
+    const rx = ((selected?.rotation.x ?? 0) * Math.PI) / 180;
+    const ry = ((selected?.rotation.y ?? 0) * Math.PI) / 180;
+    const rz = ((selected?.rotation.z ?? 0) * Math.PI) / 180;
 
-        const rx = ((selected?.rotation.x ?? 0) * Math.PI) / 180;
-        const ry = ((selected?.rotation.y ?? 0) * Math.PI) / 180;
-        const rz = ((selected?.rotation.z ?? 0) * Math.PI) / 180;
+    const sinX = Math.sin(rx);
+    const cosX = Math.cos(rx);
+    const sinY = Math.sin(ry);
+    const cosY = Math.cos(ry);
+    const sinZ = Math.sin(rz);
+    const cosZ = Math.cos(rz);
 
-        const sinX = Math.sin(rx);
-        const cosX = Math.cos(rx);
-        const sinY = Math.sin(ry);
-        const cosY = Math.cos(ry);
-        const sinZ = Math.sin(rz);
-        const cosZ = Math.cos(rz);
+    const r11 = cosZ * cosY;
+    const r12 = cosZ * sinY * sinX - sinZ * cosX;
+    const r13 = cosZ * sinY * cosX + sinZ * sinX;
+    const r21 = sinZ * cosY;
+    const r22 = sinZ * sinY * sinX + cosZ * cosX;
+    const r23 = sinZ * sinY * cosX - cosZ * sinX;
+    const r31 = -sinY;
+    const r32 = cosY * sinX;
+    const r33 = cosY * cosX;
 
-        const r11 = cosZ * cosY;
-        const r12 = cosZ * sinY * sinX - sinZ * cosX;
-        const r13 = cosZ * sinY * cosX + sinZ * sinX;
-        const r21 = sinZ * cosY;
-        const r22 = sinZ * sinY * sinX + cosZ * cosX;
-        const r23 = sinZ * sinY * cosX - cosZ * sinX;
-        const r31 = -sinY;
-        const r32 = cosY * sinX;
-        const r33 = cosY * cosX;
+    const kxy = selected?.skew.xy ?? 0;
+    const kxz = selected?.skew.xz ?? 0;
+    const kyx = selected?.skew.yx ?? 0;
+    const kyz = selected?.skew.yz ?? 0;
+    const kzx = selected?.skew.zx ?? 0;
+    const kzy = selected?.skew.zy ?? 0;
 
-        const kxy = selected?.skew.xy ?? 0;
-        const kxz = selected?.skew.xz ?? 0;
-        const kyx = selected?.skew.yx ?? 0;
-        const kyz = selected?.skew.yz ?? 0;
-        const kzx = selected?.skew.zx ?? 0;
-        const kzy = selected?.skew.zy ?? 0;
+    const latex =
+      engineState.mode === "translate"
+        ? matrixToLatex([
+            ["1", "0", "0", matrixNumber(tx)],
+            ["0", "1", "0", matrixNumber(ty)],
+            ["0", "0", "1", matrixNumber(tz)],
+            ["0", "0", "0", "1"],
+          ])
+        : engineState.mode === "rotate"
+        ? matrixToLatex([
+            [matrixNumber(r11), matrixNumber(r12), matrixNumber(r13), "0"],
+            [matrixNumber(r21), matrixNumber(r22), matrixNumber(r23), "0"],
+            [matrixNumber(r31), matrixNumber(r32), matrixNumber(r33), "0"],
+            ["0", "0", "0", "1"],
+          ])
+        : engineState.mode === "skew"
+        ? matrixToLatex([
+            ["1", matrixNumber(kxy), matrixNumber(kxz), "0"],
+            [matrixNumber(kyx), "1", matrixNumber(kyz), "0"],
+            [matrixNumber(kzx), matrixNumber(kzy), "1", "0"],
+            ["0", "0", "0", "1"],
+          ])
+        : matrixToLatex([
+            [matrixNumber(sx), "0", "0", "0"],
+            ["0", matrixNumber(sy), "0", "0"],
+            ["0", "0", matrixNumber(sz), "0"],
+            ["0", "0", "0", "1"],
+          ]);
 
-        const latex =
-          engineState.mode === "translate"
-            ? matrixToLatex([
-                ["1", "0", "0", matrixNumber(tx)],
-                ["0", "1", "0", matrixNumber(ty)],
-                ["0", "0", "1", matrixNumber(tz)],
-                ["0", "0", "0", "1"],
-              ])
-            : engineState.mode === "rotate"
-            ? matrixToLatex([
-                [matrixNumber(r11), matrixNumber(r12), matrixNumber(r13), "0"],
-                [matrixNumber(r21), matrixNumber(r22), matrixNumber(r23), "0"],
-                [matrixNumber(r31), matrixNumber(r32), matrixNumber(r33), "0"],
-                ["0", "0", "0", "1"],
-              ])
-            : engineState.mode === "skew"
-            ? matrixToLatex([
-                ["1", matrixNumber(kxy), matrixNumber(kxz), "0"],
-                [matrixNumber(kyx), "1", matrixNumber(kyz), "0"],
-                [matrixNumber(kzx), matrixNumber(kzy), "1", "0"],
-                ["0", "0", "0", "1"],
-              ])
-            : matrixToLatex([
-                [matrixNumber(sx), "0", "0", "0"],
-                ["0", matrixNumber(sy), "0", "0"],
-                ["0", "0", matrixNumber(sz), "0"],
-                ["0", "0", "0", "1"],
-              ]);
-        try {
-          el.innerHTML = katex.renderToString(latex, { throwOnError: false });
-        } catch (e) {
-          // fail silently
-        }
-      })
-      .catch(() => {});
+    try {
+      el.innerHTML = katex.renderToString(latex, { throwOnError: false });
+    } catch (e) {
+      // fail silently :)
+    }
   }, [
     engineState.mode,
     shouldShowTransformMatrix,
@@ -1017,9 +969,7 @@ export default function Canvas3DWorkspace() {
           </div>
 
           <div
-            className={`absolute right-3 top-[2.65rem] z-60 w-72 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] py-1.5 backdrop-blur-[5px] ${
-              isSettingsOpen ? "" : "hidden"
-            }`}
+            className={`absolute right-3 top-[2.65rem] z-60 w-72 rounded-[0.2rem] ${isSettingsOpen ? "" : "hidden"}`}
             ref={settingsRef}
           >
             <div className="px-2 py-2">

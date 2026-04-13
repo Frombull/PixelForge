@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
@@ -248,6 +248,115 @@ function matrixToLatex(rows: string[][]) {
   return `\\begin{bmatrix}${rows.map((row) => row.join(" & ")).join(" \\\\ ")}\\end{bmatrix}`;
 }
 
+type DraggableNumberInputProps = {
+  id?: string;
+  className?: string;
+  disabled?: boolean;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onValueChange: (value: number) => void;
+  scrubSensitivity?: number;
+  handlePosition?: "left" | "right";
+};
+
+function DraggableNumberInput({
+  value,
+  onValueChange,
+  min,
+  max,
+  step = 1,
+  scrubSensitivity = 0.3,
+  handlePosition,
+  id,
+  className,
+  disabled,
+}: DraggableNumberInputProps) {
+  const [internalValue, setInternalValue] = useState<number>(value);
+  const draggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const startValueRef = useRef(value);
+  const numericStep = Math.abs(Number(step) || 1);
+
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, []);
+
+  function decimalPlaces(n: number) {
+    const decimals = String(n).split(".")[1];
+    return decimals ? decimals.length : 0;
+  }
+
+  const clampAndQuantize = (next: number) => {
+    const precision = decimalPlaces(numericStep);
+    let quantized = Math.round(next / numericStep) * numericStep;
+    if (typeof min === "number") quantized = Math.max(min, quantized);
+    if (typeof max === "number") quantized = Math.min(max, quantized);
+    return Number(quantized.toFixed(precision));
+  };
+
+  const commit = (next: number) => {
+    if (!Number.isFinite(next)) return;
+    const normalized = clampAndQuantize(next);
+    setInternalValue(normalized);
+    onValueChange(normalized);
+  };
+
+  const handlePointerMove = (event: PointerEvent) => {
+    if (!draggingRef.current || disabled) return;
+    const delta = event.clientX - startXRef.current;
+    commit(startValueRef.current + delta * numericStep * scrubSensitivity);
+  };
+
+  const handlePointerUp = () => {
+    draggingRef.current = false;
+    document.removeEventListener("pointermove", handlePointerMove);
+    document.removeEventListener("pointerup", handlePointerUp);
+  };
+
+  const handlePointerDown = (event: ReactPointerEvent) => {
+    if (disabled || event.button !== 0) return;
+    draggingRef.current = true;
+    startXRef.current = event.clientX;
+    startValueRef.current = internalValue;
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", handlePointerUp);
+  };
+
+  return (
+    <div className="w-full min-w-0">
+      <input
+        id={id}
+        className={`${className ?? ""} [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+          disabled
+            ? "cursor-not-allowed opacity-40"
+            : "cursor-ew-resize hover:text-[#7dcfff] active:cursor-ew-resize"
+        }`}
+        disabled={disabled}
+        max={max}
+        min={min}
+        onChange={(event) => {
+          const parsed = Number(event.target.value);
+          if (!Number.isFinite(parsed)) return;
+          commit(parsed);
+        }}
+        onPointerDown={handlePointerDown}
+        step={numericStep}
+        type="number"
+        value={internalValue}
+      />
+    </div>
+  );
+}
+
 export default function Canvas3DWorkspace() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [engineState, setEngineState] = useState<Canvas3DState>(EMPTY_STATE);
@@ -470,10 +579,9 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setMode(mode);
   };
 
-  const updateTransform = (field: string, value: string) => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return;
-    window.Canvas3DBridge?.updateSelectedTransform(field, parsed);
+  const updateTransform = (field: string, value: number) => {
+    if (!Number.isFinite(value)) return;
+    window.Canvas3DBridge?.updateSelectedTransform(field, value);
   };
 
   const resetTransformGroup = (targets: string[]) => {
@@ -490,8 +598,8 @@ export default function Canvas3DWorkspace() {
     }
   };
 
-  const updateRgbColor = (channel: "r" | "g" | "b", rawValue: string) => {
-    const parsed = clamp(Number(rawValue), 0, 255);
+  const updateRgbColor = (channel: "r" | "g" | "b", rawValue: number) => {
+    const parsed = clamp(rawValue, 0, 255);
     if (!Number.isFinite(parsed)) return;
 
     const next = {
@@ -508,8 +616,8 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setSelectedColorHex(hex);
   };
 
-  const updateHsvColor = (channel: "h" | "s" | "v", rawValue: string) => {
-    const parsed = Number(rawValue);
+  const updateHsvColor = (channel: "h" | "s" | "v", rawValue: number) => {
+    const parsed = rawValue;
     if (!Number.isFinite(parsed)) return;
 
     const next = {
@@ -795,16 +903,17 @@ export default function Canvas3DWorkspace() {
               </label>
 
               <div className="flex items-center gap-[0.4rem]">
-                <input
+                <DraggableNumberInput
                   className={`h-[1.6rem] w-14 flex-none box-border rounded-md border border-[#2a2d3e] bg-[#13141c] px-[0.32rem] py-[0.12rem] text-[0.68rem] leading-none text-[#c0caf5] ${
                     engineState.settings.snapToGrid ? "opacity-100" : "pointer-events-none opacity-50"
                   }`}
+                  disabled={!engineState.settings.snapToGrid}
+                  handlePosition="left"
                   id="snap-size"
-                  min="0.1"
-                  onChange={(event) => window.Canvas3DBridge?.setSnapSize(Number(event.target.value))}
-                  step="0.1"
-                  type="number"
-                  value={numberValue(engineState.settings.snapSize, 2)}
+                  min={0.1}
+                  onValueChange={(value) => window.Canvas3DBridge?.setSnapSize(value)}
+                  step={0.1}
+                  value={engineState.settings.snapSize}
                 />
                 <button
                   className={`${resetButtonClass} h-[1.6rem] w-[1.6rem] px-[0.3rem] text-[0.68rem] ${
@@ -861,7 +970,7 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.farClip, 0)}
                 />
                 <button
-                  className={`${resetButtonClass} h-[1rem] w-[1rem] text-[0.62rem]`}
+                  className={`${resetButtonClass} h-4 w-4 text-[0.62rem]`}
                   onClick={() => window.Canvas3DBridge?.resetSetting("far-clip")}
                   title="Reset Far Clip"
                   type="button"
@@ -883,7 +992,7 @@ export default function Canvas3DWorkspace() {
                   value={numberValue(engineState.settings.nearClip, 2)}
                 />
                 <button
-                  className={`${resetButtonClass} h-[1rem] w-[1rem] text-[0.62rem]`}
+                  className={`${resetButtonClass} h-4 w-4 text-[0.62rem]`}
                   onClick={() => window.Canvas3DBridge?.resetSetting("near-clip")}
                   title="Reset Near Clip"
                   type="button"
@@ -942,9 +1051,9 @@ export default function Canvas3DWorkspace() {
                   <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Position</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><input className={axisInputClass} id="pos-x" onChange={(event) => updateTransform("pos-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.x)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="pos-y" onChange={(event) => updateTransform("pos-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.y)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="pos-z" onChange={(event) => updateTransform("pos-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.position.z)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-x" onValueChange={(value) => updateTransform("pos-x", value)} step={0.1} value={selected.position.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-y" onValueChange={(value) => updateTransform("pos-y", value)} step={0.1} value={selected.position.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-z" onValueChange={(value) => updateTransform("pos-z", value)} step={0.1} value={selected.position.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
                     </div>
                     <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["pos-x", "pos-y", "pos-z"])} title="Reset Position" type="button">R</button>
                   </div>
@@ -952,9 +1061,9 @@ export default function Canvas3DWorkspace() {
                   <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Rotation</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><input className={axisInputClass} id="rot-x" onChange={(event) => updateTransform("rot-x", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.x)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="rot-y" onChange={(event) => updateTransform("rot-y", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.y)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="rot-z" onChange={(event) => updateTransform("rot-z", event.target.value)} step="1" type="number" value={numberValue(selected.rotation.z)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-x" onValueChange={(value) => updateTransform("rot-x", value)} step={1} value={selected.rotation.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-y" onValueChange={(value) => updateTransform("rot-y", value)} step={1} value={selected.rotation.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-z" onValueChange={(value) => updateTransform("rot-z", value)} step={1} value={selected.rotation.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
                     </div>
                     <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["rot-x", "rot-y", "rot-z"])} title="Reset Rotation" type="button">R</button>
                   </div>
@@ -962,9 +1071,9 @@ export default function Canvas3DWorkspace() {
                   <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Scale</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><input className={axisInputClass} id="scale-x" min="0.1" onChange={(event) => updateTransform("scale-x", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.x)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="scale-y" min="0.1" onChange={(event) => updateTransform("scale-y", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.y)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="scale-z" min="0.1" onChange={(event) => updateTransform("scale-z", event.target.value)} step="0.1" type="number" value={numberValue(selected.scale.z)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-x" min={0.1} onValueChange={(value) => updateTransform("scale-x", value)} step={0.1} value={selected.scale.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-y" min={0.1} onValueChange={(value) => updateTransform("scale-y", value)} step={0.1} value={selected.scale.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-z" min={0.1} onValueChange={(value) => updateTransform("scale-z", value)} step={0.1} value={selected.scale.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
                     </div>
                     <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["scale-x", "scale-y", "scale-z"])} title="Reset Scale" type="button">R</button>
                   </div>
@@ -972,12 +1081,12 @@ export default function Canvas3DWorkspace() {
                   <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Skew</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-xy" onChange={(event) => updateTransform("skew-xy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xy)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XY</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-xz" onChange={(event) => updateTransform("skew-xz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.xz)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XZ</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-yx" onChange={(event) => updateTransform("skew-yx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yx)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YX</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-yz" onChange={(event) => updateTransform("skew-yz", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.yz)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YZ</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-zx" onChange={(event) => updateTransform("skew-zx", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zx)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZX</span></div>
-                      <div className="relative flex items-center"><input className={axisInputClass} id="skew-zy" onChange={(event) => updateTransform("skew-zy", event.target.value)} step="0.1" type="number" value={numberValue(selected.skew.zy)} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZY</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xy" onValueChange={(value) => updateTransform("skew-xy", value)} step={0.1} value={selected.skew.xy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XY</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xz" onValueChange={(value) => updateTransform("skew-xz", value)} step={0.1} value={selected.skew.xz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XZ</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yx" onValueChange={(value) => updateTransform("skew-yx", value)} step={0.1} value={selected.skew.yx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YX</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yz" onValueChange={(value) => updateTransform("skew-yz", value)} step={0.1} value={selected.skew.yz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YZ</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zx" onValueChange={(value) => updateTransform("skew-zx", value)} step={0.1} value={selected.skew.zx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZX</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zy" onValueChange={(value) => updateTransform("skew-zy", value)} step={0.1} value={selected.skew.zy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZY</span></div>
                     </div>
                     <button
                       className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`}
@@ -1034,15 +1143,15 @@ export default function Canvas3DWorkspace() {
 
                   {colorMode === "rgb" ? (
                     <div className="grid grid-cols-3 gap-[0.35rem]" id="rgb-inputs">
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-r">R</label><input className={scalarInputClass} id="color-r" max="255" min="0" onChange={(event) => updateRgbColor("r", event.target.value)} step="1" type="number" value={String(colorInputs.r)} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-g">G</label><input className={scalarInputClass} id="color-g" max="255" min="0" onChange={(event) => updateRgbColor("g", event.target.value)} step="1" type="number" value={String(colorInputs.g)} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-b">B</label><input className={scalarInputClass} id="color-b" max="255" min="0" onChange={(event) => updateRgbColor("b", event.target.value)} step="1" type="number" value={String(colorInputs.b)} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-r">R</label><DraggableNumberInput className={scalarInputClass} id="color-r" max={255} min={0} onValueChange={(value) => updateRgbColor("r", value)} step={1} value={colorInputs.r} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-g">G</label><DraggableNumberInput className={scalarInputClass} id="color-g" max={255} min={0} onValueChange={(value) => updateRgbColor("g", value)} step={1} value={colorInputs.g} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-b">B</label><DraggableNumberInput className={scalarInputClass} id="color-b" max={255} min={0} onValueChange={(value) => updateRgbColor("b", value)} step={1} value={colorInputs.b} /></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 gap-[0.35rem]" id="hsv-inputs">
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-h">H</label><input className={scalarInputClass} id="color-h" max="360" min="0" onChange={(event) => updateHsvColor("h", event.target.value)} step="1" type="number" value={String(colorInputs.h)} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-s">S</label><input className={scalarInputClass} id="color-s" max="100" min="0" onChange={(event) => updateHsvColor("s", event.target.value)} step="1" type="number" value={String(colorInputs.s)} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-v">V</label><input className={scalarInputClass} id="color-v" max="100" min="0" onChange={(event) => updateHsvColor("v", event.target.value)} step="1" type="number" value={String(colorInputs.v)} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-h">H</label><DraggableNumberInput className={scalarInputClass} id="color-h" max={360} min={0} onValueChange={(value) => updateHsvColor("h", value)} step={1} value={colorInputs.h} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-s">S</label><DraggableNumberInput className={scalarInputClass} id="color-s" max={100} min={0} onValueChange={(value) => updateHsvColor("s", value)} step={1} value={colorInputs.s} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-v">V</label><DraggableNumberInput className={scalarInputClass} id="color-v" max={100} min={0} onValueChange={(value) => updateHsvColor("v", value)} step={1} value={colorInputs.v} /></div>
                     </div>
                   )}
 

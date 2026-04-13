@@ -2,7 +2,7 @@
  
 
 DONE - Matriz da tool selecionada na sidebar esquerda (usando Katex)
-- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
+- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber) ou (https://github.com/designbyadrian/react-interactive-input)
 - Pintor, Pintor reverso
 - Z buffer, A buffer
 - Hints em forma de bolinha piscando quando entrar na página
@@ -37,6 +37,8 @@ Possiveis UI:
 LINKS:
     To Early-Z, or Not To Early-Z: https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/
     Transforms: https://www.brunodorta.com.br/cg/transforms
+    quake fodase: https://mrdoob.com
+    tf2 model viewer: https://github.com/gkjohnson/source-engine-model-loader
 
 
 Libs usadas:

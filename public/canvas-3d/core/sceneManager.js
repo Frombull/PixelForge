@@ -13,6 +13,7 @@ export class SceneManager {
         this.secondCamera = null;
         this.secondRenderer = null;
         this.gridHelper = null;
+        this.axesHelper = null;
         this.cameraHelper = null;
         this.sky = null;
         this.backgroundColor = new THREE.Color(COLORS.background);
@@ -147,9 +148,9 @@ export class SceneManager {
     }
     
     createAxes() {
-        const axes = new THREE.AxesHelper(5);
-        axes.material.depthTest = false;
-        this.scene.add(axes);
+        this.axesHelper = new THREE.AxesHelper(5);
+        if (this.axesHelper.material) this.axesHelper.material.depthTest = false;
+        this.scene.add(this.axesHelper);
     }
     
     toggleCameraType(controls) {
@@ -271,6 +272,10 @@ export class SceneManager {
     
     setGridVisible(visible) {
         if (this.gridHelper) this.gridHelper.visible = visible;
+    }
+
+    setAxesVisible(visible) {
+        if (this.axesHelper) this.axesHelper.visible = visible;
     }
     
     setClipPlanes(near, far) {

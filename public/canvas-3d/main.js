@@ -227,6 +227,7 @@ class App {
 
         return {
             gridVisible: this.sceneManager.gridHelper?.visible ?? true,
+            axesVisible: this.sceneManager.axesHelper?.visible ?? true,
             snapToGrid: this.snapToGrid,
             snapSize: this.snapSize,
             backgroundColor: bgColor,
@@ -399,6 +400,11 @@ class App {
 
     setGridVisible(visible) {
         this.sceneManager.setGridVisible(visible);
+        this.emitState();
+    }
+
+    setAxesVisible(visible) {
+        this.sceneManager.setAxesVisible(visible);
         this.emitState();
     }
 
@@ -761,6 +767,7 @@ window.Canvas3DBridge = {
     toggleCullingView: () => appInstance?.toggleCullingView(),
 
     setGridVisible: (visible) => appInstance?.setGridVisible(visible),
+    setAxesVisible: (visible) => appInstance?.setAxesVisible(visible),
     setSnapEnabled: (enabled) => appInstance?.setSnapEnabled(enabled),
     setSnapSize: (size) => appInstance?.setSnapSize(size),
     setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),

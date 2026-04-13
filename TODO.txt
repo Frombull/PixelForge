@@ -1,8 +1,8 @@
  ::: TODO :::
  
 
-DONE - Matriz da tool selecionada na sidebar esquerda (usando Katex)
-- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber) ou (https://github.com/designbyadrian/react-interactive-input)
+[DONE] - Matriz da tool selecionada na sidebar esquerda (usando Katex)
+[DONE] - Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
 - Pintor, Pintor reverso
 - Z buffer, A buffer
 - Hints em forma de bolinha piscando quando entrar na página
@@ -43,4 +43,4 @@ LINKS:
 
 Libs usadas:
     Katex, lib pra matematicas binitas: https://katex.org/
-    
+    Input field scrubber: https://github.com/camwebby/shadcn-react-number-scrubber

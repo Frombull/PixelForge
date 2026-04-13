@@ -44,6 +44,7 @@ type SelectedObjectState = {
 
 type SettingsState = {
   gridVisible: boolean;
+  axesVisible: boolean;
   snapToGrid: boolean;
   snapSize: number;
   backgroundColor: string;
@@ -71,6 +72,7 @@ const EMPTY_STATE: Canvas3DState = {
   selected: null,
   settings: {
     gridVisible: true,
+    axesVisible: true,
     snapToGrid: false,
     snapSize: 0.5,
     backgroundColor: "#ffffff",
@@ -128,6 +130,7 @@ declare global {
       toggleCullingView: () => boolean | undefined;
 
       setGridVisible: (visible: boolean) => void;
+      setAxesVisible: (visible: boolean) => void;
       setSnapEnabled: (enabled: boolean) => void;
       setSnapSize: (size: number) => void;
       setBackgroundColor: (hex: string) => void;
@@ -880,15 +883,27 @@ export default function Canvas3DWorkspace() {
             ref={settingsRef}
           >
             <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
-              <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-grid">
-                <input
-                  className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
-                  checked={engineState.settings.gridVisible}
-                  id="toggle-grid"
-                  onChange={(event) => window.Canvas3DBridge?.setGridVisible(event.target.checked)}
-                  type="checkbox"/>
-                <span>Mostrar Grid</span>
-              </label>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-grid">
+                  <input
+                    className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
+                    checked={engineState.settings.gridVisible}
+                    id="toggle-grid"
+                    onChange={(event) => window.Canvas3DBridge?.setGridVisible(event.target.checked)}
+                    type="checkbox"/>
+                  <span>Mostrar Grid</span>
+                </label>
+
+                <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-axes">
+                  <input
+                    className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
+                    checked={engineState.settings.axesVisible}
+                    id="toggle-axes"
+                    onChange={(event) => window.Canvas3DBridge?.setAxesVisible(event.target.checked)}
+                    type="checkbox"/>
+                  <span>Mostrar Eixos</span>
+                </label>
+              </div>
             </div>
 
             <div className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">

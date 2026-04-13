@@ -46,9 +46,9 @@ export const CONSTANTS = {
         SKEW_MODE: 'k',
         FOCUS_SELECTED: 'f',
         DELETE_SELECTED: 'delete',
-        VIEW_FRONT: 'Numpad1',
+        VIEW_FRONT: 'Numpad7',
         VIEW_RIGHT: 'Numpad3',
-        VIEW_TOP: 'Numpad7'
+        VIEW_TOP: 'Numpad1'
     },
     APP_CONFIG: {
         stateEventName: 'canvas3d:state',

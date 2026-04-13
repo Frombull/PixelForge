@@ -10,25 +10,29 @@
 
 [DONE] - Matriz da tool selecionada na sidebar esquerda (usando Katex)
 [DONE] - Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
+[DONE] - Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
+[DONE] - wifeframe toggle
+[DONE] - Setinha de back
 
 === [ ON IT ] ===========================================================================================================
 
-- Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
+
  
 === [ TODO ] ============================================================================================================
 
-- Segurar shift pra dar snap
+- Mapa do sucesso
 - Pintor, Pintor reverso
 - Z buffer, A buffer
+- Segurar shift pra dar snap
 - Hints em forma de bolinha piscando quando entrar na página
 BG:
     - Iluminação decente
     - Fix background color picker
-- Add color picker to obj mateiral on right sidebar
+- Add color picker to obj mateiral on right sidebar. redondo pra HSV, talvez usar a biblioteca Iro, mesma do canvas 2D
 - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d)
-- Mostrar culling pela câmera secundária
+Camera secundária:
+- - Mostrar culling pela câmera secundária
 - - Resize na tela da câmera secundária
-- Setinha de back
 - Ctrl-c / ctrl-v
 - ctrl-z
 - ctrl-x

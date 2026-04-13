@@ -87,6 +87,7 @@ class App {
         this.viewportGizmo = null;
         this.transformControls = null;
 
+        this.wireframeVisible = false;
         this.snapToGrid = false;
         this.snapSize = DEFAULT_VALUES.snapSize;
         this.isSkewDragging = false;
@@ -228,6 +229,7 @@ class App {
         return {
             gridVisible: this.sceneManager.gridHelper?.visible ?? true,
             axesVisible: this.sceneManager.axesHelper?.visible ?? true,
+            wireframeVisible: this.wireframeVisible,
             snapToGrid: this.snapToGrid,
             snapSize: this.snapSize,
             backgroundColor: bgColor,
@@ -261,6 +263,26 @@ class App {
         } else {
             this.transformControls.setTranslationSnap(null);
         }
+    }
+
+    setMaterialWireframe(material, visible) {
+        if (!material) return;
+
+        if (Array.isArray(material)) {
+            material.forEach((entry) => this.setMaterialWireframe(entry, visible));
+            return;
+        }
+
+        if (typeof material.wireframe === 'boolean') {
+            material.wireframe = visible;
+            material.needsUpdate = true;
+        }
+    }
+
+    applyWireframeVisibility() {
+        this.objectManager.objects.forEach((obj) => {
+            this.setMaterialWireframe(obj.material, this.wireframeVisible);
+        });
     }
 
     setPositionWithSnap(object, x, y, z) {
@@ -321,6 +343,7 @@ class App {
         else if (kind === 'cylinder') this.objectManager.addCylinder();
         else if (kind === 'subtractCube') this.objectManager.addSubtractCube();
         else if (kind === 'zFighting') this.objectManager.addZFightingDemo();
+        this.applyWireframeVisibility();
         this.emitState();
     }
 
@@ -435,6 +458,12 @@ class App {
     setSnapEnabled(enabled) {
         this.snapToGrid = enabled;
         this.applyTransformSnapSettings();
+        this.emitState();
+    }
+
+    setWireframeVisible(visible) {
+        this.wireframeVisible = Boolean(visible);
+        this.applyWireframeVisibility();
         this.emitState();
     }
 
@@ -796,6 +825,7 @@ window.Canvas3DBridge = {
 
     setGridVisible: (visible) => appInstance?.setGridVisible(visible),
     setAxesVisible: (visible) => appInstance?.setAxesVisible(visible),
+    setWireframeVisible: (visible) => appInstance?.setWireframeVisible(visible),
     setSnapEnabled: (enabled) => appInstance?.setSnapEnabled(enabled),
     setSnapSize: (size) => appInstance?.setSnapSize(size),
     setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),

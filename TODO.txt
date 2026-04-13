@@ -1,19 +1,19 @@
  ::: TODO :::
  
 
+DONE - Matriz da tool selecionada na sidebar esquerda (usando Katex)
+- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
 - Pintor, Pintor reverso
 - Z buffer, A buffer
-- Matriz da tool selecionada na sidebar esquerda
 - Hints em forma de bolinha piscando quando entrar na página
  
 
-- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
 BG:
     - Iluminação decente
     - Fix background color picker
 - Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
 - Add color picker to obj mateiral on right sidebar
-- Custom AABB?
+- Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d)
 - Mostrar culling pela câmera secundária
 - - Resize na tela da câmera secundária
 - Setinha de back
@@ -21,6 +21,8 @@ BG:
 - ctrl-z
 - ctrl-x
 - Demo com varios cubos para mostrar frustum culling
+- Atualizar readme.md
+- Pensar em testes
 
 
 Possiveis UI:
@@ -30,3 +32,13 @@ Possiveis UI:
     4. https://react-aria.adobe.com/
     5. https://base-ui.com/
     Para context menu: https://tweakpane.github.io/docs/
+
+
+LINKS:
+    To Early-Z, or Not To Early-Z: https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/
+    Transforms: https://www.brunodorta.com.br/cg/transforms
+
+
+Libs usadas:
+    Katex, lib pra matematicas binitas: https://katex.org/
+    

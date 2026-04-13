@@ -142,6 +142,7 @@ declare global {
       setSelectedColorHSV: (h: number, s: number, v: number) => void;
       setSelectedAlpha: (alphaPercent: number) => void;
     };
+    katex?: any;
   }
 }
 
@@ -204,6 +205,20 @@ function ensureScript(id: string, src: string, type = "text/javascript") {
   });
 }
 
+function ensureKaTeX() {
+  if (document.getElementById("katex-js") && document.getElementById("katex-css")) return Promise.resolve();
+
+  if (!document.getElementById("katex-css")) {
+    const link = document.createElement("link");
+    link.id = "katex-css";
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css";
+    document.head.appendChild(link);
+  }
+
+  return ensureScript("katex-js", "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js");
+}
+
 async function waitForBridge(retries = 50, delayMs = 50) {
   for (let i = 0; i < retries; i += 1) {
     if (window.Canvas3DBridge) return true;
@@ -222,6 +237,17 @@ function numberValue(value: number, digits = 2) {
   return value.toFixed(digits);
 }
 
+function matrixNumber(value: number, digits = 3) {
+  if (!Number.isFinite(value)) return "0";
+  const normalized = Math.abs(value) < 1e-6 ? 0 : value;
+  const rounded = Number(normalized.toFixed(digits));
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+}
+
+function matrixToLatex(rows: string[][]) {
+  return `\\begin{bmatrix}${rows.map((row) => row.join(" & ")).join(" \\\\ ")}\\end{bmatrix}`;
+}
+
 export default function Canvas3DWorkspace() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [engineState, setEngineState] = useState<Canvas3DState>(EMPTY_STATE);
@@ -238,6 +264,17 @@ export default function Canvas3DWorkspace() {
   const settingsButtonRef = useRef<HTMLButtonElement | null>(null);
   const infoRef = useRef<HTMLDivElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
+  const scaleMatrixRef = useRef<HTMLDivElement | null>(null);
+  const selected = engineState.selected;
+  const shouldShowTransformMatrix = ["translate", "rotate", "scale", "skew"].includes(engineState.mode);
+  const matrixTitle =
+    engineState.mode === "translate"
+      ? "Matriz de Translação"
+      : engineState.mode === "rotate"
+      ? "Matriz de Rotação"
+      : engineState.mode === "skew"
+      ? "Matriz de Skew"
+      : "Matriz de Escala";
 
   useEffect(() => {
     let cancelled = false;
@@ -320,7 +357,110 @@ export default function Canvas3DWorkspace() {
     return () => document.removeEventListener("click", handleOutside);
   }, []);
 
-  const selected = engineState.selected;
+  useEffect(() => {
+    if (!shouldShowTransformMatrix) {
+      if (scaleMatrixRef.current) scaleMatrixRef.current.innerHTML = "";
+      return;
+    }
+
+    const el = scaleMatrixRef.current;
+    if (!el) return;
+
+    ensureKaTeX()
+      .then(() => {
+        const katex = (window as any).katex;
+        if (!katex) return;
+
+        const tx = selected?.position.x ?? 0;
+        const ty = selected?.position.y ?? 0;
+        const tz = selected?.position.z ?? 0;
+
+        const sx = selected?.scale.x ?? 1;
+        const sy = selected?.scale.y ?? 1;
+        const sz = selected?.scale.z ?? 1;
+
+        const rx = ((selected?.rotation.x ?? 0) * Math.PI) / 180;
+        const ry = ((selected?.rotation.y ?? 0) * Math.PI) / 180;
+        const rz = ((selected?.rotation.z ?? 0) * Math.PI) / 180;
+
+        const sinX = Math.sin(rx);
+        const cosX = Math.cos(rx);
+        const sinY = Math.sin(ry);
+        const cosY = Math.cos(ry);
+        const sinZ = Math.sin(rz);
+        const cosZ = Math.cos(rz);
+
+        const r11 = cosZ * cosY;
+        const r12 = cosZ * sinY * sinX - sinZ * cosX;
+        const r13 = cosZ * sinY * cosX + sinZ * sinX;
+        const r21 = sinZ * cosY;
+        const r22 = sinZ * sinY * sinX + cosZ * cosX;
+        const r23 = sinZ * sinY * cosX - cosZ * sinX;
+        const r31 = -sinY;
+        const r32 = cosY * sinX;
+        const r33 = cosY * cosX;
+
+        const kxy = selected?.skew.xy ?? 0;
+        const kxz = selected?.skew.xz ?? 0;
+        const kyx = selected?.skew.yx ?? 0;
+        const kyz = selected?.skew.yz ?? 0;
+        const kzx = selected?.skew.zx ?? 0;
+        const kzy = selected?.skew.zy ?? 0;
+
+        const latex =
+          engineState.mode === "translate"
+            ? matrixToLatex([
+                ["1", "0", "0", matrixNumber(tx)],
+                ["0", "1", "0", matrixNumber(ty)],
+                ["0", "0", "1", matrixNumber(tz)],
+                ["0", "0", "0", "1"],
+              ])
+            : engineState.mode === "rotate"
+            ? matrixToLatex([
+                [matrixNumber(r11), matrixNumber(r12), matrixNumber(r13), "0"],
+                [matrixNumber(r21), matrixNumber(r22), matrixNumber(r23), "0"],
+                [matrixNumber(r31), matrixNumber(r32), matrixNumber(r33), "0"],
+                ["0", "0", "0", "1"],
+              ])
+            : engineState.mode === "skew"
+            ? matrixToLatex([
+                ["1", matrixNumber(kxy), matrixNumber(kxz), "0"],
+                [matrixNumber(kyx), "1", matrixNumber(kyz), "0"],
+                [matrixNumber(kzx), matrixNumber(kzy), "1", "0"],
+                ["0", "0", "0", "1"],
+              ])
+            : matrixToLatex([
+                [matrixNumber(sx), "0", "0", "0"],
+                ["0", matrixNumber(sy), "0", "0"],
+                ["0", "0", matrixNumber(sz), "0"],
+                ["0", "0", "0", "1"],
+              ]);
+        try {
+          el.innerHTML = katex.renderToString(latex, { throwOnError: false });
+        } catch (e) {
+          // fail silently
+        }
+      })
+      .catch(() => {});
+  }, [
+    engineState.mode,
+    shouldShowTransformMatrix,
+    selected?.position.x,
+    selected?.position.y,
+    selected?.position.z,
+    selected?.rotation.x,
+    selected?.rotation.y,
+    selected?.rotation.z,
+    selected?.scale.x,
+    selected?.scale.y,
+    selected?.scale.z,
+    selected?.skew.xy,
+    selected?.skew.xz,
+    selected?.skew.yx,
+    selected?.skew.yz,
+    selected?.skew.zx,
+    selected?.skew.zy,
+  ]);
 
   const addObject = (kind: "cube" | "cylinder" | "subtractCube" | "zFighting") => {
     window.Canvas3DBridge?.addObject(kind);
@@ -423,7 +563,7 @@ export default function Canvas3DWorkspace() {
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
-        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#151623]/95 p-3 max-md:hidden">
+        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#151623]/95 p-3 max-md:hidden flex flex-col">
           <div className={panelSectionClass} id="hierarchy-section">
             <div className={panelHeaderClass}>
               <span>Hierarquia</span>
@@ -542,6 +682,19 @@ export default function Canvas3DWorkspace() {
               </div>
             </div>
           </div>
+          {shouldShowTransformMatrix && (
+            <div className={`${panelSectionClass} mt-auto`} id="scale-matrix-section">
+              <div className={panelHeaderClass}>
+                <span>{matrixTitle}</span>
+              </div>
+
+              <div className="p-1 mb-3">
+                <div className="text-xs">
+                  <div ref={scaleMatrixRef} className="katex-matrix text-[1rem] text-center" />
+                </div>
+              </div>
+            </div>
+          )}
         </aside>
 
         <main id="center-area" className="relative flex-1 bg-[#0f1017]">

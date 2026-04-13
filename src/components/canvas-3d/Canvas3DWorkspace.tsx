@@ -222,6 +222,26 @@ function ensureKaTeX() {
   return ensureScript("katex-js", "https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js");
 }
 
+async function ensureTweakpane() {
+  try {
+    const mod = await import('tweakpane');
+    return mod;
+  } catch (e) {
+    if (!document.getElementById('tweakpane-css')) {
+      const link = document.createElement('link');
+      link.id = 'tweakpane-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/tweakpane@3.0.7/dist/tweakpane.min.css';
+      document.head.appendChild(link);
+    }
+
+    await ensureScript('tweakpane-js', 'https://cdn.jsdelivr.net/npm/tweakpane@3.0.7/dist/tweakpane.min.js');
+
+    const anyWin = window as any;
+    return anyWin.tweakpane || anyWin.Tweakpane || anyWin.tp || anyWin.Pane || anyWin;
+  }
+}
+
 async function waitForBridge(retries = 50, delayMs = 50) {
   for (let i = 0; i < retries; i += 1) {
     if (window.Canvas3DBridge) return true;
@@ -377,6 +397,8 @@ export default function Canvas3DWorkspace() {
   const infoRef = useRef<HTMLDivElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
   const scaleMatrixRef = useRef<HTMLDivElement | null>(null);
+  const tweakpaneRef = useRef<any>(null);
+  const tweakpaneContainerRef = useRef<HTMLDivElement | null>(null);
   const selected = engineState.selected;
   const shouldShowTransformMatrix = ["translate", "rotate", "scale", "skew"].includes(engineState.mode);
   const matrixTitle =
@@ -468,6 +490,124 @@ export default function Canvas3DWorkspace() {
     document.addEventListener("click", handleOutside);
     return () => document.removeEventListener("click", handleOutside);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function initPane() {
+      if (!isSettingsOpen) return;
+      if (!tweakpaneContainerRef.current) return;
+
+      try {
+        const mod = await ensureTweakpane();
+        if (cancelled) return;
+
+        const anyWin = window as any;
+        const PaneCtor = mod?.Pane || mod?.default?.Pane || mod?.default || anyWin?.tweakpane?.Pane || anyWin?.tweakpane || anyWin?.Tweakpane?.Pane || anyWin?.Tweakpane || anyWin?.Pane;
+        if (!PaneCtor) {
+          console.error('Tweakpane Pane constructor not found');
+          return;
+        }
+
+        const pane = new PaneCtor({ container: tweakpaneContainerRef.current, title: 'Configurações' });
+
+        const settingsObj = {
+          gridVisible: engineState.settings.gridVisible,
+          axesVisible: engineState.settings.axesVisible,
+          snapToGrid: engineState.settings.snapToGrid,
+          snapSize: engineState.settings.snapSize,
+          backgroundColor: engineState.settings.backgroundColor,
+          gridColor: engineState.settings.gridColor,
+          nearClip: engineState.settings.nearClip,
+          farClip: engineState.settings.farClip,
+        };
+
+        const controllers: Record<string, any> = {};
+
+        controllers.grid = pane.addInput(settingsObj, 'gridVisible', { label: 'Mostrar Grid' });
+        controllers.grid.on('change', (ev: any) => window.Canvas3DBridge?.setGridVisible(ev.value));
+
+        controllers.axes = pane.addInput(settingsObj, 'axesVisible', { label: 'Mostrar Eixos' });
+        controllers.axes.on('change', (ev: any) => window.Canvas3DBridge?.setAxesVisible(ev.value));
+
+        controllers.snap = pane.addInput(settingsObj, 'snapToGrid', { label: 'Snap to Grid' });
+        controllers.snap.on('change', () => window.Canvas3DBridge?.setSnapEnabled(settingsObj.snapToGrid));
+
+        controllers.snapSize = pane.addInput(settingsObj, 'snapSize', { min: 0.1, max: 10, step: 0.1, label: 'Snap Size' });
+        controllers.snapSize.on('change', (ev: any) => window.Canvas3DBridge?.setSnapSize(ev.value));
+
+        controllers.bg = pane.addInput(settingsObj, 'backgroundColor', { view: 'color', label: 'Background' });
+        controllers.bg.on('change', (ev: any) => window.Canvas3DBridge?.setBackgroundColor(ev.value));
+
+        controllers.gridColor = pane.addInput(settingsObj, 'gridColor', { view: 'color', label: 'Grid Color' });
+        controllers.gridColor.on('change', (ev: any) => window.Canvas3DBridge?.setGridColor(ev.value));
+
+        controllers.far = pane.addInput(settingsObj, 'farClip', { min: 5, max: 50, step: 1, label: 'Far Clip' });
+        controllers.far.on('change', (ev: any) => window.Canvas3DBridge?.setFarClip(ev.value));
+
+        controllers.near = pane.addInput(settingsObj, 'nearClip', { min: 0.01, max: 5, step: 0.01, label: 'Near Clip' });
+        controllers.near.on('change', (ev: any) => window.Canvas3DBridge?.setNearClip(ev.value));
+
+        tweakpaneRef.current = { pane, settingsObj, controllers };
+      } catch (err) {
+        // don't crash the UI if tweakpane fails to load
+        // eslint-disable-next-line no-console
+        console.error('Failed to initialize Tweakpane', err);
+      }
+    }
+
+    initPane();
+
+    return () => {
+      cancelled = true;
+      if (tweakpaneRef.current?.pane) {
+        try {
+          tweakpaneRef.current.pane.dispose?.();
+        } catch (e) {
+          /* ignore */
+        }
+        tweakpaneRef.current = null;
+      }
+    };
+  }, [isSettingsOpen]);
+
+  useEffect(() => {
+    if (!tweakpaneRef.current) return;
+    const info = tweakpaneRef.current;
+    const s = engineState.settings;
+
+    // update the bound settings object and controllers
+    try {
+      info.settingsObj.gridVisible = s.gridVisible;
+      info.settingsObj.axesVisible = s.axesVisible;
+      info.settingsObj.snapToGrid = s.snapToGrid;
+      info.settingsObj.snapSize = s.snapSize;
+      info.settingsObj.backgroundColor = s.backgroundColor;
+      info.settingsObj.gridColor = s.gridColor;
+      info.settingsObj.nearClip = s.nearClip;
+      info.settingsObj.farClip = s.farClip;
+
+      info.controllers.grid.value = s.gridVisible;
+      info.controllers.axes.value = s.axesVisible;
+      info.controllers.snap.value = s.snapToGrid;
+      info.controllers.snapSize.value = s.snapSize;
+      info.controllers.bg.value = s.backgroundColor;
+      info.controllers.gridColor.value = s.gridColor;
+      info.controllers.near.value = s.nearClip;
+      info.controllers.far.value = s.farClip;
+    } catch (e) {
+      // ignore if controllers don't expose value
+    }
+  }, [
+    engineState.settings.gridVisible,
+    engineState.settings.axesVisible,
+    engineState.settings.snapToGrid,
+    engineState.settings.snapSize,
+    engineState.settings.backgroundColor,
+    engineState.settings.gridColor,
+    engineState.settings.nearClip,
+    engineState.settings.farClip,
+  ]);
 
   useEffect(() => {
     if (!shouldShowTransformMatrix) {
@@ -674,7 +814,7 @@ export default function Canvas3DWorkspace() {
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
-        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#151623]/95 p-3 max-md:hidden flex flex-col">
+        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#1a1b26d9] p-3 max-md:hidden flex flex-col">
           <div className={panelSectionClass} id="hierarchy-section">
             <div className={panelHeaderClass}>
               <span>Hierarquia</span>
@@ -877,144 +1017,13 @@ export default function Canvas3DWorkspace() {
           </div>
 
           <div
-            className={`absolute right-3 top-[2.65rem] z-60 w-60 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] py-1.5 backdrop-blur-[5px] ${
+            className={`absolute right-3 top-[2.65rem] z-60 w-72 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] py-1.5 backdrop-blur-[5px] ${
               isSettingsOpen ? "" : "hidden"
             }`}
             ref={settingsRef}
           >
-            <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-grid">
-                  <input
-                    className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
-                    checked={engineState.settings.gridVisible}
-                    id="toggle-grid"
-                    onChange={(event) => window.Canvas3DBridge?.setGridVisible(event.target.checked)}
-                    type="checkbox"/>
-                  <span>Mostrar Grid</span>
-                </label>
-
-                <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-axes">
-                  <input
-                    className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
-                    checked={engineState.settings.axesVisible}
-                    id="toggle-axes"
-                    onChange={(event) => window.Canvas3DBridge?.setAxesVisible(event.target.checked)}
-                    type="checkbox"/>
-                  <span>Mostrar Eixos</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-2 px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
-              <label className="flex items-center gap-[0.45rem] text-xs text-[#a9b1d6]" htmlFor="toggle-snap">
-                <input
-                  className="m-0 h-[0.9rem] w-[0.9rem] accent-[#7dcfff]"
-                  checked={engineState.settings.snapToGrid}
-                  id="toggle-snap"
-                  onChange={(event) => window.Canvas3DBridge?.setSnapEnabled(event.target.checked)}
-                  type="checkbox"/>
-                <span>Snap to Grid</span>
-              </label>
-
-              <div className="flex items-center gap-[0.4rem]">
-                <DraggableNumberInput
-                  className={`h-[1.6rem] w-14 flex-none box-border rounded-md border border-[#2a2d3e] bg-[#13141c] px-[0.32rem] py-[0.12rem] text-[0.68rem] leading-none text-[#c0caf5] ${
-                    engineState.settings.snapToGrid ? "opacity-100" : "pointer-events-none opacity-50"
-                  }`}
-                  disabled={!engineState.settings.snapToGrid}
-                  handlePosition="left"
-                  id="snap-size"
-                  min={0.1}
-                  onValueChange={(value) => window.Canvas3DBridge?.setSnapSize(value)}
-                  step={0.1}
-                  value={engineState.settings.snapSize}
-                />
-                <button
-                  className={`${resetButtonClass} h-[1.6rem] w-[1.6rem] px-[0.3rem] text-[0.68rem] ${
-                    engineState.settings.snapToGrid ? "opacity-100" : "pointer-events-none opacity-50"
-                  }`}
-                  onClick={() => window.Canvas3DBridge?.resetSetting("snap-size")}
-                  title="Reset Snap Size"
-                  type="button"
-                >
-                  R
-                </button>
-              </div>
-            </div>
-
-            <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
-              <label className="flex items-center justify-between gap-2 text-xs text-[#a9b1d6]" htmlFor="bg-color">
-                <span>Cor do Background</span>
-              </label>
-              <input
-                className="mt-[0.3rem] w-full rounded-md border border-[#2a2d3e] bg-[#13141c] text-[#c0caf5]"
-                id="bg-color"
-                onChange={(event) => window.Canvas3DBridge?.setBackgroundColor(event.target.value)}
-                type="color"
-                value={engineState.settings.backgroundColor}
-              />
-            </div>
-
-            <div className="mb-[0.2rem] border-b border-[rgba(169,177,214,0.18)] px-3 py-2 pb-[0.65rem] hover:bg-[rgba(125,207,255,0.08)]">
-              <label className="flex items-center justify-between gap-2 text-xs text-[#a9b1d6]" htmlFor="grid-color">
-                <span>Cor do Grid</span>
-              </label>
-              <input
-                className="mt-[0.3rem] w-full rounded-md border border-[#2a2d3e] bg-[#13141c] text-[#c0caf5]"
-                id="grid-color"
-                onChange={(event) => window.Canvas3DBridge?.setGridColor(event.target.value)}
-                type="color"
-                value={engineState.settings.gridColor}
-              />
-            </div>
-
-            <div className="px-3 py-2 hover:bg-[rgba(125,207,255,0.08)]">
-              <div className="mb-[0.45rem] p-0 text-xs uppercase tracking-[0.08em]">Clip Planes</div>
-
-              <div className="flex items-center gap-2">
-                <span className="whitespace-nowrap text-xs text-[#a9b1d6]">far</span>
-                <input
-                  className="settings-slider flex-1 min-w-0 accent-[#7dcfff]"
-                  id="far-clip"
-                  max="50"
-                  min="5"
-                  onChange={(event) => window.Canvas3DBridge?.setFarClip(Number(event.target.value))}
-                  step="1"
-                  type="range"
-                  value={numberValue(engineState.settings.farClip, 0)}
-                />
-                <button
-                  className={`${resetButtonClass} h-4 w-4 text-[0.62rem]`}
-                  onClick={() => window.Canvas3DBridge?.resetSetting("far-clip")}
-                  title="Reset Far Clip"
-                  type="button"
-                >
-                  R
-                </button>
-              </div>
-
-              <div className="mt-2 flex items-center gap-2">
-                <span className="whitespace-nowrap text-xs text-[#a9b1d6]">near</span>
-                <input
-                  className="settings-slider flex-1 min-w-0 accent-[#7dcfff]"
-                  id="near-clip"
-                  max="5"
-                  min="0.01"
-                  onChange={(event) => window.Canvas3DBridge?.setNearClip(Number(event.target.value))}
-                  step="0.01"
-                  type="range"
-                  value={numberValue(engineState.settings.nearClip, 2)}
-                />
-                <button
-                  className={`${resetButtonClass} h-4 w-4 text-[0.62rem]`}
-                  onClick={() => window.Canvas3DBridge?.resetSetting("near-clip")}
-                  title="Reset Near Clip"
-                  type="button"
-                >
-                  R
-                </button>
-              </div>
+            <div className="px-2 py-2">
+              <div ref={tweakpaneContainerRef} className="w-full" />
             </div>
           </div>
           <div
@@ -1036,7 +1045,7 @@ export default function Canvas3DWorkspace() {
           </div>
         </main>
 
-        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] bg-[#151623]/95 p-3 max-lg:hidden">
+        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] bg-[#1a1b26d9] p-3 max-lg:hidden">
           <div className={panelHeaderClass}>
             <span>Inspetor</span>
           </div>

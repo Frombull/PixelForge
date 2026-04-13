@@ -38,6 +38,9 @@ importers:
       three-viewport-gizmo:
         specifier: ^2.2.0
         version: 2.2.0(three@0.183.2)
+      tweakpane:
+        specifier: ^3.0.7
+        version: 3.1.10
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.5
@@ -1985,6 +1988,9 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tweakpane@3.1.10:
+    resolution: {integrity: sha512-rqwnl/pUa7+inhI2E9ayGTqqP0EPOOn/wVvSWjZsRbZUItzNShny7pzwL3hVlaN4m9t/aZhsP0aFQ9U5VVR2VQ==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -4137,6 +4143,8 @@ snapshots:
       strip-bom: 3.0.0
 
   tslib@2.8.1: {}
+
+  tweakpane@3.1.10: {}
 
   type-check@0.4.0:
     dependencies:

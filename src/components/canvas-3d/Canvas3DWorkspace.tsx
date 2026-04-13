@@ -392,7 +392,7 @@ export default function Canvas3DWorkspace() {
   const panelButtonActiveClass = "border-[#7dcfff] bg-[#1f2a3d] text-[#7dcfff]";
   const topbarButtonClass =
     "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] border border-transparent bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#f3f4f6]";
-  const topbarButtonActiveClass = "!border-[rgb(200,200,200)] !bg-[rgba(32,43,63,0.8)] !text-white";
+  const topbarButtonActiveClass = "!border-[rgb(80,80,80)] !bg-[rgba(32,43,63,0.8)] !text-white";
   const resetButtonClass =
     "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-[#a9b1d6] transition-colors hover:border-[#7dcfff] hover:text-[#7dcfff]";
   const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] p-0 text-xs text-[#7dcfff]";

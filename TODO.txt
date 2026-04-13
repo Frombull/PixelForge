@@ -1,0 +1,32 @@
+ ::: TODO :::
+ 
+
+- Pintor, Pintor reverso
+- Z buffer, A buffer
+- Matriz da tool selecionada na sidebar esquerda
+- Hints em forma de bolinha piscando quando entrar na página
+ 
+
+- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
+BG:
+    - Iluminação decente
+    - Fix background color picker
+- Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
+- Add color picker to obj mateiral on right sidebar
+- Custom AABB?
+- Mostrar culling pela câmera secundária
+- - Resize na tela da câmera secundária
+- Setinha de back
+- Ctrl-c / ctrl-v
+- ctrl-z
+- ctrl-x
+- Demo com varios cubos para mostrar frustum culling
+
+
+Possiveis UI:
+    1. https://headlessui.com/
+    2. https://ui.shadcn.com/
+    3. https://park-ui.com/
+    4. https://react-aria.adobe.com/
+    5. https://base-ui.com/
+    Para context menu: https://tweakpane.github.io/docs/

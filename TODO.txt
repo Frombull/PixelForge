@@ -49,8 +49,10 @@ Possiveis UI:
 - Transforms: https://www.brunodorta.com.br/cg/transforms
 - quake fodase: https://mrdoob.com
 - tf2 model viewer: https://github.com/gkjohnson/source-engine-model-loader
+- https://stats.renaudrohlinger.com/worker_tsl.html
 
 === [ LIBS USADAS ] ============================================================================================================
 
 - Katex, lib pra matematicas binitas: https://katex.org/
 - Input field scrubber: https://github.com/camwebby/shadcn-react-number-scrubber
+

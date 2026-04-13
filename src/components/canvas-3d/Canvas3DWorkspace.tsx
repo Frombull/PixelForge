@@ -737,14 +737,13 @@ export default function Canvas3DWorkspace() {
   const panelToolButtonClass =
     "flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-[#c0caf5] transition-all duration-100 hover:border-[#7dcfff] hover:bg-[#232538]";
   const panelButtonActiveClass = "border-[#7dcfff] bg-[#1f2a3d] text-[#7dcfff]";
-  const topbarButtonClass =
-    "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] border border-transparent bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#f3f4f6]";
-  const topbarButtonActiveClass = "!border-[rgb(80,80,80)] !bg-[rgba(32,43,63,0.8)] !text-white";
-  const resetButtonClass =
-    "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-[#a9b1d6] transition-colors hover:border-[#7dcfff] hover:text-[#7dcfff]";
+  
+  const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff]";
+  const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
+  
+  const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-[#a9b1d6] transition-colors hover:border-[#7dcfff] hover:text-[#7dcfff]";
   const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] p-0 text-xs text-[#7dcfff]";
-  const scalarInputClass =
-    "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] px-[0.35rem] py-[0.2rem] text-[0.72rem] text-[#c0caf5]";
+  const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] px-[0.35rem] py-[0.2rem] text-[0.72rem] text-[#c0caf5]";
   const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
 
   return (
@@ -776,7 +775,7 @@ export default function Canvas3DWorkspace() {
               <span>Hierarquia</span>
             </div>
 
-            <div className="max-h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
+            <div className="h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
               {engineState.objects.length === 0 && (
                 <div className="p-1 text-xs text-[#565f89] text-center">Nenhum objeto na cena</div>
               )}
@@ -906,7 +905,7 @@ export default function Canvas3DWorkspace() {
 
         <main id="center-area" className="relative flex-1 bg-[#0f1017]">
           <div id="canvas-container" className="absolute inset-0" />
-          <div id="canvas-actions" className="absolute right-3 top-2 z-50 flex items-center gap-2 backdrop-blur-[2px]">
+          <div id="canvas-actions" className="absolute right-2 top-2 z-50 flex items-center gap-2 backdrop-blur-[2px]">
             <button className={topbarButtonClass} onContextMenu={(e) => e.preventDefault()} onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
               <svg
                 aria-hidden="true"
@@ -1153,6 +1152,19 @@ export default function Canvas3DWorkspace() {
 
                   <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
                     <span className="text-[#565f89]">Hex</span>
+                    <input
+                      aria-label="Color picker"
+                      id="color-picker"
+                      type="color"
+                      className="h-7 w-7 p-0 border-none bg-transparent"
+                      value={colorInputs.hex}
+                      onChange={(event) => {
+                        const hex = String(event.target.value || "#ffffff");
+                        setColorInputs((prev) => ({ ...prev, hex }));
+                        window.Canvas3DBridge?.setSelectedColorHex(hex);
+                      }}
+                    />
+
                     <input
                       className={scalarInputClass}
                       id="color-hex"

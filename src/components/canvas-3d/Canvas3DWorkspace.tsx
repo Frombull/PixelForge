@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import katex from "katex";
 import { Pane } from "tweakpane";
+import DebugPane from "./DebugPane";
 import "katex/dist/katex.min.css";
 
 type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
@@ -354,6 +355,7 @@ export default function Canvas3DWorkspace() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
   const [isTransformOpen, setIsTransformOpen] = useState(true);
   const [isMaterialOpen, setIsMaterialOpen] = useState(true);
 
@@ -528,7 +530,7 @@ export default function Canvas3DWorkspace() {
       }
     };
   }, [isSettingsOpen]);
-
+  
   useEffect(() => {
     if (!tweakpaneRef.current) return;
     const info = tweakpaneRef.current;
@@ -566,6 +568,8 @@ export default function Canvas3DWorkspace() {
     engineState.settings.nearClip,
     engineState.settings.farClip,
   ]);
+
+  
 
   useEffect(() => {
     if (!shouldShowTransformMatrix) {
@@ -954,6 +958,8 @@ export default function Canvas3DWorkspace() {
               i
             </button>
 
+            
+
             <button
               className={`${topbarButtonClass} ${isSettingsOpen ? topbarButtonActiveClass : ""}`}
               onContextMenu={(e) => e.preventDefault()}
@@ -976,6 +982,7 @@ export default function Canvas3DWorkspace() {
               <div ref={tweakpaneContainerRef} className="w-full" />
             </div>
           </div>
+          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute right-3 top-[6.65rem] z-60 w-72 rounded-[0.2rem]" />
           <div
             className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.2rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-[#c0caf5] ${
               isInfoOpen ? "" : "hidden"
@@ -990,8 +997,19 @@ export default function Canvas3DWorkspace() {
             <div>W: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
           </div>
 
-          <div id="viewport-header" className="pointer-events-none absolute left-2 top-3 text-[10px] text-[#f3f3f3]">
-            Viewport
+          <div id="viewport-header" className="absolute left-2 top-3 text-[10px] text-[#f3f3f3] flex items-center">
+            <button
+              className={`${topbarButtonClass} ${isDebugOpen ? topbarButtonActiveClass : ""}`}
+              onContextMenu={(e) => e.preventDefault()}
+              onClick={() => {
+                setIsDebugOpen((prev) => !prev);
+                setIsSettingsOpen(false);
+                setIsInfoOpen(false);
+              }}
+              title="Debug"
+              type="button">
+              DBG
+            </button>
           </div>
         </main>
 

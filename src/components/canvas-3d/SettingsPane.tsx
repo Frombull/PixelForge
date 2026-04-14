@@ -2,18 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Pane } from "tweakpane";
-
-type SettingsState = {
-  gridVisible: boolean;
-  axesVisible: boolean;
-  wireframeVisible: boolean;
-  snapToGrid: boolean;
-  snapSize: number;
-  backgroundColor: string;
-  gridColor: string;
-  nearClip: number;
-  farClip: number;
-};
+import { type SettingsState } from "./types";
 
 type SettingsPaneProps = {
   isOpen: boolean;

@@ -2,10 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import { Pane } from "tweakpane";
+import { type Canvas3DState } from "./types";
 
 type Props = {
   isOpen: boolean;
-  engineState: any;
+  engineState: Canvas3DState;
   className?: string;
 };
 
@@ -15,7 +16,7 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
   const debugObjRef = useRef<any>(null);
   const controllersRef = useRef<Record<string, any> | null>(null);
   const rafRef = useRef<number | null>(null);
-  const latestStateRef = useRef<any>(engineState);
+  const latestStateRef = useRef<Canvas3DState>(engineState);
   const lastTsRef = useRef<number | null>(null);
   const fpsRef = useRef<number>(0);
 

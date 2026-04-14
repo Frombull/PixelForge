@@ -1,371 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import katex from "katex";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import DebugPane from "./DebugPane";
+import LeftSidebar from "./LeftSidebar";
+import RightSidebar from "./RightSidebar";
 import SettingsPane from "./SettingsPane";
+import { injectImportMap, loadCanvasRuntimeModule, waitForBridge } from "./runtime";
+import { buildTransformMatrixLatex, clamp, getMatrixTitle } from "./workspaceMath";
+import {
+  EMPTY_COLOR_INPUTS,
+  EMPTY_STATE,
+  UI_THEME,
+  type Canvas3DMode,
+  type Canvas3DState,
+  type Canvas3DStatus,
+  type CanvasObjectKind,
+  type ColorInputState,
+  type ColorMode,
+} from "./types";
 import "katex/dist/katex.min.css";
 import { KEY_BINDINGS } from "../../../public/canvas-3d/utils/constants";
-
-type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
-
-type Canvas3DObjectState = {
-  uuid: string;
-  name: string;
-  type: string;
-};
-
-type NumericVec3 = {
-  x: number;
-  y: number;
-  z: number;
-};
-
-type SkewState = {
-  xy: number;
-  xz: number;
-  yx: number;
-  yz: number;
-  zx: number;
-  zy: number;
-};
-
-type MaterialState = {
-  hex: string;
-  rgb: { r: number; g: number; b: number };
-  hsv: { h: number; s: number; v: number };
-  alpha: number;
-};
-
-type SelectedObjectState = {
-  uuid: string;
-  name: string;
-  position: NumericVec3;
-  scale: NumericVec3;
-  rotation: NumericVec3;
-  skew: SkewState;
-  material: MaterialState;
-};
-
-type SettingsState = {
-  gridVisible: boolean;
-  axesVisible: boolean;
-  wireframeVisible: boolean;
-  snapToGrid: boolean;
-  snapSize: number;
-  backgroundColor: string;
-  gridColor: string;
-  nearClip: number;
-  farClip: number;
-};
-
-type Canvas3DState = {
-  mode: Canvas3DMode;
-  isOrthographic: boolean;
-  isCullingViewEnabled: boolean;
-  selectedUuid: string | null;
-  objects: Canvas3DObjectState[];
-  selected: SelectedObjectState | null;
-  settings: SettingsState;
-};
-
-const EMPTY_STATE: Canvas3DState = {
-  mode: "translate",
-  isOrthographic: false,
-  isCullingViewEnabled: false,
-  selectedUuid: null,
-  objects: [],
-  selected: null,
-  settings: {
-    gridVisible: true,
-    axesVisible: true,
-    wireframeVisible: false,
-    snapToGrid: false,
-    snapSize: 0.5,
-    backgroundColor: "#ffffff",
-    gridColor: "#bbbbbb",
-    nearClip: 0.01,
-    farClip: 100,
-  },
-};
-
-type ColorMode = "rgb" | "hsv";
-
-type ColorInputState = {
-  hex: string;
-  alpha: number;
-  r: number;
-  g: number;
-  b: number;
-  h: number;
-  s: number;
-  v: number;
-};
-
-const EMPTY_COLOR_INPUTS: ColorInputState = {
-  hex: "#ffffff",
-  alpha: 100,
-  r: 255,
-  g: 255,
-  b: 255,
-  h: 0,
-  s: 0,
-  v: 100,
-};
-
-const UI_THEME = {
-  text: "rgb(187,188,196)",
-  textMuted: "rgb(121,122,129)",
-  accent: "rgb(187,188,196)",
-  accentSoft: "rgba(173,175,184,0.12)",
-  accentActiveBg: "rgb(62,63,68)",
-  mainBg: "rgb(40,41,46)",
-  fieldBg: "rgb(55,56,61)",
-  collapseHeaderBg: "rgb(55,56,61)",
-  buttonPressed: "rgb(77,78,83)",
-};
-
-declare global {
-  interface WindowEventMap {
-    "canvas3d:state": CustomEvent<Canvas3DState>;
-  }
-
-  interface Window {
-    Canvas3DBridge?: {
-      mount: () => unknown;
-      unmount: () => void;
-      getState: () => Canvas3DState | null;
-
-      addObject: (kind: "cube" | "cylinder" | "subtractCube" | "zFighting") => void;
-      setMode: (mode: Canvas3DMode) => void;
-
-      selectObject: (uuid: string) => void;
-      focusObject: (uuid: string) => void;
-      deleteSelected: () => void;
-      deleteObject: (uuid: string) => void;
-
-      resetCamera: () => void;
-      toggleCameraType: () => boolean | undefined;
-      toggleCullingView: () => boolean | undefined;
-
-      setGridVisible: (visible: boolean) => void;
-      setAxesVisible: (visible: boolean) => void;
-      setWireframeVisible: (visible: boolean) => void;
-      setSnapEnabled: (enabled: boolean) => void;
-      setSnapSize: (size: number) => void;
-      setBackgroundColor: (hex: string) => void;
-      setGridColor: (hex: string) => void;
-      setNearClip: (value: number) => void;
-      setFarClip: (value: number) => void;
-      resetSetting: (target: "snap-size" | "near-clip" | "far-clip") => void;
-
-      updateSelectedTransform: (field: string, value: number) => void;
-      resetTransformField: (target: string) => void;
-      setSelectedColorHex: (hex: string) => void;
-      setSelectedColorHSV: (h: number, s: number, v: number) => void;
-      setSelectedAlpha: (alphaPercent: number) => void;
-    };
-  }
-}
-
-const IMPORT_MAP = {
-  imports: {
-    three: "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
-    "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.0/build/index.module.js",
-    "three-bvh-csg": "https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.16/build/index.module.js",
-    "three-viewport-gizmo": "https://cdn.jsdelivr.net/npm/three-viewport-gizmo@2.2.0/dist/three-viewport-gizmo.js",
-  },
-};
-
-function injectImportMap() {
-  if (document.getElementById("canvas3d-importmap")) return;
-
-  const script = document.createElement("script");
-  script.id = "canvas3d-importmap";
-  script.type = "importmap";
-  script.textContent = JSON.stringify(IMPORT_MAP);
-  document.head.appendChild(script);
-}
-
-function loadCanvasRuntimeModule() {
-  return new Promise<void>((resolve, reject) => {
-    const existing = document.getElementById("canvas3d-main") as HTMLScriptElement | null;
-    if (existing) {
-      if (existing.dataset.loaded === "true") {
-        resolve();
-        return;
-      }
-
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Falha ao carregar /canvas-3d/main.js")), {
-        once: true,
-      });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = "canvas3d-main";
-    script.type = "module";
-    script.src = "/canvas-3d/main.js";
-    script.async = true;
-
-    script.addEventListener(
-      "load",
-      () => {
-        script.dataset.loaded = "true";
-        resolve();
-      },
-      { once: true }
-    );
-
-    script.addEventListener("error", () => reject(new Error("Falha ao carregar /canvas-3d/main.js")), {
-      once: true,
-    });
-
-    document.body.appendChild(script);
-  });
-}
-
-async function waitForBridge(retries = 50, delayMs = 50) {
-  for (let i = 0; i < retries; i += 1) {
-    if (window.Canvas3DBridge) return true;
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
-  }
-
-  return false;
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function numberValue(value: number, digits = 2) {
-  if (!Number.isFinite(value)) return "";
-  return value.toFixed(digits);
-}
-
-function matrixNumber(value: number, digits = 3) {
-  if (!Number.isFinite(value)) return "0";
-  const normalized = Math.abs(value) < 1e-6 ? 0 : value;
-  const rounded = Number(normalized.toFixed(digits));
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
-}
-
-function matrixToLatex(rows: string[][]) {
-  return `\\begin{bmatrix}${rows.map((row) => row.join(" & ")).join(" \\\\ ")}\\end{bmatrix}`;
-}
-
-type DraggableNumberInputProps = {
-  id?: string;
-  className?: string;
-  disabled?: boolean;
-  value: number;
-  min?: number;
-  max?: number;
-  step?: number;
-  onValueChange: (value: number) => void;
-  scrubSensitivity?: number;
-  handlePosition?: "left" | "right";
-};
-
-function DraggableNumberInput({
-  value,
-  onValueChange,
-  min,
-  max,
-  step = 1,
-  scrubSensitivity = 0.3,
-  handlePosition,
-  id,
-  className,
-  disabled,
-}: DraggableNumberInputProps) {
-  const [internalValue, setInternalValue] = useState<number>(value);
-  const draggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const startValueRef = useRef(value);
-  const numericStep = Math.abs(Number(step) || 1);
-
-  useEffect(() => {
-    setInternalValue(value);
-  }, [value]);
-
-  useEffect(() => {
-    return () => {
-      document.removeEventListener("pointermove", handlePointerMove);
-      document.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, []);
-
-  function decimalPlaces(n: number) {
-    const decimals = String(n).split(".")[1];
-    return decimals ? decimals.length : 0;
-  }
-
-  const clampAndQuantize = (next: number) => {
-    const precision = decimalPlaces(numericStep);
-    let quantized = Math.round(next / numericStep) * numericStep;
-    if (typeof min === "number") quantized = Math.max(min, quantized);
-    if (typeof max === "number") quantized = Math.min(max, quantized);
-    return Number(quantized.toFixed(precision));
-  };
-
-  const commit = (next: number) => {
-    if (!Number.isFinite(next)) return;
-    const normalized = clampAndQuantize(next);
-    setInternalValue(normalized);
-    onValueChange(normalized);
-  };
-
-  const handlePointerMove = (event: PointerEvent) => {
-    if (!draggingRef.current || disabled) return;
-    const delta = event.clientX - startXRef.current;
-    commit(startValueRef.current + delta * numericStep * scrubSensitivity);
-  };
-
-  const handlePointerUp = () => {
-    draggingRef.current = false;
-    document.removeEventListener("pointermove", handlePointerMove);
-    document.removeEventListener("pointerup", handlePointerUp);
-  };
-
-  const handlePointerDown = (event: ReactPointerEvent) => {
-    if (disabled || event.button !== 0) return;
-    draggingRef.current = true;
-    startXRef.current = event.clientX;
-    startValueRef.current = internalValue;
-    document.addEventListener("pointermove", handlePointerMove);
-    document.addEventListener("pointerup", handlePointerUp);
-  };
-
-  return (
-    <div className="w-full min-w-0">
-      <input
-        id={id}
-        className={`${className ?? ""} [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
-          disabled
-            ? "cursor-not-allowed opacity-40"
-            : "cursor-ew-resize hover:text-(--ui-accent) active:cursor-ew-resize"
-        }`}
-        disabled={disabled}
-        max={max}
-        min={min}
-        onChange={(event) => {
-          const parsed = Number(event.target.value);
-          if (!Number.isFinite(parsed)) return;
-          commit(parsed);
-        }}
-        onPointerDown={handlePointerDown}
-        step={numericStep}
-        type="number"
-        value={internalValue}
-      />
-    </div>
-  );
-}
 
 export default function Canvas3DWorkspace() {
   const themeVars: CSSProperties = {
@@ -380,7 +35,7 @@ export default function Canvas3DWorkspace() {
     "--ui-button-pressed": UI_THEME.buttonPressed,
   } as CSSProperties;
 
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<Canvas3DStatus>("loading");
   const [engineState, setEngineState] = useState<Canvas3DState>(EMPTY_STATE);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -399,14 +54,7 @@ export default function Canvas3DWorkspace() {
   const scaleMatrixRef = useRef<HTMLDivElement | null>(null);
   const selected = engineState.selected;
   const shouldShowTransformMatrix = ["translate", "rotate", "scale", "skew"].includes(engineState.mode);
-  const matrixTitle =
-    engineState.mode === "translate"
-      ? "Matriz de Translação"
-      : engineState.mode === "rotate"
-      ? "Matriz de Rotação"
-      : engineState.mode === "skew"
-      ? "Matriz de Skew"
-      : "Matriz de Escala";
+  const matrixTitle = getMatrixTitle(engineState.mode);
 
   useEffect(() => {
     let cancelled = false;
@@ -497,71 +145,7 @@ export default function Canvas3DWorkspace() {
 
     const el = scaleMatrixRef.current;
     if (!el) return;
-
-    const tx = selected?.position.x ?? 0;
-    const ty = selected?.position.y ?? 0;
-    const tz = selected?.position.z ?? 0;
-
-    const sx = selected?.scale.x ?? 1;
-    const sy = selected?.scale.y ?? 1;
-    const sz = selected?.scale.z ?? 1;
-
-    const rx = ((selected?.rotation.x ?? 0) * Math.PI) / 180;
-    const ry = ((selected?.rotation.y ?? 0) * Math.PI) / 180;
-    const rz = ((selected?.rotation.z ?? 0) * Math.PI) / 180;
-
-    const sinX = Math.sin(rx);
-    const cosX = Math.cos(rx);
-    const sinY = Math.sin(ry);
-    const cosY = Math.cos(ry);
-    const sinZ = Math.sin(rz);
-    const cosZ = Math.cos(rz);
-
-    const r11 = cosZ * cosY;
-    const r12 = cosZ * sinY * sinX - sinZ * cosX;
-    const r13 = cosZ * sinY * cosX + sinZ * sinX;
-    const r21 = sinZ * cosY;
-    const r22 = sinZ * sinY * sinX + cosZ * cosX;
-    const r23 = sinZ * sinY * cosX - cosZ * sinX;
-    const r31 = -sinY;
-    const r32 = cosY * sinX;
-    const r33 = cosY * cosX;
-
-    const kxy = selected?.skew.xy ?? 0;
-    const kxz = selected?.skew.xz ?? 0;
-    const kyx = selected?.skew.yx ?? 0;
-    const kyz = selected?.skew.yz ?? 0;
-    const kzx = selected?.skew.zx ?? 0;
-    const kzy = selected?.skew.zy ?? 0;
-
-    const latex =
-      engineState.mode === "translate"
-        ? matrixToLatex([
-            ["1", "0", "0", matrixNumber(tx)],
-            ["0", "1", "0", matrixNumber(ty)],
-            ["0", "0", "1", matrixNumber(tz)],
-            ["0", "0", "0", "1"],
-          ])
-        : engineState.mode === "rotate"
-        ? matrixToLatex([
-            [matrixNumber(r11), matrixNumber(r12), matrixNumber(r13), "0"],
-            [matrixNumber(r21), matrixNumber(r22), matrixNumber(r23), "0"],
-            [matrixNumber(r31), matrixNumber(r32), matrixNumber(r33), "0"],
-            ["0", "0", "0", "1"],
-          ])
-        : engineState.mode === "skew"
-        ? matrixToLatex([
-            ["1", matrixNumber(kxy), matrixNumber(kxz), "0"],
-            [matrixNumber(kyx), "1", matrixNumber(kyz), "0"],
-            [matrixNumber(kzx), matrixNumber(kzy), "1", "0"],
-            ["0", "0", "0", "1"],
-          ])
-        : matrixToLatex([
-            [matrixNumber(sx), "0", "0", "0"],
-            ["0", matrixNumber(sy), "0", "0"],
-            ["0", "0", matrixNumber(sz), "0"],
-            ["0", "0", "0", "1"],
-          ]);
+    const latex = buildTransformMatrixLatex(engineState.mode, selected);
 
     try {
       el.innerHTML = katex.renderToString(latex, { throwOnError: false });
@@ -571,24 +155,10 @@ export default function Canvas3DWorkspace() {
   }, [
     engineState.mode,
     shouldShowTransformMatrix,
-    selected?.position.x,
-    selected?.position.y,
-    selected?.position.z,
-    selected?.rotation.x,
-    selected?.rotation.y,
-    selected?.rotation.z,
-    selected?.scale.x,
-    selected?.scale.y,
-    selected?.scale.z,
-    selected?.skew.xy,
-    selected?.skew.xz,
-    selected?.skew.yx,
-    selected?.skew.yz,
-    selected?.skew.zx,
-    selected?.skew.zy,
+    selected,
   ]);
 
-  const addObject = (kind: "cube" | "cylinder" | "subtractCube" | "zFighting") => {
+  const addObject = (kind: CanvasObjectKind) => {
     window.Canvas3DBridge?.addObject(kind);
   };
 
@@ -648,19 +218,23 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setSelectedColorHSV(next.h, next.s, next.v);
   };
 
-  const panelSectionClass = "border-b border-[#2a2d3e]";
-  const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-(--ui-accent)";
-  const panelActionButtonClass = "bg-[var(--ui-field-bg)] w-full rounded-[0.1rem] border border-[#2a2d3e] px-[0.6rem] py-[0.45rem] text-xs text-[var(--ui-text)] transition-all duration-100 hover:bg-[var(--ui-accent-active-bg)] hover:text-[var(--ui-accent)] active:bg-[var(--ui-button-pressed)] cursor-pointer";
-  const panelToolButtonClass = "bg-[var(--ui-field-bg)] flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-[var(--ui-text)] transition-all duration-100 hover:border-[var(--ui-accent)] hover:bg-[var(--ui-accent-active-bg)] active:bg-[var(--ui-button-pressed)] cursor-pointer";
-  const panelButtonActiveClass = "!bg-(--ui-accent-active-bg)";
-  
+  const setColorFromPicker = (hex: string) => {
+    setColorInputs((prev) => ({ ...prev, hex }));
+    window.Canvas3DBridge?.setSelectedColorHex(hex);
+  };
+
+  const setHexDraft = (hex: string) => {
+    setColorInputs((prev) => ({ ...prev, hex }));
+  };
+
+  const setAlpha = (alpha: number) => {
+    const normalized = clamp(alpha, 0, 100);
+    setColorInputs((prev) => ({ ...prev, alpha: normalized }));
+    window.Canvas3DBridge?.setSelectedAlpha(normalized);
+  };
+
   const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff] select-none";
   const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
-  
-  const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] text-(--ui-text) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)";
-  const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-[0.2rem] bg-(--ui-collapse-bg) px-2 py-1 text-xs text-(--ui-accent)";
-  const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-(--ui-field-bg) px-[0.35rem] py-[0.2rem] text-[0.72rem] text-(--ui-text)";
-  const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-(--ui-main-bg) font-mono text-(--ui-text)" style={themeVars}>
@@ -685,146 +259,17 @@ export default function Canvas3DWorkspace() {
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
-        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] p-2 max-md:hidden flex flex-col">
-          <div className={panelSectionClass} id="hierarchy-section">
-            <div className={`${panelHeaderClass} relative flex items-center justify-center`}>
-              <Link
-                aria-label="Voltar para home"
-                className="absolute left-0 inline-flex h-6 w-6 items-center justify-center rounded-[0.2rem] text-(--ui-accent) transition-colors hover:bg-[#232538]"
-                href="/"
-              >
-                <ArrowLeft size={14} strokeWidth={2} />
-              </Link>
-              <span className="text-center">Hierarquia</span>
-            </div>
-
-            <div className="h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
-              {engineState.objects.length === 0 && (
-                <div className="p-1 text-xs text-(--ui-text-muted) text-center">Nenhum objeto na cena</div>
-              )}
-
-              {engineState.objects.map((obj) => (
-                <div
-                  className={`mb-[0.1rem] flex cursor-pointer items-center gap-[0.4rem] px-[0.2rem] py-[0.3rem] text-[0.73rem] text-(--ui-text) transition-colors hover:bg-(--ui-accent-soft) ${
-                    engineState.selectedUuid === obj.uuid || engineState.selected?.uuid === obj.uuid
-                      ? "bg-(--ui-accent-soft)!"
-                      : ""
-                  }`}
-                  key={obj.uuid}
-                  onClick={() => window.Canvas3DBridge?.selectObject(obj.uuid)}
-                  onDoubleClick={() => window.Canvas3DBridge?.focusObject(obj.uuid)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      window.Canvas3DBridge?.selectObject(obj.uuid);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <svg className="h-[0.9rem] w-[0.9rem] text-(--ui-accent)" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                  </svg>
-                  <span className="flex-1">{obj.name}</span>
-                  <button
-                    className="h-4 w-4 border-none bg-transparent text-[0.8rem] leading-[0.8rem] text-(--ui-text) transition-colors hover:text-[#f7768e]"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      window.Canvas3DBridge?.deleteObject(obj.uuid);
-                    }}
-                    title="Delete"
-                    type="button"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`${panelSectionClass} mt-3`} id="add-section">
-            <div className={panelHeaderClass}>
-              <span>Adicionar Objeto</span>
-            </div>
-            <div className="p-0">
-              <div className="grid grid-cols-2 gap-2">
-                <button className={panelActionButtonClass} onClick={() => addObject("cube")} type="button">Cubo</button>
-                <button className={panelActionButtonClass} onClick={() => addObject("cylinder")} type="button">Cilindro</button>
-                <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Esfera</button>
-                <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Cone</button>
-                <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Torus</button>
-                <button
-                  className={`${panelActionButtonClass} border-[#f7768e] text-[#f7768e]`}
-                  onClick={() => addObject("subtractCube")}
-                  type="button"
-                >
-                  Sub. Cube
-                </button>
-              </div>
-              <div className="mt-[0.65rem]">
-                <div className="mb-1 text-[0.68rem] uppercase text-(--ui-text-muted)">Demos</div>
-                <button className={panelActionButtonClass} onClick={() => addObject("zFighting")} type="button">Z-Fighting</button>
-                <button className={`${panelActionButtonClass} mt-2 opacity-45`} disabled type="button">Skew Demo</button>
-              </div>
-            </div>
-          </div>
-
-          <div className={`${panelSectionClass} mt-3`} id="tools-section">
-            <div className={panelHeaderClass}>
-              <span>Ferramentas</span>
-            </div>
-
-            <div className="p-0">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  className={`${panelToolButtonClass} ${engineState.mode === "translate" ? panelButtonActiveClass : ""}`}
-                  onClick={() => setMode("translate")}
-                  type="button"
-                >
-                  <span>Translate</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}</kbd>
-                </button>
-                <button
-                  className={`${panelToolButtonClass} ${engineState.mode === "rotate" ? panelButtonActiveClass : ""}`}
-                  onClick={() => setMode("rotate")}
-                  type="button"
-                >
-                  <span>Rotate</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.ROTATE_MODE.toUpperCase()}</kbd>
-                </button>
-                <button
-                  className={`${panelToolButtonClass} ${engineState.mode === "scale" ? panelButtonActiveClass : ""}`}
-                  onClick={() => setMode("scale")}
-                  type="button"
-                >
-                  <span>Scale</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.SCALE_MODE.toUpperCase()}</kbd>
-                </button>
-                <button
-                  className={`${panelToolButtonClass} ${engineState.mode === "skew" ? panelButtonActiveClass : ""}`}
-                  onClick={() => setMode("skew")}
-                  type="button"
-                >
-                  <span>Skew</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.SKEW_MODE.toUpperCase()}</kbd>
-                </button>
-              </div>
-            </div>
-          </div>
-          {shouldShowTransformMatrix && (
-            <div className={`${panelSectionClass} mt-auto`} id="scale-matrix-section">
-              <div className={panelHeaderClass}>
-                <span>{matrixTitle}</span>
-              </div>
-
-              <div className="p-1 mb-3">
-                <div className="text-xs">
-                  <div ref={scaleMatrixRef} className="katex-matrix text-[1rem] text-center" />
-                </div>
-              </div>
-            </div>
-          )}
-        </aside>
+        <LeftSidebar
+          engineState={engineState}
+          matrixTitle={matrixTitle}
+          onAddObject={addObject}
+          onDeleteObject={(uuid) => window.Canvas3DBridge?.deleteObject(uuid)}
+          onFocusObject={(uuid) => window.Canvas3DBridge?.focusObject(uuid)}
+          onSelectObject={(uuid) => window.Canvas3DBridge?.selectObject(uuid)}
+          onSetMode={setMode}
+          scaleMatrixRef={scaleMatrixRef}
+          shouldShowTransformMatrix={shouldShowTransformMatrix}
+        />
 
         <main id="center-area" className="relative flex-1 bg-(--ui-main-bg)">
           <div id="canvas-container" className="absolute inset-0" />
@@ -926,201 +371,24 @@ export default function Canvas3DWorkspace() {
           </div>
         </main>
 
-        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-2 max-lg:hidden">
-          <div className={`${panelHeaderClass} text-center`}>
-            <span className="inline-block text-center">Inspetor</span>
-          </div>
-
-          {selected ? (
-            <div id="inspector-panel">
-              <div className="border-b border-[#2a2d3e]">
-                <div
-                  className={inspectorHeaderClass}
-                  onClick={() => setIsTransformOpen((prev) => !prev)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <svg
-                    className={`h-[0.9rem] w-[0.9rem] transition-transform duration-150 ${isTransformOpen ? "" : "-rotate-90"}`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                  <span className="group-title">Transform</span>
-                </div>
-
-                <div className={isTransformOpen ? "p-0" : "hidden p-0"} id="transform-content">
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Position</span></div>
-                  <div className="flex items-stretch gap-[0.35rem]">
-                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-x" onValueChange={(value) => updateTransform("pos-x", value)} step={0.1} value={selected.position.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">X</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-y" onValueChange={(value) => updateTransform("pos-y", value)} step={0.1} value={selected.position.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Y</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-z" onValueChange={(value) => updateTransform("pos-z", value)} step={0.1} value={selected.position.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Z</span></div>
-                    </div>
-                    <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["pos-x", "pos-y", "pos-z"])} title="Reset Position" type="button">R</button>
-                  </div>
-
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Rotation</span></div>
-                  <div className="flex items-stretch gap-[0.35rem]">
-                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-x" onValueChange={(value) => updateTransform("rot-x", value)} step={1} value={selected.rotation.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">X</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-y" onValueChange={(value) => updateTransform("rot-y", value)} step={1} value={selected.rotation.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Y</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-z" onValueChange={(value) => updateTransform("rot-z", value)} step={1} value={selected.rotation.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Z</span></div>
-                    </div>
-                    <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["rot-x", "rot-y", "rot-z"])} title="Reset Rotation" type="button">R</button>
-                  </div>
-
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Scale</span></div>
-                  <div className="flex items-stretch gap-[0.35rem]">
-                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-x" min={0.1} onValueChange={(value) => updateTransform("scale-x", value)} step={0.1} value={selected.scale.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">X</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-y" min={0.1} onValueChange={(value) => updateTransform("scale-y", value)} step={0.1} value={selected.scale.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Y</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-z" min={0.1} onValueChange={(value) => updateTransform("scale-z", value)} step={0.1} value={selected.scale.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Z</span></div>
-                    </div>
-                    <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["scale-x", "scale-y", "scale-z"])} title="Reset Scale" type="button">R</button>
-                  </div>
-
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Skew</span></div>
-                  <div className="flex items-stretch gap-[0.35rem]">
-                    <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xy" onValueChange={(value) => updateTransform("skew-xy", value)} step={0.1} value={selected.skew.xy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">XY</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xz" onValueChange={(value) => updateTransform("skew-xz", value)} step={0.1} value={selected.skew.xz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">XZ</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yx" onValueChange={(value) => updateTransform("skew-yx", value)} step={0.1} value={selected.skew.yx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">YX</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yz" onValueChange={(value) => updateTransform("skew-yz", value)} step={0.1} value={selected.skew.yz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">YZ</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zx" onValueChange={(value) => updateTransform("skew-zx", value)} step={0.1} value={selected.skew.zx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">ZX</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zy" onValueChange={(value) => updateTransform("skew-zy", value)} step={0.1} value={selected.skew.zy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">ZY</span></div>
-                    </div>
-                    <button
-                      className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`}
-                      onClick={() => resetTransformGroup(["skew-xy", "skew-xz", "skew-yx", "skew-yz", "skew-zx", "skew-zy"])}
-                      title="Reset Skew"
-                      type="button"
-                    >
-                      R
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 border-b border-[#2a2d3e] py-[0.7rem]">
-                <div
-                  className={inspectorHeaderClass}
-                  onClick={() => setIsMaterialOpen((prev) => !prev)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <svg
-                    className={`h-[0.9rem] w-[0.9rem] transition-transform duration-150 ${isMaterialOpen ? "" : "-rotate-90"}`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                  <span className="group-title">Material</span>
-                </div>
-
-                <div className={isMaterialOpen ? "p-0" : "hidden p-0"} id="material-content">
-                  <div className="mb-[0.45rem] flex gap-[0.3rem]">
-                    <button
-                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] py-1 text-[0.72rem] text-(--ui-text) ${
-                        colorMode === "rgb" ? panelButtonActiveClass : ""
-                      }`}
-                      onClick={() => setColorMode("rgb")}
-                      type="button"
-                    >
-                      RGB
-                    </button>
-                    <button
-                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] py-1 text-[0.72rem] text-(--ui-text) ${
-                        colorMode === "hsv" ? panelButtonActiveClass : ""
-                      }`}
-                      onClick={() => setColorMode("hsv")}
-                      type="button"
-                    >
-                      HSV
-                    </button>
-                  </div>
-
-                  {colorMode === "rgb" ? (
-                    <div className="grid grid-cols-3 gap-[0.35rem]" id="rgb-inputs">
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-r">R</label><DraggableNumberInput className={scalarInputClass} id="color-r" max={255} min={0} onValueChange={(value) => updateRgbColor("r", value)} step={1} value={colorInputs.r} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-g">G</label><DraggableNumberInput className={scalarInputClass} id="color-g" max={255} min={0} onValueChange={(value) => updateRgbColor("g", value)} step={1} value={colorInputs.g} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-b">B</label><DraggableNumberInput className={scalarInputClass} id="color-b" max={255} min={0} onValueChange={(value) => updateRgbColor("b", value)} step={1} value={colorInputs.b} /></div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-[0.35rem]" id="hsv-inputs">
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-h">H</label><DraggableNumberInput className={scalarInputClass} id="color-h" max={360} min={0} onValueChange={(value) => updateHsvColor("h", value)} step={1} value={colorInputs.h} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-s">S</label><DraggableNumberInput className={scalarInputClass} id="color-s" max={100} min={0} onValueChange={(value) => updateHsvColor("s", value)} step={1} value={colorInputs.s} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-v">V</label><DraggableNumberInput className={scalarInputClass} id="color-v" max={100} min={0} onValueChange={(value) => updateHsvColor("v", value)} step={1} value={colorInputs.v} /></div>
-                    </div>
-                  )}
-
-                  <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
-                    <span className="text-(--ui-text-muted)">Alpha</span>
-                    <input
-                      className="flex-1 accent-(--ui-accent)"
-                      id="color-alpha"
-                      max="100"
-                      min="0"
-                      onChange={(event) => {
-                        const alpha = clamp(Number(event.target.value), 0, 100);
-                        setColorInputs((prev) => ({ ...prev, alpha }));
-                        window.Canvas3DBridge?.setSelectedAlpha(alpha);
-                      }}
-                      step="1"
-                      type="range"
-                      value={String(colorInputs.alpha)}
-                    />
-                    <span id="alpha-value">{`${colorInputs.alpha}%`}</span>
-                  </div>
-
-                  <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
-                    <span className="text-(--ui-text-muted)">Hex</span>
-                    <input
-                      aria-label="Color picker"
-                      id="color-picker"
-                      type="color"
-                      className="h-7 w-7 p-0 border-none bg-transparent"
-                      value={colorInputs.hex}
-                      onChange={(event) => {
-                        const hex = String(event.target.value || "#ffffff");
-                        setColorInputs((prev) => ({ ...prev, hex }));
-                        window.Canvas3DBridge?.setSelectedColorHex(hex);
-                      }}
-                    />
-
-                    <input
-                      className={scalarInputClass}
-                      id="color-hex"
-                      maxLength={7}
-                      onBlur={(event) => updateHexColor(event.target.value)}
-                      onChange={(event) => setColorInputs((prev) => ({ ...prev, hex: event.target.value }))}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          event.preventDefault();
-                          updateHexColor((event.target as HTMLInputElement).value);
-                        }
-                      }}
-                      placeholder="#ffffff"
-                      type="text"
-                      value={colorInputs.hex}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="mt-[0.65rem] flex min-h-40 flex-col items-center justify-center gap-[0.35rem] p-0 text-center text-[0.78rem] text-(--ui-text-muted)" id="inspector-empty">
-              <div className="text-2xl">◻</div>
-              <div>Selecione um objeto para editar suas propriedades</div>
-            </div>
-          )}
-        </aside>
+        <RightSidebar
+          colorInputs={colorInputs}
+          colorMode={colorMode}
+          isMaterialOpen={isMaterialOpen}
+          isTransformOpen={isTransformOpen}
+          onAlphaChange={setAlpha}
+          onApplyHex={updateHexColor}
+          onResetTransformGroup={resetTransformGroup}
+          onSetColorFromPicker={setColorFromPicker}
+          onSetColorMode={setColorMode}
+          onSetHexDraft={setHexDraft}
+          onToggleMaterial={() => setIsMaterialOpen((prev) => !prev)}
+          onToggleTransform={() => setIsTransformOpen((prev) => !prev)}
+          onUpdateHsvColor={updateHsvColor}
+          onUpdateRgbColor={updateRgbColor}
+          onUpdateTransform={updateTransform}
+          selected={selected}
+        />
       </div>
     </div>
   );

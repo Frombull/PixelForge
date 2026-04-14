@@ -27,7 +27,7 @@ export const CONSTANTS = {
         axisX: 0xff0000,
         axisY: 0x00ff00,
         axisZ: 0x0000ff,
-        highlight: 0xffa500,
+        highlight: 0xdfdfdf,
         skewXY: 0xffff00,
         skewXZ: 0xff00ff,
         skewYZ: 0x00ffff,

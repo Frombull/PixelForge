@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import DebugPane from "./DebugPane";
 import SettingsPane from "./SettingsPane";
 import "katex/dist/katex.min.css";
+import { KEY_BINDINGS } from "../../../public/canvas-3d/utils/constants";
 
 type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
@@ -114,16 +115,16 @@ const EMPTY_COLOR_INPUTS: ColorInputState = {
   v: 100,
 };
 
-// TODO: Change these
 const UI_THEME = {
-  text: "rgb(220,220,220)",
-  textMuted: "rgb(130,130,130)",
-  accent: "rgb(190,180,150)",
-  accentSoft: "rgba(181,166,137,0.12)",
-  accentActiveBg: "rgba(74,67,56,0.75)",
+  text: "rgb(187,188,196)",
+  textMuted: "rgb(121,122,129)",
+  accent: "rgb(187,188,196)",
+  accentSoft: "rgba(173,175,184,0.12)",
+  accentActiveBg: "rgb(62,63,68)",
   mainBg: "rgb(40,41,46)",
-  fieldBg: "rgb(32,33,37)", 
-  collapseHeaderBg: "rgba(55,56,61,1)",
+  fieldBg: "rgb(55,56,61)",
+  collapseHeaderBg: "rgb(55,56,61)",
+  buttonPressed: "rgb(77,78,83)",
 };
 
 declare global {
@@ -376,6 +377,7 @@ export default function Canvas3DWorkspace() {
     "--ui-main-bg": UI_THEME.mainBg,
     "--ui-field-bg": UI_THEME.fieldBg,
     "--ui-collapse-bg": UI_THEME.collapseHeaderBg,
+    "--ui-button-pressed": UI_THEME.buttonPressed,
   } as CSSProperties;
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -648,14 +650,14 @@ export default function Canvas3DWorkspace() {
 
   const panelSectionClass = "border-b border-[#2a2d3e]";
   const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-(--ui-accent)";
-  const panelActionButtonClass = "w-full rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.6rem] py-[0.45rem] text-xs text-(--ui-text) transition-all duration-100 hover:border-(--ui-accent) hover:bg-[#232538]";
-  const panelToolButtonClass = "flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-(--ui-text) transition-all duration-100 hover:border-(--ui-accent) hover:bg-[#232538]";
-  const panelButtonActiveClass = "border-(--ui-accent) bg-(--ui-accent-active-bg) text-(--ui-accent)";
+  const panelActionButtonClass = "bg-[var(--ui-field-bg)] w-full rounded-[0.1rem] border border-[#2a2d3e] px-[0.6rem] py-[0.45rem] text-xs text-[var(--ui-text)] transition-all duration-100 hover:bg-[var(--ui-accent-active-bg)] hover:text-[var(--ui-accent)] active:bg-[var(--ui-button-pressed)] cursor-pointer";
+  const panelToolButtonClass = "bg-[var(--ui-field-bg)] flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-[var(--ui-text)] transition-all duration-100 hover:border-[var(--ui-accent)] hover:bg-[var(--ui-accent-active-bg)] active:bg-[var(--ui-button-pressed)] cursor-pointer";
+  const panelButtonActiveClass = "!bg-(--ui-accent-active-bg)";
   
   const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff] select-none";
   const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
   
-  const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-(--ui-text) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)";
+  const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] text-(--ui-text) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)";
   const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-[0.2rem] bg-(--ui-collapse-bg) px-2 py-1 text-xs text-(--ui-accent)";
   const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-(--ui-field-bg) px-[0.35rem] py-[0.2rem] text-[0.72rem] text-(--ui-text)";
   const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
@@ -683,7 +685,7 @@ export default function Canvas3DWorkspace() {
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
-        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] p-3 max-md:hidden flex flex-col">
+        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] p-2 max-md:hidden flex flex-col">
           <div className={panelSectionClass} id="hierarchy-section">
             <div className={`${panelHeaderClass} relative flex items-center justify-center`}>
               <Link
@@ -780,7 +782,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Translate</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">W</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}</kbd>
                 </button>
                 <button
                   className={`${panelToolButtonClass} ${engineState.mode === "rotate" ? panelButtonActiveClass : ""}`}
@@ -788,7 +790,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Rotate</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">R</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.ROTATE_MODE.toUpperCase()}</kbd>
                 </button>
                 <button
                   className={`${panelToolButtonClass} ${engineState.mode === "scale" ? panelButtonActiveClass : ""}`}
@@ -796,7 +798,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Scale</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">S</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.SCALE_MODE.toUpperCase()}</kbd>
                 </button>
                 <button
                   className={`${panelToolButtonClass} ${engineState.mode === "skew" ? panelButtonActiveClass : ""}`}
@@ -804,7 +806,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Skew</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">K</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.SKEW_MODE.toUpperCase()}</kbd>
                 </button>
               </div>
             </div>
@@ -918,20 +920,20 @@ export default function Canvas3DWorkspace() {
             <div>- Rodar camera: botao do meio ou botao direito</div>
             <div>- Pan: Shift + botao do meio</div>
             <div>- Zoom: scroll do mouse</div>
-            <div>- Focar objeto: F</div>
+            <div>- Focar objeto: {KEY_BINDINGS.FOCUS_SELECTED.toUpperCase()}</div>
             <strong className="mt-2">Keybinds</strong>
-            <div>W: Translate | R: Rotate | S: Scale | K: Skew | DEL: Delete</div>
+            <div>{`${KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}: Translate | ${KEY_BINDINGS.ROTATE_MODE.toUpperCase()}: Rotate | ${KEY_BINDINGS.SCALE_MODE.toUpperCase()}: Scale | ${KEY_BINDINGS.SKEW_MODE.toUpperCase()}: Skew | ${KEY_BINDINGS.DELETE_SELECTED.toUpperCase()}: Delete`}</div>
           </div>
         </main>
 
-        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-3 max-lg:hidden">
+        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-2 max-lg:hidden">
           <div className={`${panelHeaderClass} text-center`}>
             <span className="inline-block text-center">Inspetor</span>
           </div>
 
           {selected ? (
             <div id="inspector-panel">
-              <div className="border-b border-[#2a2d3e] py-[0.7rem]">
+              <div className="border-b border-[#2a2d3e]">
                 <div
                   className={inspectorHeaderClass}
                   onClick={() => setIsTransformOpen((prev) => !prev)}
@@ -1025,7 +1027,7 @@ export default function Canvas3DWorkspace() {
                 <div className={isMaterialOpen ? "p-0" : "hidden p-0"} id="material-content">
                   <div className="mb-[0.45rem] flex gap-[0.3rem]">
                     <button
-                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-(--ui-text) ${
+                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] py-1 text-[0.72rem] text-(--ui-text) ${
                         colorMode === "rgb" ? panelButtonActiveClass : ""
                       }`}
                       onClick={() => setColorMode("rgb")}
@@ -1034,7 +1036,7 @@ export default function Canvas3DWorkspace() {
                       RGB
                     </button>
                     <button
-                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-(--ui-text) ${
+                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] py-1 text-[0.72rem] text-(--ui-text) ${
                         colorMode === "hsv" ? panelButtonActiveClass : ""
                       }`}
                       onClick={() => setColorMode("hsv")}

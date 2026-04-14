@@ -16,12 +16,12 @@
 
 === [ ON IT ] ===========================================================================================================
 
-
+- Better color theme: // TODO: Change these
+- Mapa do sucesso
+- Pintor, Pintor reverso
  
 === [ TODO ] ============================================================================================================
 
-- Mapa do sucesso
-- Pintor, Pintor reverso
 - Z buffer, A buffer
 - Segurar shift pra dar snap
 - Hints em forma de bolinha piscando quando entrar na página

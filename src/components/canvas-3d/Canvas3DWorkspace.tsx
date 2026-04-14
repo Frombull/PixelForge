@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import katex from "katex";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -112,6 +112,18 @@ const EMPTY_COLOR_INPUTS: ColorInputState = {
   h: 0,
   s: 0,
   v: 100,
+};
+
+// TODO: Change these
+const UI_THEME = {
+  text: "rgb(220,220,220)",
+  textMuted: "rgb(130,130,130)",
+  accent: "rgb(190,180,150)",
+  accentSoft: "rgba(181,166,137,0.12)",
+  accentActiveBg: "rgba(74,67,56,0.75)",
+  mainBg: "rgb(40,41,46)",
+  fieldBg: "rgb(32,33,37)", 
+  collapseHeaderBg: "rgba(55,56,61,1)",
 };
 
 declare global {
@@ -335,7 +347,7 @@ function DraggableNumberInput({
         className={`${className ?? ""} [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
           disabled
             ? "cursor-not-allowed opacity-40"
-            : "cursor-ew-resize hover:text-[#7dcfff] active:cursor-ew-resize"
+            : "cursor-ew-resize hover:text-(--ui-accent) active:cursor-ew-resize"
         }`}
         disabled={disabled}
         max={max}
@@ -355,6 +367,17 @@ function DraggableNumberInput({
 }
 
 export default function Canvas3DWorkspace() {
+  const themeVars: CSSProperties = {
+    "--ui-text": UI_THEME.text,
+    "--ui-text-muted": UI_THEME.textMuted,
+    "--ui-accent": UI_THEME.accent,
+    "--ui-accent-soft": UI_THEME.accentSoft,
+    "--ui-accent-active-bg": UI_THEME.accentActiveBg,
+    "--ui-main-bg": UI_THEME.mainBg,
+    "--ui-field-bg": UI_THEME.fieldBg,
+    "--ui-collapse-bg": UI_THEME.collapseHeaderBg,
+  } as CSSProperties;
+
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [engineState, setEngineState] = useState<Canvas3DState>(EMPTY_STATE);
 
@@ -624,28 +647,28 @@ export default function Canvas3DWorkspace() {
   };
 
   const panelSectionClass = "border-b border-[#2a2d3e]";
-  const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-[#7dcfff]";
-  const panelActionButtonClass = "w-full rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.6rem] py-[0.45rem] text-xs text-[#c0caf5] transition-all duration-100 hover:border-[#7dcfff] hover:bg-[#232538]";
-  const panelToolButtonClass = "flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-[#c0caf5] transition-all duration-100 hover:border-[#7dcfff] hover:bg-[#232538]";
-  const panelButtonActiveClass = "border-[#7dcfff] bg-[#1f2a3d] text-[#7dcfff]";
+  const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-(--ui-accent)";
+  const panelActionButtonClass = "w-full rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.6rem] py-[0.45rem] text-xs text-(--ui-text) transition-all duration-100 hover:border-(--ui-accent) hover:bg-[#232538]";
+  const panelToolButtonClass = "flex items-center justify-between rounded-[0.1rem] border border-[#2a2d3e] bg-[#13141c] px-[0.5rem] py-[0.45rem] text-[0.73rem] text-(--ui-text) transition-all duration-100 hover:border-(--ui-accent) hover:bg-[#232538]";
+  const panelButtonActiveClass = "border-(--ui-accent) bg-(--ui-accent-active-bg) text-(--ui-accent)";
   
   const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff] select-none";
   const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
   
-  const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-[#a9b1d6] transition-colors hover:border-[#7dcfff] hover:text-[#7dcfff]";
-  const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] p-0 text-xs text-[#7dcfff]";
-  const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] px-[0.35rem] py-[0.2rem] text-[0.72rem] text-[#c0caf5]";
+  const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] text-(--ui-text) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)";
+  const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-[0.2rem] bg-(--ui-collapse-bg) px-2 py-1 text-xs text-(--ui-accent)";
+  const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-(--ui-field-bg) px-[0.35rem] py-[0.2rem] text-[0.72rem] text-(--ui-text)";
   const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#13141c] font-mono text-[#c0caf5]">
+    <div className="relative h-screen w-full overflow-hidden bg-(--ui-main-bg) font-mono text-(--ui-text)" style={themeVars}>
       <div className="app-noise pointer-events-none absolute inset-0 z-0" />
 
       {status === "loading" && (
         <div className="absolute inset-0 z-1200 flex items-center justify-center bg-[#0f1017]/85 backdrop-blur-sm">
           <div className="text-center">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[#2a2d3e] border-t-[#7dcfff]" />
-            <p className="mt-3 text-sm text-[#a9b1d6]">Carregando Canvas...</p>
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-[#2a2d3e] border-t-(--ui-accent)" />
+            <p className="mt-3 text-sm text-(--ui-text)">Carregando Canvas...</p>
           </div>
         </div>
       )}
@@ -654,18 +677,18 @@ export default function Canvas3DWorkspace() {
         <div className="absolute inset-0 z-1200 flex items-center justify-center bg-[#0f1017]/90 p-6 text-center">
           <div>
             <h2 className="text-lg font-semibold text-[#f7768e]">Falha ao iniciar o Canvas</h2>
-            <p className="mt-2 text-sm text-[#a9b1d6]">Recarregue a página para tentar novamente</p>
+            <p className="mt-2 text-sm text-(--ui-text)">Recarregue a página para tentar novamente</p>
           </div>
         </div>
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
-        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] bg-[#1a1b26d9] p-3 max-md:hidden flex flex-col">
+        <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] p-3 max-md:hidden flex flex-col">
           <div className={panelSectionClass} id="hierarchy-section">
             <div className={`${panelHeaderClass} relative flex items-center justify-center`}>
               <Link
                 aria-label="Voltar para home"
-                className="absolute left-0 inline-flex h-6 w-6 items-center justify-center rounded-[0.2rem] text-[#7dcfff] transition-colors hover:bg-[#232538]"
+                className="absolute left-0 inline-flex h-6 w-6 items-center justify-center rounded-[0.2rem] text-(--ui-accent) transition-colors hover:bg-[#232538]"
                 href="/"
               >
                 <ArrowLeft size={14} strokeWidth={2} />
@@ -675,14 +698,14 @@ export default function Canvas3DWorkspace() {
 
             <div className="h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
               {engineState.objects.length === 0 && (
-                <div className="p-1 text-xs text-[#565f89] text-center">Nenhum objeto na cena</div>
+                <div className="p-1 text-xs text-(--ui-text-muted) text-center">Nenhum objeto na cena</div>
               )}
 
               {engineState.objects.map((obj) => (
                 <div
-                  className={`mb-[0.1rem] flex cursor-pointer items-center gap-[0.4rem] px-[0.2rem] py-[0.3rem] text-[0.73rem] text-[#c0caf5] transition-colors hover:bg-[rgba(125,207,255,0.1)] ${
+                  className={`mb-[0.1rem] flex cursor-pointer items-center gap-[0.4rem] px-[0.2rem] py-[0.3rem] text-[0.73rem] text-(--ui-text) transition-colors hover:bg-(--ui-accent-soft) ${
                     engineState.selectedUuid === obj.uuid || engineState.selected?.uuid === obj.uuid
-                      ? "bg-[rgba(125,207,255,0.1)]!"
+                      ? "bg-(--ui-accent-soft)!"
                       : ""
                   }`}
                   key={obj.uuid}
@@ -697,12 +720,12 @@ export default function Canvas3DWorkspace() {
                   role="button"
                   tabIndex={0}
                 >
-                  <svg className="h-[0.9rem] w-[0.9rem] text-[#7dcfff]" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-[0.9rem] w-[0.9rem] text-(--ui-accent)" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   </svg>
                   <span className="flex-1">{obj.name}</span>
                   <button
-                    className="h-4 w-4 border-none bg-transparent text-[0.8rem] leading-[0.8rem] text-[#a9b1d6] transition-colors hover:text-[#f7768e]"
+                    className="h-4 w-4 border-none bg-transparent text-[0.8rem] leading-[0.8rem] text-(--ui-text) transition-colors hover:text-[#f7768e]"
                     onClick={(event) => {
                       event.stopPropagation();
                       window.Canvas3DBridge?.deleteObject(obj.uuid);
@@ -737,7 +760,7 @@ export default function Canvas3DWorkspace() {
                 </button>
               </div>
               <div className="mt-[0.65rem]">
-                <div className="mb-1 text-[0.68rem] uppercase text-[#565f89]">Demos</div>
+                <div className="mb-1 text-[0.68rem] uppercase text-(--ui-text-muted)">Demos</div>
                 <button className={panelActionButtonClass} onClick={() => addObject("zFighting")} type="button">Z-Fighting</button>
                 <button className={`${panelActionButtonClass} mt-2 opacity-45`} disabled type="button">Skew Demo</button>
               </div>
@@ -757,7 +780,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Translate</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">W</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">W</kbd>
                 </button>
                 <button
                   className={`${panelToolButtonClass} ${engineState.mode === "rotate" ? panelButtonActiveClass : ""}`}
@@ -765,7 +788,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Rotate</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">R</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">R</kbd>
                 </button>
                 <button
                   className={`${panelToolButtonClass} ${engineState.mode === "scale" ? panelButtonActiveClass : ""}`}
@@ -773,7 +796,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Scale</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">S</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">S</kbd>
                 </button>
                 <button
                   className={`${panelToolButtonClass} ${engineState.mode === "skew" ? panelButtonActiveClass : ""}`}
@@ -781,7 +804,7 @@ export default function Canvas3DWorkspace() {
                   type="button"
                 >
                   <span>Skew</span>
-                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-[#7dcfff]">K</kbd>
+                  <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">K</kbd>
                 </button>
               </div>
             </div>
@@ -801,7 +824,7 @@ export default function Canvas3DWorkspace() {
           )}
         </aside>
 
-        <main id="center-area" className="relative flex-1 bg-[#0f1017]">
+        <main id="center-area" className="relative flex-1 bg-(--ui-main-bg)">
           <div id="canvas-container" className="absolute inset-0" />
           <div id="canvas-actions" className="absolute right-2 top-2 z-50 flex items-center gap-2 backdrop-blur-[2px]">
             <button className={topbarButtonClass} onContextMenu={(e) => e.preventDefault()} onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
@@ -887,7 +910,7 @@ export default function Canvas3DWorkspace() {
           />
           <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute left-2 top-3 z-60 w-72 rounded-[0.1rem]" />
           <div
-            className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.1rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-[#c0caf5] ${
+            className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.1rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-(--ui-text) ${
               isInfoOpen ? "" : "hidden"
             }`}
             ref={infoRef}>
@@ -901,7 +924,7 @@ export default function Canvas3DWorkspace() {
           </div>
         </main>
 
-        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] bg-[#1a1b26d9] p-3 max-lg:hidden">
+        <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-3 max-lg:hidden">
           <div className={`${panelHeaderClass} text-center`}>
             <span className="inline-block text-center">Inspetor</span>
           </div>
@@ -928,45 +951,45 @@ export default function Canvas3DWorkspace() {
                 </div>
 
                 <div className={isTransformOpen ? "p-0" : "hidden p-0"} id="transform-content">
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Position</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Position</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-x" onValueChange={(value) => updateTransform("pos-x", value)} step={0.1} value={selected.position.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-y" onValueChange={(value) => updateTransform("pos-y", value)} step={0.1} value={selected.position.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-z" onValueChange={(value) => updateTransform("pos-z", value)} step={0.1} value={selected.position.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-x" onValueChange={(value) => updateTransform("pos-x", value)} step={0.1} value={selected.position.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">X</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-y" onValueChange={(value) => updateTransform("pos-y", value)} step={0.1} value={selected.position.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Y</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="pos-z" onValueChange={(value) => updateTransform("pos-z", value)} step={0.1} value={selected.position.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Z</span></div>
                     </div>
                     <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["pos-x", "pos-y", "pos-z"])} title="Reset Position" type="button">R</button>
                   </div>
 
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Rotation</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Rotation</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-x" onValueChange={(value) => updateTransform("rot-x", value)} step={1} value={selected.rotation.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-y" onValueChange={(value) => updateTransform("rot-y", value)} step={1} value={selected.rotation.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-z" onValueChange={(value) => updateTransform("rot-z", value)} step={1} value={selected.rotation.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-x" onValueChange={(value) => updateTransform("rot-x", value)} step={1} value={selected.rotation.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">X</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-y" onValueChange={(value) => updateTransform("rot-y", value)} step={1} value={selected.rotation.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Y</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="rot-z" onValueChange={(value) => updateTransform("rot-z", value)} step={1} value={selected.rotation.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Z</span></div>
                     </div>
                     <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["rot-x", "rot-y", "rot-z"])} title="Reset Rotation" type="button">R</button>
                   </div>
 
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Scale</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Scale</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-x" min={0.1} onValueChange={(value) => updateTransform("scale-x", value)} step={0.1} value={selected.scale.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">X</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-y" min={0.1} onValueChange={(value) => updateTransform("scale-y", value)} step={0.1} value={selected.scale.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Y</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-z" min={0.1} onValueChange={(value) => updateTransform("scale-z", value)} step={0.1} value={selected.scale.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">Z</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-x" min={0.1} onValueChange={(value) => updateTransform("scale-x", value)} step={0.1} value={selected.scale.x} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">X</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-y" min={0.1} onValueChange={(value) => updateTransform("scale-y", value)} step={0.1} value={selected.scale.y} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Y</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="scale-z" min={0.1} onValueChange={(value) => updateTransform("scale-z", value)} step={0.1} value={selected.scale.z} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">Z</span></div>
                     </div>
                     <button className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`} onClick={() => resetTransformGroup(["scale-x", "scale-y", "scale-z"])} title="Reset Scale" type="button">R</button>
                   </div>
 
-                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-[#565f89]">Skew</span></div>
+                  <div className="mb-[0.3rem] mt-[0.55rem]"><span className="text-[0.68rem] uppercase text-(--ui-text-muted)">Skew</span></div>
                   <div className="flex items-stretch gap-[0.35rem]">
                     <div className="grid flex-1 grid-cols-3 gap-[0.35rem]">
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xy" onValueChange={(value) => updateTransform("skew-xy", value)} step={0.1} value={selected.skew.xy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XY</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xz" onValueChange={(value) => updateTransform("skew-xz", value)} step={0.1} value={selected.skew.xz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">XZ</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yx" onValueChange={(value) => updateTransform("skew-yx", value)} step={0.1} value={selected.skew.yx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YX</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yz" onValueChange={(value) => updateTransform("skew-yz", value)} step={0.1} value={selected.skew.yz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">YZ</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zx" onValueChange={(value) => updateTransform("skew-zx", value)} step={0.1} value={selected.skew.zx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZX</span></div>
-                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zy" onValueChange={(value) => updateTransform("skew-zy", value)} step={0.1} value={selected.skew.zy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-[#7dcfff]">ZY</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xy" onValueChange={(value) => updateTransform("skew-xy", value)} step={0.1} value={selected.skew.xy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">XY</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-xz" onValueChange={(value) => updateTransform("skew-xz", value)} step={0.1} value={selected.skew.xz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">XZ</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yx" onValueChange={(value) => updateTransform("skew-yx", value)} step={0.1} value={selected.skew.yx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">YX</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-yz" onValueChange={(value) => updateTransform("skew-yz", value)} step={0.1} value={selected.skew.yz} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">YZ</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zx" onValueChange={(value) => updateTransform("skew-zx", value)} step={0.1} value={selected.skew.zx} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">ZX</span></div>
+                      <div className="relative flex items-center"><DraggableNumberInput className={axisInputClass} handlePosition="left" id="skew-zy" onValueChange={(value) => updateTransform("skew-zy", value)} step={0.1} value={selected.skew.zy} /><span className="pointer-events-none absolute right-[0.42rem] text-[0.68rem] text-(--ui-accent)">ZY</span></div>
                     </div>
                     <button
                       className={`${resetButtonClass} min-w-4 w-auto px-[0.45rem] text-[0.68rem]`}
@@ -1002,7 +1025,7 @@ export default function Canvas3DWorkspace() {
                 <div className={isMaterialOpen ? "p-0" : "hidden p-0"} id="material-content">
                   <div className="mb-[0.45rem] flex gap-[0.3rem]">
                     <button
-                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-[#a9b1d6] ${
+                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-(--ui-text) ${
                         colorMode === "rgb" ? panelButtonActiveClass : ""
                       }`}
                       onClick={() => setColorMode("rgb")}
@@ -1011,7 +1034,7 @@ export default function Canvas3DWorkspace() {
                       RGB
                     </button>
                     <button
-                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-[#a9b1d6] ${
+                      className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] bg-[#13141c] py-1 text-[0.72rem] text-(--ui-text) ${
                         colorMode === "hsv" ? panelButtonActiveClass : ""
                       }`}
                       onClick={() => setColorMode("hsv")}
@@ -1023,22 +1046,22 @@ export default function Canvas3DWorkspace() {
 
                   {colorMode === "rgb" ? (
                     <div className="grid grid-cols-3 gap-[0.35rem]" id="rgb-inputs">
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-r">R</label><DraggableNumberInput className={scalarInputClass} id="color-r" max={255} min={0} onValueChange={(value) => updateRgbColor("r", value)} step={1} value={colorInputs.r} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-g">G</label><DraggableNumberInput className={scalarInputClass} id="color-g" max={255} min={0} onValueChange={(value) => updateRgbColor("g", value)} step={1} value={colorInputs.g} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-b">B</label><DraggableNumberInput className={scalarInputClass} id="color-b" max={255} min={0} onValueChange={(value) => updateRgbColor("b", value)} step={1} value={colorInputs.b} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-r">R</label><DraggableNumberInput className={scalarInputClass} id="color-r" max={255} min={0} onValueChange={(value) => updateRgbColor("r", value)} step={1} value={colorInputs.r} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-g">G</label><DraggableNumberInput className={scalarInputClass} id="color-g" max={255} min={0} onValueChange={(value) => updateRgbColor("g", value)} step={1} value={colorInputs.g} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-b">B</label><DraggableNumberInput className={scalarInputClass} id="color-b" max={255} min={0} onValueChange={(value) => updateRgbColor("b", value)} step={1} value={colorInputs.b} /></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 gap-[0.35rem]" id="hsv-inputs">
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-h">H</label><DraggableNumberInput className={scalarInputClass} id="color-h" max={360} min={0} onValueChange={(value) => updateHsvColor("h", value)} step={1} value={colorInputs.h} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-s">S</label><DraggableNumberInput className={scalarInputClass} id="color-s" max={100} min={0} onValueChange={(value) => updateHsvColor("s", value)} step={1} value={colorInputs.s} /></div>
-                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-[#7dcfff]" htmlFor="color-v">V</label><DraggableNumberInput className={scalarInputClass} id="color-v" max={100} min={0} onValueChange={(value) => updateHsvColor("v", value)} step={1} value={colorInputs.v} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-h">H</label><DraggableNumberInput className={scalarInputClass} id="color-h" max={360} min={0} onValueChange={(value) => updateHsvColor("h", value)} step={1} value={colorInputs.h} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-s">S</label><DraggableNumberInput className={scalarInputClass} id="color-s" max={100} min={0} onValueChange={(value) => updateHsvColor("s", value)} step={1} value={colorInputs.s} /></div>
+                      <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-v">V</label><DraggableNumberInput className={scalarInputClass} id="color-v" max={100} min={0} onValueChange={(value) => updateHsvColor("v", value)} step={1} value={colorInputs.v} /></div>
                     </div>
                   )}
 
                   <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
-                    <span className="text-[#565f89]">Alpha</span>
+                    <span className="text-(--ui-text-muted)">Alpha</span>
                     <input
-                      className="flex-1 accent-[#7dcfff]"
+                      className="flex-1 accent-(--ui-accent)"
                       id="color-alpha"
                       max="100"
                       min="0"
@@ -1055,7 +1078,7 @@ export default function Canvas3DWorkspace() {
                   </div>
 
                   <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
-                    <span className="text-[#565f89]">Hex</span>
+                    <span className="text-(--ui-text-muted)">Hex</span>
                     <input
                       aria-label="Color picker"
                       id="color-picker"
@@ -1090,7 +1113,7 @@ export default function Canvas3DWorkspace() {
               </div>
             </div>
           ) : (
-            <div className="mt-[0.65rem] flex min-h-40 flex-col items-center justify-center gap-[0.35rem] p-0 text-center text-[0.78rem] text-[#565f89]" id="inspector-empty">
+            <div className="mt-[0.65rem] flex min-h-40 flex-col items-center justify-center gap-[0.35rem] p-0 text-center text-[0.78rem] text-(--ui-text-muted)" id="inspector-empty">
               <div className="text-2xl">◻</div>
               <div>Selecione um objeto para editar suas propriedades</div>
             </div>
@@ -1100,3 +1123,6 @@ export default function Canvas3DWorkspace() {
     </div>
   );
 }
+
+
+

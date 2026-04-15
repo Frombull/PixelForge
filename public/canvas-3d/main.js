@@ -87,6 +87,8 @@ class App {
         this.viewportGizmo = null;
         this.transformControls = null;
 
+        this.wireframeVisible = false;
+        this.renderMethod = 'zbuffer';
         this.snapToGrid = false;
         this.snapSize = DEFAULT_VALUES.snapSize;
         this.isSkewDragging = false;
@@ -227,12 +229,15 @@ class App {
 
         return {
             gridVisible: this.sceneManager.gridHelper?.visible ?? true,
+            axesVisible: this.sceneManager.axesHelper?.visible ?? true,
+            wireframeVisible: this.wireframeVisible,
             snapToGrid: this.snapToGrid,
             snapSize: this.snapSize,
             backgroundColor: bgColor,
             gridColor: this.getGridColorHex(),
             nearClip: this.sceneManager.perspectiveCamera.near,
-            farClip: this.sceneManager.perspectiveCamera.far
+            farClip: this.sceneManager.perspectiveCamera.far,
+            renderMethod: this.renderMethod
         };
     }
 
@@ -260,6 +265,26 @@ class App {
         } else {
             this.transformControls.setTranslationSnap(null);
         }
+    }
+
+    setMaterialWireframe(material, visible) {
+        if (!material) return;
+
+        if (Array.isArray(material)) {
+            material.forEach((entry) => this.setMaterialWireframe(entry, visible));
+            return;
+        }
+
+        if (typeof material.wireframe === 'boolean') {
+            material.wireframe = visible;
+            material.needsUpdate = true;
+        }
+    }
+
+    applyWireframeVisibility() {
+        this.objectManager.objects.forEach((obj) => {
+            this.setMaterialWireframe(obj.material, this.wireframeVisible);
+        });
     }
 
     setPositionWithSnap(object, x, y, z) {
@@ -320,6 +345,7 @@ class App {
         else if (kind === 'cylinder') this.objectManager.addCylinder();
         else if (kind === 'subtractCube') this.objectManager.addSubtractCube();
         else if (kind === 'zFighting') this.objectManager.addZFightingDemo();
+        this.applyWireframeVisibility();
         this.emitState();
     }
 
@@ -380,6 +406,30 @@ class App {
         this.emitState();
     }
 
+    setCameraAxisView(axis) {
+        const controls = this.controlsManager.controls;
+        const camera = this.sceneManager.camera;
+        const target = controls.target.clone();
+        const distance = Math.max(camera.position.distanceTo(target), 0.001);
+
+        const axisDirection = new THREE.Vector3();
+        if (axis === 'front') axisDirection.set(0, 1, 0);
+        else if (axis === 'right') axisDirection.set(1, 0, 0);
+        else if (axis === 'top') axisDirection.set(0, 0, 1);
+        else return;
+
+        camera.position.copy(target).add(axisDirection.multiplyScalar(distance));
+        camera.lookAt(target);
+        controls.target.copy(target);
+        controls.update();
+
+        if (this.viewportGizmo) {
+            this.viewportGizmo.update();
+        }
+
+        this.emitState();
+    }
+
     toggleCameraType() {
         const isOrtho = this.sceneManager.toggleCameraType(this.controlsManager.controls);
         this.transformControls.camera = this.sceneManager.camera;
@@ -402,9 +452,20 @@ class App {
         this.emitState();
     }
 
+    setAxesVisible(visible) {
+        this.sceneManager.setAxesVisible(visible);
+        this.emitState();
+    }
+
     setSnapEnabled(enabled) {
         this.snapToGrid = enabled;
         this.applyTransformSnapSettings();
+        this.emitState();
+    }
+
+    setWireframeVisible(visible) {
+        this.wireframeVisible = Boolean(visible);
+        this.applyWireframeVisibility();
         this.emitState();
     }
 
@@ -440,6 +501,22 @@ class App {
         if (!Number.isFinite(far) || far <= 0) return;
 
         this.sceneManager.setClipPlanes(undefined, far);
+        this.emitState();
+    }
+
+    normalizeRenderMethod(method) {
+        if (method === 'painter' || method === 'reversePainter') {
+            return method;
+        }
+
+        return 'zbuffer';
+    }
+
+    setRenderMethod(method) {
+        const next = this.normalizeRenderMethod(method);
+        if (this.renderMethod === next) return;
+
+        this.renderMethod = next;
         this.emitState();
     }
 
@@ -651,6 +728,7 @@ class App {
         if (document.activeElement?.tagName === 'INPUT') return;
 
         const key = e.key.toLowerCase();
+        const code = e.code;
 
         if (key === KEY_BINDINGS.FOCUS_SELECTED && this.objectManager.selectedObject) {
             this.controlsManager.focusOnObject(
@@ -662,6 +740,9 @@ class App {
         else if (key === KEY_BINDINGS.SCALE_MODE) this.setMode(MODES.SCALE);
         else if (key === KEY_BINDINGS.TRANSLATE_MODE) this.setMode(MODES.TRANSLATE);
         else if (key === KEY_BINDINGS.SKEW_MODE) this.setMode(MODES.SKEW);
+        else if (code === KEY_BINDINGS.VIEW_FRONT) this.setCameraAxisView('front');
+        else if (code === KEY_BINDINGS.VIEW_RIGHT) this.setCameraAxisView('right');
+        else if (code === KEY_BINDINGS.VIEW_TOP) this.setCameraAxisView('top');
         else if (key === KEY_BINDINGS.DELETE_SELECTED && this.objectManager.selectedObject) {
             this.deleteSelected();
         }
@@ -695,7 +776,7 @@ class App {
             this.controlsManager.update();
         }
         this.booleanOps.update();
-        this.sceneManager.render();
+        this.sceneManager.render(this.objectManager.objects, this.renderMethod);
         this.viewportGizmo?.render();
     }
 
@@ -761,12 +842,15 @@ window.Canvas3DBridge = {
     toggleCullingView: () => appInstance?.toggleCullingView(),
 
     setGridVisible: (visible) => appInstance?.setGridVisible(visible),
+    setAxesVisible: (visible) => appInstance?.setAxesVisible(visible),
+    setWireframeVisible: (visible) => appInstance?.setWireframeVisible(visible),
     setSnapEnabled: (enabled) => appInstance?.setSnapEnabled(enabled),
     setSnapSize: (size) => appInstance?.setSnapSize(size),
     setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),
     setGridColor: (hex) => appInstance?.setGridColor(hex),
     setNearClip: (value) => appInstance?.setNearClip(value),
     setFarClip: (value) => appInstance?.setFarClip(value),
+    setRenderMethod: (method) => appInstance?.setRenderMethod(method),
     resetSetting: (target) => appInstance?.resetSetting(target),
 
     updateSelectedTransform: (field, value) => appInstance?.updateSelectedTransform(field, value),

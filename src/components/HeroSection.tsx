@@ -1,14 +1,69 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import HeroLogo3D from "@/components/HeroLogo3D";
+import HeroVoxelSphere from "@/components/HeroVoxelSphere";
+
+const TERMINAL_COMMAND = "./start.sh --fetin --2026";
+const TERMINAL_OUTPUT = [
+  "[INFO] GitHub: https://github.com/Frombull/PixelForge",
+  "[INFO] Fetin: https://inatel.br/fetin/",
+];
 
 export default function HeroSection() {
+  const [typedCommand, setTypedCommand] = useState("");
+  const [visibleOutputLines, setVisibleOutputLines] = useState(0);
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    const schedule = (callback: () => void, delay: number) => {
+      const timer = setTimeout(callback, delay);
+      timers.push(timer);
+    };
+
+    setTypedCommand("");
+    setVisibleOutputLines(0);
+
+    const typeCommand = (index: number) => {
+      if (index > TERMINAL_COMMAND.length) {
+        popOutputLine(0, 500);
+        return;
+      }
+
+      setTypedCommand(TERMINAL_COMMAND.slice(0, index));
+      schedule(() => typeCommand(index + 1), 26);
+    };
+
+    const popOutputLine = (lineIndex: number, delay: number) => {
+      if (lineIndex >= TERMINAL_OUTPUT.length) {
+        return;
+      }
+
+      schedule(() => {
+        setVisibleOutputLines(lineIndex + 1);
+        popOutputLine(lineIndex + 1, 1000);
+      }, delay);
+    };
+
+    typeCommand(1);
+
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
+
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
       <div className="app-noise absolute inset-0 pointer-events-none" aria-hidden="true" />
+      <div
+        className="absolute left-0 top-1/2 z-0 -translate-x-[40%] opacity-30"
+        aria-hidden="true">
+        <HeroVoxelSphere className="h-72 w-72 sm:h-112 sm:w-md lg:h-160 lg:w-160" />
+      </div>
 
-      <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10">
+      <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10 pointer-events-none">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-2">
           <h1 className="flex items-baseline gap-2 font-mono text-5xl sm:text-7xl lg:text-[6.5rem] font-bold tracking-tighter text-white">
             <span className="text-sky-400">PixelForge</span>
@@ -23,7 +78,7 @@ export default function HeroSection() {
           <span className="text-white"> IA</span>.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto font-mono text-sm">
+        <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto font-mono text-sm pointer-events-auto">
           <Link
             href="#graphics"
             className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-sky-400/50">
@@ -46,10 +101,26 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        <div className="mt-16 pt-8 w-full border-t border-neutral-900 flex justify-center">
-          <p className="text-[11px] font-mono text-neutral-500">
-            <span className="text-green-400">~/pixelforge3d</span> $ ./start.sh --fetin --2026
-          </p>
+        <div className="mt-16 pt-8 w-full flex justify-center pointer-events-none">
+          <div className="w-full max-w-3xl px-4 py-3 text-center font-mono text-[12px] text-neutral-500 pointer-events-none">
+            <p className="h-4 whitespace-nowrap">
+              <span className="text-green-400">~/pixelforge3d</span> $ {typedCommand}
+              {typedCommand.length < TERMINAL_COMMAND.length && (
+                <span className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-sky-400 align-middle" />
+              )}
+            </p>
+            <div className="mt-2 h-19 space-y-1 overflow-hidden" aria-live="polite">
+              {TERMINAL_OUTPUT.map((line, lineIndex) => (
+                <p
+                  key={line}
+                  className={`h-4 whitespace-nowrap text-neutral-400 transition-all duration-150 ${
+                    lineIndex < visibleOutputLines ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0"
+                  }`}>
+                  {lineIndex < visibleOutputLines ? line : ""}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ export class SceneManager {
         this.secondCamera = null;
         this.secondRenderer = null;
         this.gridHelper = null;
+        this.axesHelper = null;
         this.cameraHelper = null;
         this.sky = null;
         this.backgroundColor = new THREE.Color(COLORS.background);
@@ -147,9 +148,9 @@ export class SceneManager {
     }
     
     createAxes() {
-        const axes = new THREE.AxesHelper(5);
-        axes.material.depthTest = false;
-        this.scene.add(axes);
+        this.axesHelper = new THREE.AxesHelper(5);
+        if (this.axesHelper.material) this.axesHelper.material.depthTest = false;
+        this.scene.add(this.axesHelper);
     }
     
     toggleCameraType(controls) {
@@ -191,8 +192,95 @@ export class SceneManager {
         this.scene.add(this.cameraHelper);
         this.cameraHelper.update();
     }
+
+    normalizeRenderMethod(renderMethod) {
+        if (renderMethod === 'painter' || renderMethod === 'reversePainter') {
+            return renderMethod;
+        }
+
+        return 'zbuffer';
+    }
+
+    setMaterialDepthMode(material, useDepthBuffer) {
+        if (!material) return;
+
+        if (Array.isArray(material)) {
+            material.forEach((entry) => this.setMaterialDepthMode(entry, useDepthBuffer));
+            return;
+        }
+
+        let changed = false;
+
+        if (typeof material.depthTest === 'boolean') {
+            if (material.depthTest !== useDepthBuffer) {
+                material.depthTest = useDepthBuffer;
+                changed = true;
+            }
+        }
+
+        if (typeof material.depthWrite === 'boolean') {
+            if (material.depthWrite !== useDepthBuffer) {
+                material.depthWrite = useDepthBuffer;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            material.needsUpdate = true;
+        }
+    }
+
+    applyRenderMethod(objects, camera, renderMethod) {
+        const list = Array.isArray(objects) ? objects : [];
+        const method = this.normalizeRenderMethod(renderMethod);
+        const useDepthBuffer = method === 'zbuffer';
+
+        list.forEach((object) => {
+            object.traverse((node) => {
+                if (!node.isMesh) return;
+
+                this.setMaterialDepthMode(node.material, useDepthBuffer);
+
+                if (useDepthBuffer) {
+                    node.renderOrder = 0;
+                }
+            });
+        });
+
+        if (useDepthBuffer || !camera || list.length === 0) {
+            return;
+        }
+
+        const cameraPos = new THREE.Vector3();
+        const worldA = new THREE.Vector3();
+        const worldB = new THREE.Vector3();
+        camera.getWorldPosition(cameraPos);
+
+        const sorted = [...list].sort((a, b) => {
+            const distA = cameraPos.distanceToSquared(a.getWorldPosition(worldA));
+            const distB = cameraPos.distanceToSquared(b.getWorldPosition(worldB));
+
+            if (method === 'painter') {
+                return distB - distA;
+            }
+
+            return distA - distB;
+        });
+
+        sorted.forEach((object, index) => {
+            const baseOrder = index * 10;
+            object.renderOrder = baseOrder;
+            object.traverse((node) => {
+                if (node !== object) {
+                    node.renderOrder = baseOrder + 1;
+                }
+            });
+        });
+    }
     
-    render() {
+    render(objects = [], renderMethod = 'zbuffer') {
+        this.applyRenderMethod(objects, this.camera, renderMethod);
+
         if (this.sky) {
             this.sky.position.copy(this.camera.position);
         }
@@ -200,6 +288,7 @@ export class SceneManager {
         this.renderer.render(this.scene, this.camera);
         if (this.showSecondViewport) {
             this.updateCameraHelper();
+            this.applyRenderMethod(objects, this.secondCamera, renderMethod);
             if (this.sky) {
                 this.sky.position.copy(this.secondCamera.position);
             }
@@ -271,6 +360,10 @@ export class SceneManager {
     
     setGridVisible(visible) {
         if (this.gridHelper) this.gridHelper.visible = visible;
+    }
+
+    setAxesVisible(visible) {
+        if (this.axesHelper) this.axesHelper.visible = visible;
     }
     
     setClipPlanes(near, far) {

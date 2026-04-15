@@ -27,7 +27,7 @@ export const CONSTANTS = {
         axisX: 0xff0000,
         axisY: 0x00ff00,
         axisZ: 0x0000ff,
-        highlight: 0xffa500,
+        highlight: 0xdfdfdf,
         skewXY: 0xffff00,
         skewXZ: 0xff00ff,
         skewYZ: 0x00ffff,
@@ -45,7 +45,10 @@ export const CONSTANTS = {
         SCALE_MODE: 's',
         SKEW_MODE: 'k',
         FOCUS_SELECTED: 'f',
-        DELETE_SELECTED: 'delete'
+        DELETE_SELECTED: 'delete',
+        VIEW_FRONT: 'Numpad7',
+        VIEW_RIGHT: 'Numpad3',
+        VIEW_TOP: 'Numpad1'
     },
     APP_CONFIG: {
         stateEventName: 'canvas3d:state',

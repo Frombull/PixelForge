@@ -1,27 +1,47 @@
- ::: TODO :::
- 
+░█████████  ░██████░██    ░██ ░██████████ ░███        ░██████████  ░██████   ░█████████    ░██████  ░██████████ 
+░██     ░██   ░██   ░██  ░██  ░██         ░███        ░██         ░██   ░██  ░██     ░██  ░██   ░██ ░██         
+░██     ░██   ░██    ░██░██   ░██         ░███        ░██        ░██     ░██ ░██     ░██ ░██        ░██         
+░█████████    ░██     ░███    ░█████████  ░███        ░█████████ ░██     ░██ ░█████████  ░██  █████ ░█████████  
+░██           ░██    ░██░██   ░██         ░███        ░██        ░██     ░██ ░██   ░██   ░██     ██ ░██         
+░██           ░██   ░██  ░██  ░██         ░███        ░██         ░██   ░██  ░██    ░██   ░██  ░███ ░██         
+░██         ░██████░██    ░██ ░██████████ ░██████████ ░██          ░██████   ░██     ░██   ░█████░█ ░██████████ 
 
+=== [ COMPLETED ] =======================================================================================================
+
+[DONE] - Matriz da tool selecionada na sidebar esquerda (usando Katex)
+[DONE] - Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
+[DONE] - Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
+[DONE] - wifeframe toggle
+[DONE] - Setinha de back
+[DONE] - Mapa do sucesso
+
+=== [ ON IT ] ===========================================================================================================
+
+- Better color theme
 - Pintor, Pintor reverso
-- Z buffer, A buffer
-- Matriz da tool selecionada na sidebar esquerda
-- Hints em forma de bolinha piscando quando entrar na página
  
+=== [ TODO ] ============================================================================================================
 
-- Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
+- Z buffer, A buffer
+- Adicionar propriedade de hidden em objetos, toggle
+- Segurar shift pra dar snap
+- Hints em forma de bolinha piscando quando entrar na página
 BG:
     - Iluminação decente
     - Fix background color picker
-- Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
-- Add color picker to obj mateiral on right sidebar
-- Custom AABB?
-- Mostrar culling pela câmera secundária
+- Add color picker to obj mateiral on right sidebar. redondo pra HSV, talvez usar a biblioteca Iro, mesma do canvas 2D
+- Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d)
+Camera secundária:
+- - Mostrar culling pela câmera secundária
 - - Resize na tela da câmera secundária
-- Setinha de back
 - Ctrl-c / ctrl-v
 - ctrl-z
 - ctrl-x
 - Demo com varios cubos para mostrar frustum culling
+- Atualizar readme.md
+- Pensar em testes
 
+=== [ LINKS ] ============================================================================================================
 
 Possiveis UI:
     1. https://headlessui.com/
@@ -30,3 +50,14 @@ Possiveis UI:
     4. https://react-aria.adobe.com/
     5. https://base-ui.com/
     Para context menu: https://tweakpane.github.io/docs/
+- To Early-Z, or Not To Early-Z: https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/
+- Transforms: https://www.brunodorta.com.br/cg/transforms
+- quake fodase: https://mrdoob.com
+- tf2 model viewer: https://github.com/gkjohnson/source-engine-model-loader
+- https://stats.renaudrohlinger.com/worker_tsl.html
+
+=== [ LIBS USADAS ] ============================================================================================================
+
+- Katex, lib pra matematicas binitas: https://katex.org/
+- Input field scrubber: https://github.com/camwebby/shadcn-react-number-scrubber
+

@@ -9,12 +9,9 @@ export default function HeroSection() {
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
       <div className="app-noise absolute inset-0 pointer-events-none" aria-hidden="true" />
       <div
-        className="pointer-events-none absolute left-0 top-1/2 z-0 -translate-x-[40%] opacity-30 rotate-45"
+        className="absolute left-0 top-1/2 z-0 -translate-x-[40%] opacity-30"
         aria-hidden="true">
-        <HeroVoxelSphere
-          interactive={false}
-          className="h-72 w-72 sm:h-112 sm:w-md lg:h-160 lg:w-160"
-        />
+        <HeroVoxelSphere className="h-72 w-72 sm:h-112 sm:w-md lg:h-160 lg:w-160" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10">
@@ -56,7 +53,7 @@ export default function HeroSection() {
         </div>
 
         <div className="mt-16 pt-8 w-full border-t border-neutral-900 flex justify-center">
-          <p className="text-[11px] font-mono text-neutral-500">
+          <p className="text-[12px] font-mono text-neutral-500">
             <span className="text-green-400">~/pixelforge3d</span> $ ./start.sh --fetin --2026
           </p>
         </div>

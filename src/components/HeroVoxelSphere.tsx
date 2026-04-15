@@ -60,17 +60,32 @@ export default function HeroVoxelSphere({ className, interactive = true }: HeroV
       uniform vec3 uMouse;
 
       void main() {
+        // 1. Get original pos of the voxel in the sphere
         vec3 instancePos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
         vec3 worldInstancePos = (modelMatrix * vec4(instancePos, 1.0)).xyz;
+        
         float dist = distance(worldInstancePos, uMouse);
 
-        float hoverRadius = 3.5;
+        // 2. Make the effect stronger
+        float hoverRadius = 4.2; // How far the "influence" reaches
+        float pushStrength = 0.3; // How far they get pushed away
+        
         float hoverEffect = smoothstep(hoverRadius, 0.0, dist);
+
+        // 3. Offset the position
+        vec3 pushDir = normalize(instancePos);
+        vec3 newInstancePos = instancePos + (pushDir * hoverEffect * pushStrength);
+
+        // 4. Keep from getting too big
         float baseScale = 0.7 + 0.2 * sin(uTime + length(instancePos));
-        float finalScale = baseScale + (hoverEffect * 2.0);
+        float finalScale = baseScale + (hoverEffect * 0.5);
 
         vec3 transformed = position * finalScale;
-        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(transformed, 1.0);
+        
+        // 5. Apply the new position to the mvPosition
+        // We manually construct the translation since we changed instancePos
+        vec4 mvPosition = modelViewMatrix * vec4(newInstancePos + (mat3(instanceMatrix) * transformed), 1.0);
+        
         vNormal = normalMatrix * (mat3(instanceMatrix) * normal);
         vPos = instancePos;
 
@@ -172,7 +187,9 @@ export default function HeroVoxelSphere({ className, interactive = true }: HeroV
       }
 
       voxelSphere.rotation.y += 0.0002;
+      voxelSphere.rotation.x -= 0.0001;
       interactionSphere.rotation.y = voxelSphere.rotation.y;
+      interactionSphere.rotation.x = voxelSphere.rotation.x;
 
       renderer.render(scene, camera);
     };

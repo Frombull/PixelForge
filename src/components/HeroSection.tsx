@@ -68,7 +68,9 @@ export default function HeroSection() {
           <h1 className="flex items-baseline gap-2 font-mono text-5xl sm:text-7xl lg:text-[6.5rem] font-bold tracking-tighter text-white">
             <span className="text-sky-400">PixelForge</span>
           </h1>
-          <HeroLogo3D />
+          <div className="pointer-events-auto">
+            <HeroLogo3D />
+          </div>
         </div>
 
         <p className="max-w-2xl text-lg sm:text-xl text-neutral-400 font-medium leading-relaxed font-mono mt-4">

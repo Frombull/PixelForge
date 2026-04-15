@@ -1,5 +1,7 @@
 export type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
+export type RenderMethod = "zbuffer" | "painter" | "reversePainter";
+
 export type CanvasObjectKind = "cube" | "cylinder" | "subtractCube" | "zFighting";
 
 export type Canvas3DObjectState = {
@@ -50,6 +52,7 @@ export type SettingsState = {
   gridColor: string;
   nearClip: number;
   farClip: number;
+  renderMethod: RenderMethod;
 };
 
 export type Canvas3DState = {
@@ -81,6 +84,7 @@ export const EMPTY_STATE: Canvas3DState = {
     gridColor: "#bbbbbb",
     nearClip: 0.01,
     farClip: 100,
+    renderMethod: "zbuffer",
   },
 };
 
@@ -146,6 +150,7 @@ export type Canvas3DBridge = {
   setGridColor: (hex: string) => void;
   setNearClip: (value: number) => void;
   setFarClip: (value: number) => void;
+  setRenderMethod: (method: RenderMethod) => void;
   resetSetting: (target: "snap-size" | "near-clip" | "far-clip") => void;
 
   updateSelectedTransform: (field: string, value: number) => void;

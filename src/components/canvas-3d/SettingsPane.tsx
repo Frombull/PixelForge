@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Pane } from "tweakpane";
-import { type SettingsState } from "./types";
+import { type RenderMethod, type SettingsState } from "./types";
 
 type SettingsPaneProps = {
   isOpen: boolean;
@@ -17,6 +17,7 @@ type SettingsPaneProps = {
   onGridColorChange: (hex: string) => void;
   onNearClipChange: (value: number) => void;
   onFarClipChange: (value: number) => void;
+  onRenderMethodChange: (method: RenderMethod) => void;
 };
 
 type TweakpaneInfo = {
@@ -38,6 +39,7 @@ export default function SettingsPane({
   onGridColorChange,
   onNearClipChange,
   onFarClipChange,
+  onRenderMethodChange,
 }: SettingsPaneProps) {
   const tweakpaneRef = useRef<TweakpaneInfo | null>(null);
   const tweakpaneContainerRef = useRef<HTMLDivElement | null>(null);
@@ -59,6 +61,7 @@ export default function SettingsPane({
         gridColor: settings.gridColor,
         nearClip: settings.nearClip,
         farClip: settings.farClip,
+        renderMethod: settings.renderMethod,
       };
 
       const controllers: Record<string, any> = {};
@@ -86,6 +89,16 @@ export default function SettingsPane({
 
       controllers.far = pane.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
       controllers.far.on("change", (ev: any) => onFarClipChange(ev.value));
+
+      controllers.renderMethod = pane.addInput(settingsObj, "renderMethod", {
+        label: "Render Method",
+        options: {
+          "Z-Buffer": "zbuffer",
+          Painter: "painter",
+          "Reverse Painter": "reversePainter",
+        },
+      });
+      controllers.renderMethod.on("change", (ev: any) => onRenderMethodChange(ev.value));
       
       controllers.near = pane.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
       controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
@@ -114,6 +127,7 @@ export default function SettingsPane({
     onGridColorChange,
     onGridVisibleChange,
     onNearClipChange,
+    onRenderMethodChange,
     onSnapEnabledChange,
     onSnapSizeChange,
     onWireframeVisibleChange,
@@ -123,6 +137,7 @@ export default function SettingsPane({
     settings.gridColor,
     settings.gridVisible,
     settings.nearClip,
+    settings.renderMethod,
     settings.snapSize,
     settings.snapToGrid,
     settings.wireframeVisible,
@@ -143,6 +158,7 @@ export default function SettingsPane({
       info.settingsObj.gridColor = settings.gridColor;
       info.settingsObj.nearClip = settings.nearClip;
       info.settingsObj.farClip = settings.farClip;
+      info.settingsObj.renderMethod = settings.renderMethod;
 
       info.controllers.grid.value = settings.gridVisible;
       info.controllers.axes.value = settings.axesVisible;
@@ -153,6 +169,7 @@ export default function SettingsPane({
       info.controllers.gridColor.value = settings.gridColor;
       info.controllers.near.value = settings.nearClip;
       info.controllers.far.value = settings.farClip;
+      info.controllers.renderMethod.value = settings.renderMethod;
     } catch {
       // ignore if a controller does not expose .value
     }
@@ -163,6 +180,7 @@ export default function SettingsPane({
     settings.gridColor,
     settings.gridVisible,
     settings.nearClip,
+    settings.renderMethod,
     settings.snapSize,
     settings.snapToGrid,
     settings.wireframeVisible,

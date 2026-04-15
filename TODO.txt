@@ -13,16 +13,17 @@
 [DONE] - Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
 [DONE] - wifeframe toggle
 [DONE] - Setinha de back
+[DONE] - Mapa do sucesso
 
 === [ ON IT ] ===========================================================================================================
 
-- Better color theme: // TODO: Change these
-- Mapa do sucesso
+- Better color theme
 - Pintor, Pintor reverso
  
 === [ TODO ] ============================================================================================================
 
 - Z buffer, A buffer
+- Adicionar propriedade de hidden em objetos, toggle
 - Segurar shift pra dar snap
 - Hints em forma de bolinha piscando quando entrar na página
 BG:

@@ -88,6 +88,7 @@ class App {
         this.transformControls = null;
 
         this.wireframeVisible = false;
+        this.renderMethod = 'zbuffer';
         this.snapToGrid = false;
         this.snapSize = DEFAULT_VALUES.snapSize;
         this.isSkewDragging = false;
@@ -235,7 +236,8 @@ class App {
             backgroundColor: bgColor,
             gridColor: this.getGridColorHex(),
             nearClip: this.sceneManager.perspectiveCamera.near,
-            farClip: this.sceneManager.perspectiveCamera.far
+            farClip: this.sceneManager.perspectiveCamera.far,
+            renderMethod: this.renderMethod
         };
     }
 
@@ -502,6 +504,22 @@ class App {
         this.emitState();
     }
 
+    normalizeRenderMethod(method) {
+        if (method === 'painter' || method === 'reversePainter') {
+            return method;
+        }
+
+        return 'zbuffer';
+    }
+
+    setRenderMethod(method) {
+        const next = this.normalizeRenderMethod(method);
+        if (this.renderMethod === next) return;
+
+        this.renderMethod = next;
+        this.emitState();
+    }
+
     resetSetting(target) {
         if (target === 'near-clip') {
             this.sceneManager.setClipPlanes(DEFAULT_VALUES.nearClip, undefined);
@@ -758,7 +776,7 @@ class App {
             this.controlsManager.update();
         }
         this.booleanOps.update();
-        this.sceneManager.render();
+        this.sceneManager.render(this.objectManager.objects, this.renderMethod);
         this.viewportGizmo?.render();
     }
 
@@ -832,6 +850,7 @@ window.Canvas3DBridge = {
     setGridColor: (hex) => appInstance?.setGridColor(hex),
     setNearClip: (value) => appInstance?.setNearClip(value),
     setFarClip: (value) => appInstance?.setFarClip(value),
+    setRenderMethod: (method) => appInstance?.setRenderMethod(method),
     resetSetting: (target) => appInstance?.resetSetting(target),
 
     updateSelectedTransform: (field, value) => appInstance?.updateSelectedTransform(field, value),

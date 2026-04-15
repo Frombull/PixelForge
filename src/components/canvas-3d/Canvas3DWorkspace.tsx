@@ -349,6 +349,7 @@ export default function Canvas3DWorkspace() {
             onGridColorChange={(hex) => window.Canvas3DBridge?.setGridColor(hex)}
             onGridVisibleChange={(visible) => window.Canvas3DBridge?.setGridVisible(visible)}
             onNearClipChange={(value) => window.Canvas3DBridge?.setNearClip(value)}
+            onRenderMethodChange={(method) => window.Canvas3DBridge?.setRenderMethod(method)}
             onSnapEnabledChange={(enabled) => window.Canvas3DBridge?.setSnapEnabled(enabled)}
             onSnapSizeChange={(size) => window.Canvas3DBridge?.setSnapSize(size)}
             onWireframeVisibleChange={(visible) => window.Canvas3DBridge?.setWireframeVisible(visible)}

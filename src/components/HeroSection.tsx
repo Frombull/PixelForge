@@ -2,11 +2,20 @@
 
 import Link from "next/link";
 import HeroLogo3D from "@/components/HeroLogo3D";
+import HeroVoxelSphere from "@/components/HeroVoxelSphere";
 
 export default function HeroSection() {
   return (
     <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
       <div className="app-noise absolute inset-0 pointer-events-none" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute left-0 top-1/2 z-0 -translate-x-[40%] opacity-30 rotate-45"
+        aria-hidden="true">
+        <HeroVoxelSphere
+          interactive={false}
+          className="h-72 w-72 sm:h-112 sm:w-md lg:h-160 lg:w-160"
+        />
+      </div>
 
       <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-2">

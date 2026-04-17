@@ -15,6 +15,7 @@ type SettingsPaneProps = {
   onSnapSizeChange: (size: number) => void;
   onBackgroundColorChange: (hex: string) => void;
   onGridColorChange: (hex: string) => void;
+  onFovChange: (value: number) => void;
   onNearClipChange: (value: number) => void;
   onFarClipChange: (value: number) => void;
   onRenderMethodChange: (method: RenderMethod) => void;
@@ -37,6 +38,7 @@ export default function SettingsPane({
   onSnapSizeChange,
   onBackgroundColorChange,
   onGridColorChange,
+  onFovChange,
   onNearClipChange,
   onFarClipChange,
   onRenderMethodChange,
@@ -62,12 +64,13 @@ export default function SettingsPane({
         nearClip: settings.nearClip,
         farClip: settings.farClip,
         renderMethod: settings.renderMethod,
+        fov: settings.fov,
       };
 
       const controllers: Record<string, any> = {};
 
       const visualFolder = pane.addFolder({ title: "Visual" });
-      const ClippingFolder = pane.addFolder({ title: "Clipping/Culling" });
+      const CameraFolder = pane.addFolder({ title: "Camera" });
 
       controllers.grid = visualFolder.addInput(settingsObj, "gridVisible", { label: "Grid" });
       controllers.grid.on("change", (ev: any) => onGridVisibleChange(ev.value));
@@ -90,10 +93,16 @@ export default function SettingsPane({
       controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 1, step: 0.1, label: "Snap Size" });
       controllers.snapSize.on("change", (ev: any) => onSnapSizeChange(ev.value));
 
-      controllers.far = ClippingFolder.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+      controllers.fov = CameraFolder.addInput(settingsObj, "fov", { min: 10, max: 120, step: 1, label: "FOV" });
+      controllers.fov.on("change", (ev: any) => onFovChange(ev.value));
+
+      controllers.near = CameraFolder.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+      controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
+
+      controllers.far = CameraFolder.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
       controllers.far.on("change", (ev: any) => onFarClipChange(ev.value));
 
-      controllers.renderMethod = pane.addInput(settingsObj, "renderMethod", {
+      controllers.renderMethod = CameraFolder.addInput(settingsObj, "renderMethod", {
         label: "Render Method",
         options: {
           "Z-Buffer": "zbuffer",
@@ -103,9 +112,6 @@ export default function SettingsPane({
       });
       controllers.renderMethod.on("change", (ev: any) => onRenderMethodChange(ev.value));
       
-      controllers.near = ClippingFolder.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
-      controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
-
       tweakpaneRef.current = { pane, settingsObj, controllers };
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -137,6 +143,7 @@ export default function SettingsPane({
       info.settingsObj.snapSize = settings.snapSize;
       info.settingsObj.backgroundColor = settings.backgroundColor;
       info.settingsObj.gridColor = settings.gridColor;
+      info.settingsObj.fov = settings.fov;
       info.settingsObj.nearClip = settings.nearClip;
       info.settingsObj.farClip = settings.farClip;
       info.settingsObj.renderMethod = settings.renderMethod;
@@ -148,6 +155,7 @@ export default function SettingsPane({
       info.controllers.snapSize.value = settings.snapSize;
       info.controllers.bg.value = settings.backgroundColor;
       info.controllers.gridColor.value = settings.gridColor;
+      info.controllers.fov.value = settings.fov;
       info.controllers.near.value = settings.nearClip;
       info.controllers.far.value = settings.farClip;
       info.controllers.renderMethod.value = settings.renderMethod;
@@ -156,6 +164,7 @@ export default function SettingsPane({
     }
   }, [
     settings.axesVisible,
+    settings.fov,
     settings.backgroundColor,
     settings.farClip,
     settings.gridColor,

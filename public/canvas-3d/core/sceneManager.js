@@ -383,4 +383,11 @@ export class SceneManager {
             this.scene.fog.far = skyRadius;
         }
     }
+
+    setFov(fov) {
+        if (this.perspectiveCamera) {
+            this.perspectiveCamera.fov = fov;
+            this.perspectiveCamera.updateProjectionMatrix();
+        }
+    }
 }

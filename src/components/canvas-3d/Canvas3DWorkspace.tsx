@@ -326,8 +326,6 @@ export default function Canvas3DWorkspace() {
               i
             </button>
 
-            
-
             <button
               className={`${topbarButtonClass} ${isSettingsOpen ? topbarButtonActiveClass : ""}`}
               onContextMenu={(e) => e.preventDefault()}
@@ -346,6 +344,7 @@ export default function Canvas3DWorkspace() {
             isOpen={isSettingsOpen}
             onAxesVisibleChange={(visible) => window.Canvas3DBridge?.setAxesVisible(visible)}
             onBackgroundColorChange={(hex) => window.Canvas3DBridge?.setBackgroundColor(hex)}
+            onFovChange={(value) => window.Canvas3DBridge?.setFov(value)}
             onFarClipChange={(value) => window.Canvas3DBridge?.setFarClip(value)}
             onGridColorChange={(hex) => window.Canvas3DBridge?.setGridColor(hex)}
             onGridVisibleChange={(visible) => window.Canvas3DBridge?.setGridVisible(visible)}

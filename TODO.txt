@@ -22,6 +22,7 @@
  
 === [ TODO ] ============================================================================================================
 
+- There is some constants stuff inside the types.ts, refactor that!
 
 - Diferentes pontos de fuga?
 - Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo,

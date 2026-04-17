@@ -235,6 +235,7 @@ class App {
             snapSize: this.snapSize,
             backgroundColor: bgColor,
             gridColor: this.getGridColorHex(),
+            fov: this.sceneManager.perspectiveCamera.fov,
             nearClip: this.sceneManager.perspectiveCamera.near,
             farClip: this.sceneManager.perspectiveCamera.far,
             renderMethod: this.renderMethod
@@ -493,6 +494,14 @@ class App {
         if (!Number.isFinite(near) || near <= 0) return;
 
         this.sceneManager.setClipPlanes(near, undefined);
+        this.emitState();
+    }
+
+    setFov(value) {
+        const fov = Number(value);
+        if (!Number.isFinite(fov) || fov <= 0 || fov >= 180) return;
+
+        this.sceneManager.setFov(fov);
         this.emitState();
     }
 
@@ -849,6 +858,7 @@ window.Canvas3DBridge = {
     setSnapSize: (size) => appInstance?.setSnapSize(size),
     setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),
     setGridColor: (hex) => appInstance?.setGridColor(hex),
+    setFov: (value) => appInstance?.setFov(value),
     setNearClip: (value) => appInstance?.setNearClip(value),
     setFarClip: (value) => appInstance?.setFarClip(value),
     setRenderMethod: (method) => appInstance?.setRenderMethod(method),

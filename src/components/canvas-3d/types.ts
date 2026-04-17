@@ -50,6 +50,7 @@ export type SettingsState = {
   snapSize: number;
   backgroundColor: string;
   gridColor: string;
+  fov: number;
   nearClip: number;
   farClip: number;
   renderMethod: RenderMethod;
@@ -82,6 +83,7 @@ export const EMPTY_STATE: Canvas3DState = {
     snapSize: 0.5,
     backgroundColor: "#ffffff",
     gridColor: "#bbbbbb",
+    fov: 60,
     nearClip: 0.01,
     farClip: 100,
     renderMethod: "zbuffer",
@@ -148,10 +150,11 @@ export type Canvas3DBridge = {
   setSnapSize: (size: number) => void;
   setBackgroundColor: (hex: string) => void;
   setGridColor: (hex: string) => void;
+  setFov: (value: number) => void;
   setNearClip: (value: number) => void;
   setFarClip: (value: number) => void;
   setRenderMethod: (method: RenderMethod) => void;
-  resetSetting: (target: "snap-size" | "near-clip" | "far-clip") => void;
+  resetSetting: (target: "snap-size" | "near-clip" | "far-clip" | "fov") => void;
 
   updateSelectedTransform: (field: string, value: number) => void;
   resetTransformField: (target: string) => void;

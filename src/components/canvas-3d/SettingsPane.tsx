@@ -78,7 +78,7 @@ export default function SettingsPane({
       controllers.snap = pane.addInput(settingsObj, "snapToGrid", { label: "Snap to Grid" });
       controllers.snap.on("change", () => onSnapEnabledChange(settingsObj.snapToGrid));
 
-      controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 10, step: 0.1, label: "Snap Size" });
+      controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 1, step: 0.1, label: "Snap Size" });
       controllers.snapSize.on("change", (ev: any) => onSnapSizeChange(ev.value));
 
       controllers.bg = pane.addInput(settingsObj, "backgroundColor", { view: "color", label: "Background" });
@@ -119,29 +119,7 @@ export default function SettingsPane({
         tweakpaneRef.current = null;
       }
     };
-  }, [
-    isOpen,
-    onAxesVisibleChange,
-    onBackgroundColorChange,
-    onFarClipChange,
-    onGridColorChange,
-    onGridVisibleChange,
-    onNearClipChange,
-    onRenderMethodChange,
-    onSnapEnabledChange,
-    onSnapSizeChange,
-    onWireframeVisibleChange,
-    settings.axesVisible,
-    settings.backgroundColor,
-    settings.farClip,
-    settings.gridColor,
-    settings.gridVisible,
-    settings.nearClip,
-    settings.renderMethod,
-    settings.snapSize,
-    settings.snapToGrid,
-    settings.wireframeVisible,
-  ]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!tweakpaneRef.current) return;

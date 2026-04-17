@@ -15,6 +15,7 @@ type SettingsPaneProps = {
   onSnapSizeChange: (size: number) => void;
   onBackgroundColorChange: (hex: string) => void;
   onGridColorChange: (hex: string) => void;
+  onFovChange: (value: number) => void;
   onNearClipChange: (value: number) => void;
   onFarClipChange: (value: number) => void;
   onRenderMethodChange: (method: RenderMethod) => void;
@@ -37,6 +38,7 @@ export default function SettingsPane({
   onSnapSizeChange,
   onBackgroundColorChange,
   onGridColorChange,
+  onFovChange,
   onNearClipChange,
   onFarClipChange,
   onRenderMethodChange,
@@ -49,7 +51,7 @@ export default function SettingsPane({
     if (!tweakpaneContainerRef.current) return;
 
     try {
-      const pane: any = new Pane({ container: tweakpaneContainerRef.current, title: "Configurações" });
+      const pane: any = new Pane({ container: tweakpaneContainerRef.current });
 
       const settingsObj: SettingsState = {
         gridVisible: settings.gridVisible,
@@ -62,35 +64,45 @@ export default function SettingsPane({
         nearClip: settings.nearClip,
         farClip: settings.farClip,
         renderMethod: settings.renderMethod,
+        fov: settings.fov,
       };
 
       const controllers: Record<string, any> = {};
 
-      controllers.grid = pane.addInput(settingsObj, "gridVisible", { label: "Mostrar Grid" });
+      const visualFolder = pane.addFolder({ title: "Visual" });
+      const CameraFolder = pane.addFolder({ title: "Camera" });
+
+      controllers.grid = visualFolder.addInput(settingsObj, "gridVisible", { label: "Grid" });
       controllers.grid.on("change", (ev: any) => onGridVisibleChange(ev.value));
 
-      controllers.axes = pane.addInput(settingsObj, "axesVisible", { label: "Mostrar Eixos" });
+      controllers.axes = visualFolder.addInput(settingsObj, "axesVisible", { label: "Eixos" });
       controllers.axes.on("change", (ev: any) => onAxesVisibleChange(ev.value));
 
-      controllers.wireframe = pane.addInput(settingsObj, "wireframeVisible", { label: "Show Wireframe" });
+      controllers.wireframe = visualFolder.addInput(settingsObj, "wireframeVisible", { label: "Wireframe" });
       controllers.wireframe.on("change", (ev: any) => onWireframeVisibleChange(ev.value));
+
+      controllers.bg = visualFolder.addInput(settingsObj, "backgroundColor", { view: "color", label: "Cor do Background" });
+      controllers.bg.on("change", (ev: any) => onBackgroundColorChange(ev.value));
+
+      controllers.gridColor = visualFolder.addInput(settingsObj, "gridColor", { view: "color", label: "Cor do Grid" });
+      controllers.gridColor.on("change", (ev: any) => onGridColorChange(ev.value));
 
       controllers.snap = pane.addInput(settingsObj, "snapToGrid", { label: "Snap to Grid" });
       controllers.snap.on("change", () => onSnapEnabledChange(settingsObj.snapToGrid));
 
-      controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 10, step: 0.1, label: "Snap Size" });
+      controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 1, step: 0.1, label: "Snap Size" });
       controllers.snapSize.on("change", (ev: any) => onSnapSizeChange(ev.value));
 
-      controllers.bg = pane.addInput(settingsObj, "backgroundColor", { view: "color", label: "Background" });
-      controllers.bg.on("change", (ev: any) => onBackgroundColorChange(ev.value));
+      controllers.fov = CameraFolder.addInput(settingsObj, "fov", { min: 10, max: 120, step: 1, label: "FOV" });
+      controllers.fov.on("change", (ev: any) => onFovChange(ev.value));
 
-      controllers.gridColor = pane.addInput(settingsObj, "gridColor", { view: "color", label: "Grid Color" });
-      controllers.gridColor.on("change", (ev: any) => onGridColorChange(ev.value));
+      controllers.near = CameraFolder.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+      controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
 
-      controllers.far = pane.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+      controllers.far = CameraFolder.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
       controllers.far.on("change", (ev: any) => onFarClipChange(ev.value));
 
-      controllers.renderMethod = pane.addInput(settingsObj, "renderMethod", {
+      controllers.renderMethod = CameraFolder.addInput(settingsObj, "renderMethod", {
         label: "Render Method",
         options: {
           "Z-Buffer": "zbuffer",
@@ -100,9 +112,6 @@ export default function SettingsPane({
       });
       controllers.renderMethod.on("change", (ev: any) => onRenderMethodChange(ev.value));
       
-      controllers.near = pane.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
-      controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
-
       tweakpaneRef.current = { pane, settingsObj, controllers };
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -119,29 +128,7 @@ export default function SettingsPane({
         tweakpaneRef.current = null;
       }
     };
-  }, [
-    isOpen,
-    onAxesVisibleChange,
-    onBackgroundColorChange,
-    onFarClipChange,
-    onGridColorChange,
-    onGridVisibleChange,
-    onNearClipChange,
-    onRenderMethodChange,
-    onSnapEnabledChange,
-    onSnapSizeChange,
-    onWireframeVisibleChange,
-    settings.axesVisible,
-    settings.backgroundColor,
-    settings.farClip,
-    settings.gridColor,
-    settings.gridVisible,
-    settings.nearClip,
-    settings.renderMethod,
-    settings.snapSize,
-    settings.snapToGrid,
-    settings.wireframeVisible,
-  ]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!tweakpaneRef.current) return;
@@ -156,6 +143,7 @@ export default function SettingsPane({
       info.settingsObj.snapSize = settings.snapSize;
       info.settingsObj.backgroundColor = settings.backgroundColor;
       info.settingsObj.gridColor = settings.gridColor;
+      info.settingsObj.fov = settings.fov;
       info.settingsObj.nearClip = settings.nearClip;
       info.settingsObj.farClip = settings.farClip;
       info.settingsObj.renderMethod = settings.renderMethod;
@@ -167,6 +155,7 @@ export default function SettingsPane({
       info.controllers.snapSize.value = settings.snapSize;
       info.controllers.bg.value = settings.backgroundColor;
       info.controllers.gridColor.value = settings.gridColor;
+      info.controllers.fov.value = settings.fov;
       info.controllers.near.value = settings.nearClip;
       info.controllers.far.value = settings.farClip;
       info.controllers.renderMethod.value = settings.renderMethod;
@@ -175,6 +164,7 @@ export default function SettingsPane({
     }
   }, [
     settings.axesVisible,
+    settings.fov,
     settings.backgroundColor,
     settings.farClip,
     settings.gridColor,

@@ -44,6 +44,7 @@ export const CONSTANTS = {
         ROTATE_MODE: 'r',
         SCALE_MODE: 's',
         SKEW_MODE: 'k',
+        TOGGLE_CAMERA: 'o',
         FOCUS_SELECTED: 'f',
         DELETE_SELECTED: 'delete',
         VIEW_FRONT: 'Numpad7',

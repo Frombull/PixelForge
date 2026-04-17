@@ -235,6 +235,7 @@ class App {
             snapSize: this.snapSize,
             backgroundColor: bgColor,
             gridColor: this.getGridColorHex(),
+            fov: this.sceneManager.perspectiveCamera.fov,
             nearClip: this.sceneManager.perspectiveCamera.near,
             farClip: this.sceneManager.perspectiveCamera.far,
             renderMethod: this.renderMethod
@@ -496,6 +497,14 @@ class App {
         this.emitState();
     }
 
+    setFov(value) {
+        const fov = Number(value);
+        if (!Number.isFinite(fov) || fov <= 0 || fov >= 180) return;
+
+        this.sceneManager.setFov(fov);
+        this.emitState();
+    }
+
     setFarClip(value) {
         const far = Number(value);
         if (!Number.isFinite(far) || far <= 0) return;
@@ -740,6 +749,7 @@ class App {
         else if (key === KEY_BINDINGS.SCALE_MODE) this.setMode(MODES.SCALE);
         else if (key === KEY_BINDINGS.TRANSLATE_MODE) this.setMode(MODES.TRANSLATE);
         else if (key === KEY_BINDINGS.SKEW_MODE) this.setMode(MODES.SKEW);
+        else if (key === KEY_BINDINGS.TOGGLE_CAMERA) this.toggleCameraType();
         else if (code === KEY_BINDINGS.VIEW_FRONT) this.setCameraAxisView('front');
         else if (code === KEY_BINDINGS.VIEW_RIGHT) this.setCameraAxisView('right');
         else if (code === KEY_BINDINGS.VIEW_TOP) this.setCameraAxisView('top');
@@ -848,6 +858,7 @@ window.Canvas3DBridge = {
     setSnapSize: (size) => appInstance?.setSnapSize(size),
     setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),
     setGridColor: (hex) => appInstance?.setGridColor(hex),
+    setFov: (value) => appInstance?.setFov(value),
     setNearClip: (value) => appInstance?.setNearClip(value),
     setFarClip: (value) => appInstance?.setFarClip(value),
     setRenderMethod: (method) => appInstance?.setRenderMethod(method),

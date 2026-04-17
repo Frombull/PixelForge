@@ -14,22 +14,34 @@
 [DONE] - wifeframe toggle
 [DONE] - Setinha de back
 [DONE] - Mapa do sucesso
+[DONE] - Pintor, Pintor reverso
+[DONE] - Better color theme
 
 === [ ON IT ] ===========================================================================================================
 
-- Better color theme
-- Pintor, Pintor reverso
  
 === [ TODO ] ============================================================================================================
 
+- There is some constants stuff inside the types.ts, refactor that!
+
+- Diferentes pontos de fuga?
+- Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo,
+talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
+- Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
+- FOV slider
+- Panini projection with FOV sliders! (https://youtu.be/LE9kxUQ-l14)
+
 - Z buffer, A buffer
+- Serializar uma cena para salvar em um arquivo .json ou um tipo custom
+- Carregar uma cena de um arquivo
+- Carregar uma cena com query params
 - Adicionar propriedade de hidden em objetos, toggle
 - Segurar shift pra dar snap
 - Hints em forma de bolinha piscando quando entrar na página
 BG:
     - Iluminação decente
-    - Fix background color picker
-- Add color picker to obj mateiral on right sidebar. redondo pra HSV, talvez usar a biblioteca Iro, mesma do canvas 2D
+    - Arrumar background color picker com skybox atual
+- Usar o IRO color picker, redondo pra HSV
 - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d)
 Camera secundária:
 - - Mostrar culling pela câmera secundária
@@ -37,6 +49,7 @@ Camera secundária:
 - Ctrl-c / ctrl-v
 - ctrl-z
 - ctrl-x
+- Animação simples com interpolação e keyframes?
 - Demo com varios cubos para mostrar frustum culling
 - Atualizar readme.md
 - Pensar em testes
@@ -55,6 +68,7 @@ Possiveis UI:
 - quake fodase: https://mrdoob.com
 - tf2 model viewer: https://github.com/gkjohnson/source-engine-model-loader
 - https://stats.renaudrohlinger.com/worker_tsl.html
+- https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
 
 === [ LIBS USADAS ] ============================================================================================================
 

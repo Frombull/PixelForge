@@ -137,6 +137,7 @@ export default function Canvas3DWorkspace() {
     return () => document.removeEventListener("click", handleOutside);
   }, []);
 
+
   useEffect(() => {
     if (!shouldShowTransformMatrix) {
       if (scaleMatrixRef.current) scaleMatrixRef.current.innerHTML = "";
@@ -325,8 +326,6 @@ export default function Canvas3DWorkspace() {
               i
             </button>
 
-            
-
             <button
               className={`${topbarButtonClass} ${isSettingsOpen ? topbarButtonActiveClass : ""}`}
               onContextMenu={(e) => e.preventDefault()}
@@ -345,6 +344,7 @@ export default function Canvas3DWorkspace() {
             isOpen={isSettingsOpen}
             onAxesVisibleChange={(visible) => window.Canvas3DBridge?.setAxesVisible(visible)}
             onBackgroundColorChange={(hex) => window.Canvas3DBridge?.setBackgroundColor(hex)}
+            onFovChange={(value) => window.Canvas3DBridge?.setFov(value)}
             onFarClipChange={(value) => window.Canvas3DBridge?.setFarClip(value)}
             onGridColorChange={(hex) => window.Canvas3DBridge?.setGridColor(hex)}
             onGridVisibleChange={(visible) => window.Canvas3DBridge?.setGridVisible(visible)}
@@ -356,7 +356,7 @@ export default function Canvas3DWorkspace() {
             panelRef={settingsRef}
             settings={engineState.settings}
           />
-          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute left-2 top-3 z-60 w-72 rounded-[0.1rem]" />
+          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute left-2 top-2 z-60 w-72 rounded-[0.1rem]" />
           <div
             className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.1rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-(--ui-text) ${
               isInfoOpen ? "" : "hidden"
@@ -368,7 +368,7 @@ export default function Canvas3DWorkspace() {
             <div>- Zoom: scroll do mouse</div>
             <div>- Focar objeto: {KEY_BINDINGS.FOCUS_SELECTED.toUpperCase()}</div>
             <strong className="mt-2">Keybinds</strong>
-            <div>{`${KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}: Translate | ${KEY_BINDINGS.ROTATE_MODE.toUpperCase()}: Rotate | ${KEY_BINDINGS.SCALE_MODE.toUpperCase()}: Scale | ${KEY_BINDINGS.SKEW_MODE.toUpperCase()}: Skew | ${KEY_BINDINGS.DELETE_SELECTED.toUpperCase()}: Delete`}</div>
+            <div>{`${KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}: Translate | ${KEY_BINDINGS.ROTATE_MODE.toUpperCase()}: Rotate | ${KEY_BINDINGS.SCALE_MODE.toUpperCase()}: Scale | ${KEY_BINDINGS.SKEW_MODE.toUpperCase()}: Skew | ${KEY_BINDINGS.TOGGLE_CAMERA.toUpperCase()}: Toggle Camera | ${KEY_BINDINGS.DELETE_SELECTED.toUpperCase()}: Delete`}</div>
           </div>
         </main>
 

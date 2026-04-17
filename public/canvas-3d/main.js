@@ -740,6 +740,7 @@ class App {
         else if (key === KEY_BINDINGS.SCALE_MODE) this.setMode(MODES.SCALE);
         else if (key === KEY_BINDINGS.TRANSLATE_MODE) this.setMode(MODES.TRANSLATE);
         else if (key === KEY_BINDINGS.SKEW_MODE) this.setMode(MODES.SKEW);
+        else if (key === KEY_BINDINGS.TOGGLE_CAMERA) this.toggleCameraType();
         else if (code === KEY_BINDINGS.VIEW_FRONT) this.setCameraAxisView('front');
         else if (code === KEY_BINDINGS.VIEW_RIGHT) this.setCameraAxisView('right');
         else if (code === KEY_BINDINGS.VIEW_TOP) this.setCameraAxisView('top');

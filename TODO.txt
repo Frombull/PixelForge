@@ -23,6 +23,9 @@
 === [ TODO ] ============================================================================================================
 
 - Z buffer, A buffer
+- Serializar uma cena para salvar em um arquivo .json ou um tipo custom
+- Carregar uma cena de um arquivo
+- Carregar uma cena com query params
 - Adicionar propriedade de hidden em objetos, toggle
 - Segurar shift pra dar snap
 - Hints em forma de bolinha piscando quando entrar na página
@@ -37,6 +40,7 @@ Camera secundária:
 - Ctrl-c / ctrl-v
 - ctrl-z
 - ctrl-x
+- Animação simples com interpolação e keyframes?
 - Demo com varios cubos para mostrar frustum culling
 - Atualizar readme.md
 - Pensar em testes

@@ -49,7 +49,7 @@ export default function SettingsPane({
     if (!tweakpaneContainerRef.current) return;
 
     try {
-      const pane: any = new Pane({ container: tweakpaneContainerRef.current, title: "Configurações" });
+      const pane: any = new Pane({ container: tweakpaneContainerRef.current });
 
       const settingsObj: SettingsState = {
         gridVisible: settings.gridVisible,
@@ -66,14 +66,23 @@ export default function SettingsPane({
 
       const controllers: Record<string, any> = {};
 
-      controllers.grid = pane.addInput(settingsObj, "gridVisible", { label: "Mostrar Grid" });
+      const visualFolder = pane.addFolder({ title: "Visual" });
+      const ClippingFolder = pane.addFolder({ title: "Clipping/Culling" });
+
+      controllers.grid = visualFolder.addInput(settingsObj, "gridVisible", { label: "Grid" });
       controllers.grid.on("change", (ev: any) => onGridVisibleChange(ev.value));
 
-      controllers.axes = pane.addInput(settingsObj, "axesVisible", { label: "Mostrar Eixos" });
+      controllers.axes = visualFolder.addInput(settingsObj, "axesVisible", { label: "Eixos" });
       controllers.axes.on("change", (ev: any) => onAxesVisibleChange(ev.value));
 
-      controllers.wireframe = pane.addInput(settingsObj, "wireframeVisible", { label: "Show Wireframe" });
+      controllers.wireframe = visualFolder.addInput(settingsObj, "wireframeVisible", { label: "Wireframe" });
       controllers.wireframe.on("change", (ev: any) => onWireframeVisibleChange(ev.value));
+
+      controllers.bg = visualFolder.addInput(settingsObj, "backgroundColor", { view: "color", label: "Cor do Background" });
+      controllers.bg.on("change", (ev: any) => onBackgroundColorChange(ev.value));
+
+      controllers.gridColor = visualFolder.addInput(settingsObj, "gridColor", { view: "color", label: "Cor do Grid" });
+      controllers.gridColor.on("change", (ev: any) => onGridColorChange(ev.value));
 
       controllers.snap = pane.addInput(settingsObj, "snapToGrid", { label: "Snap to Grid" });
       controllers.snap.on("change", () => onSnapEnabledChange(settingsObj.snapToGrid));
@@ -81,13 +90,7 @@ export default function SettingsPane({
       controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 1, step: 0.1, label: "Snap Size" });
       controllers.snapSize.on("change", (ev: any) => onSnapSizeChange(ev.value));
 
-      controllers.bg = pane.addInput(settingsObj, "backgroundColor", { view: "color", label: "Background" });
-      controllers.bg.on("change", (ev: any) => onBackgroundColorChange(ev.value));
-
-      controllers.gridColor = pane.addInput(settingsObj, "gridColor", { view: "color", label: "Grid Color" });
-      controllers.gridColor.on("change", (ev: any) => onGridColorChange(ev.value));
-
-      controllers.far = pane.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+      controllers.far = ClippingFolder.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
       controllers.far.on("change", (ev: any) => onFarClipChange(ev.value));
 
       controllers.renderMethod = pane.addInput(settingsObj, "renderMethod", {
@@ -100,7 +103,7 @@ export default function SettingsPane({
       });
       controllers.renderMethod.on("change", (ev: any) => onRenderMethodChange(ev.value));
       
-      controllers.near = pane.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+      controllers.near = ClippingFolder.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
       controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
 
       tweakpaneRef.current = { pane, settingsObj, controllers };

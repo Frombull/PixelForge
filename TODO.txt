@@ -22,6 +22,14 @@
  
 === [ TODO ] ============================================================================================================
 
+
+- Diferentes pontos de fuga?
+- Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo,
+talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
+- Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
+- FOV slider
+- Panini projection with FOV sliders! (https://youtu.be/LE9kxUQ-l14)
+
 - Z buffer, A buffer
 - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
 - Carregar uma cena de um arquivo

@@ -33,6 +33,7 @@ sketch-*.js
 # IDEs and editors
 .vscode/*
 !.vscode/tasks.json
+!.vscode/settings.json
 !.vscode/settings.template.json
 !.vscode/launch.template.json
 !.vscode/extensions.json

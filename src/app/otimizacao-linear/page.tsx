@@ -305,7 +305,7 @@ function solveLP(
   };
 }
 
-export default function ProgramacaoLinearPage() {
+export default function OtimizacaoLinearPage() {
   const [mode, setMode] = useState<ObjectiveMode>("max");
   const [variableCount, setVariableCount] = useState(3);
   const [objective, setObjective] = useState<number[]>([3, 5, 2]);
@@ -472,7 +472,7 @@ export default function ProgramacaoLinearPage() {
       <header className="flex items-end justify-between gap-8 pt-5 px-6 md:px-16 pb-6 border-b border-[#222]">
         <div>
           <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-11 md:pl-12">
-            Otimizacao - Programacao Linear
+            Otimização - Otimização Linear
           </div>
           <h1 className="flex items-center gap-3 md:gap-4 text-2xl md:text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
             <Link
@@ -489,7 +489,7 @@ export default function ProgramacaoLinearPage() {
         </div>
 
         <div className="font-['IBM_Plex_Mono',monospace] text-[10px] md:text-[11px] text-[#444] text-right leading-[1.8] tracking-[0.08em] uppercase">
-          <div>n variaveis - metodo por vertices</div>
+          <div>n variáveis - método por vértices</div>
           <div>x1..xn &gt;= 0</div>
         </div>
       </header>
@@ -749,7 +749,7 @@ export default function ProgramacaoLinearPage() {
                 viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
                 className="relative z-10 w-full h-auto"
                 role="img"
-                aria-label="Gráfico da programação linear"
+                aria-label="Gráfico da otimização linear"
               >
                 {[...Array(9)].map((_, i) => {
                   const xVal = bounds.minX + ((bounds.maxX - bounds.minX) * i) / 8;

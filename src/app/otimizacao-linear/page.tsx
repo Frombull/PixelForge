@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { Circle, Coordinates, Line, Mafs, Point, Polygon, Text } from "mafs";
+import "mafs/core.css";
 
 type ObjectiveMode = "max" | "min";
 type ConstraintRelation = "<=" | ">=" | "=";
@@ -24,9 +26,9 @@ type SolverResult = {
 };
 
 const EPS = 1e-7;
-const CHART_WIDTH = 760;
 const CHART_HEIGHT = 520;
 const MAX_VARIABLES = 8;
+type Vec2 = [number, number];
 
 const FontImport = () => (
   <style>{`
@@ -364,20 +366,10 @@ export default function OtimizacaoLinearPage() {
     };
   }, [result.projectedPoints]);
 
-  const margin = { left: 64, right: 26, top: 26, bottom: 58 };
-  const plotW = CHART_WIDTH - margin.left - margin.right;
-  const plotH = CHART_HEIGHT - margin.top - margin.bottom;
-
-  const sx = (x: number) =>
-    margin.left + ((x - bounds.minX) / (bounds.maxX - bounds.minX)) * plotW;
-  const sy = (y: number) =>
-    margin.top + (1 - (y - bounds.minY) / (bounds.maxY - bounds.minY)) * plotH;
-
-  const hull = useMemo(() => convexHull2D(result.projectedPoints), [result.projectedPoints]);
-  const hullPath =
-    hull.length >= 3
-      ? hull.map((p, i) => `${i === 0 ? "M" : "L"}${sx(p.x)},${sy(p.y)}`).join(" ") + " Z"
-      : "";
+  const hullPoints = useMemo<Vec2[]>(
+    () => convexHull2D(result.projectedPoints).map((p) => [p.x, p.y]),
+    [result.projectedPoints],
+  );
 
   const optimal2D = result.optimal
     ? {
@@ -386,7 +378,7 @@ export default function OtimizacaoLinearPage() {
       }
     : null;
 
-  const objectiveLine = useMemo(() => {
+  const objectiveSegment = useMemo<[Vec2, Vec2] | null>(() => {
     if (!optimal2D || result.optimalValue == null) return null;
     const c1 = normalizedObjective[0] ?? 0;
     const c2 = normalizedObjective[1] ?? 0;
@@ -394,21 +386,56 @@ export default function OtimizacaoLinearPage() {
     if (Math.abs(c1) < EPS && Math.abs(c2) < EPS) return null;
 
     if (Math.abs(c2) > EPS) {
-      const p1 = { x: bounds.minX, y: (result.optimalValue - c1 * bounds.minX) / c2 };
-      const p2 = { x: bounds.maxX, y: (result.optimalValue - c1 * bounds.maxX) / c2 };
-      return [p1, p2];
+      const y1 = (result.optimalValue - c1 * bounds.minX) / c2;
+      const y2 = (result.optimalValue - c1 * bounds.maxX) / c2;
+      return [
+        [bounds.minX, y1],
+        [bounds.maxX, y2],
+      ];
     }
 
     if (Math.abs(c1) > EPS) {
       const x = result.optimalValue / c1;
       return [
-        { x, y: bounds.minY },
-        { x, y: bounds.maxY },
+        [x, bounds.minY],
+        [x, bounds.maxY],
       ];
     }
 
     return null;
   }, [bounds.maxX, bounds.maxY, bounds.minX, bounds.minY, normalizedObjective, optimal2D, result.optimalValue]);
+
+  const constraintSegments = useMemo(
+    () =>
+      normalizedConstraints
+        .map((c, idx) => {
+          const a1 = c.coeffs[0] ?? 0;
+          const a2 = c.coeffs[1] ?? 0;
+
+          if (Math.abs(a2) > EPS) {
+            const p1: Vec2 = [bounds.minX, (c.rhs - a1 * bounds.minX) / a2];
+            const p2: Vec2 = [bounds.maxX, (c.rhs - a1 * bounds.maxX) / a2];
+            return { id: c.id, idx, p1, p2 };
+          }
+
+          if (Math.abs(a1) > EPS) {
+            const x = c.rhs / a1;
+            const p1: Vec2 = [x, bounds.minY];
+            const p2: Vec2 = [x, bounds.maxY];
+            return { id: c.id, idx, p1, p2 };
+          }
+
+          return null;
+        })
+        .filter((v): v is { id: number; idx: number; p1: Vec2; p2: Vec2 } => v != null),
+    [bounds.maxX, bounds.maxY, bounds.minX, bounds.minY, normalizedConstraints],
+  );
+
+  const optimalRingRadius = useMemo(() => {
+    const spanX = bounds.maxX - bounds.minX;
+    const spanY = bounds.maxY - bounds.minY;
+    return Math.max(0.28, Math.max(spanX, spanY) * 0.025);
+  }, [bounds.maxX, bounds.maxY, bounds.minX, bounds.minY]);
 
   function setVariableCountSafe(next: number) {
     const safe = Math.max(2, Math.min(MAX_VARIABLES, next));
@@ -745,105 +772,104 @@ export default function OtimizacaoLinearPage() {
                 }}
               />
 
-              <svg
-                viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-                className="relative z-10 w-full h-auto"
+              <div
+                className="relative z-10 w-full"
                 role="img"
-                aria-label="Gráfico da otimização linear"
+                aria-label="Gráfico da otimização linear interativo"
               >
-                {[...Array(9)].map((_, i) => {
-                  const xVal = bounds.minX + ((bounds.maxX - bounds.minX) * i) / 8;
-                  const yVal = bounds.minY + ((bounds.maxY - bounds.minY) * i) / 8;
-                  const x = sx(xVal);
-                  const y = sy(yVal);
-                  return (
-                    <g key={`grid-${i}`}>
-                      <line x1={x} y1={margin.top} x2={x} y2={margin.top + plotH} stroke="#1c1c1c" strokeWidth="1" />
-                      <line x1={margin.left} y1={y} x2={margin.left + plotW} y2={y} stroke="#1c1c1c" strokeWidth="1" />
-                    </g>
-                  );
-                })}
-
-                <line x1={sx(0)} y1={margin.top} x2={sx(0)} y2={margin.top + plotH} stroke="#4a4a4a" strokeWidth="1.5" />
-                <line x1={margin.left} y1={sy(0)} x2={margin.left + plotW} y2={sy(0)} stroke="#4a4a4a" strokeWidth="1.5" />
-
-                {normalizedConstraints.map((c, idx) => {
-                  const palette = ["#8fbf8f", "#89a7d8", "#d8a889", "#b68fd2", "#c6cc85", "#8ebfc3"];
-                  const stroke = palette[idx % palette.length];
-
-                  const a1 = c.coeffs[0] ?? 0;
-                  const a2 = c.coeffs[1] ?? 0;
-
-                  let p1: { x: number; y: number } | null = null;
-                  let p2: { x: number; y: number } | null = null;
-
-                  if (Math.abs(a2) > EPS) {
-                    p1 = { x: bounds.minX, y: (c.rhs - a1 * bounds.minX) / a2 };
-                    p2 = { x: bounds.maxX, y: (c.rhs - a1 * bounds.maxX) / a2 };
-                  } else if (Math.abs(a1) > EPS) {
-                    const x = c.rhs / a1;
-                    p1 = { x, y: bounds.minY };
-                    p2 = { x, y: bounds.maxY };
-                  }
-
-                  if (!p1 || !p2) return null;
-
-                  return (
-                    <line
-                      key={`constraint-${c.id}`}
-                      x1={sx(p1.x)}
-                      y1={sy(p1.y)}
-                      x2={sx(p2.x)}
-                      y2={sy(p2.y)}
-                      stroke={stroke}
-                      strokeWidth="2"
-                      opacity="0.85"
-                    />
-                  );
-                })}
-
-                {hullPath && (
-                  <path d={hullPath} fill="#4a8f7a" fillOpacity="0.23" stroke="#77c0aa" strokeWidth="2" />
-                )}
-
-                {objectiveLine && (
-                  <line
-                    x1={sx(objectiveLine[0].x)}
-                    y1={sy(objectiveLine[0].y)}
-                    x2={sx(objectiveLine[1].x)}
-                    y2={sy(objectiveLine[1].y)}
-                    stroke="#f0bf6b"
-                    strokeWidth="2"
-                    strokeDasharray="9 7"
-                    opacity="0.95"
+                <Mafs
+                  height={CHART_HEIGHT}
+                  pan
+                  zoom={{ min: 0.45, max: 7 }}
+                  preserveAspectRatio="contain"
+                  viewBox={{
+                    x: [bounds.minX, bounds.maxX],
+                    y: [bounds.minY, bounds.maxY],
+                    padding: 0.6,
+                  }}
+                >
+                  <Coordinates.Cartesian
+                    xAxis={{ axis: true, lines: 5 }}
+                    yAxis={{ axis: true, lines: 5 }}
+                    subdivisions={2}
                   />
-                )}
 
-                {result.projectedPoints.map((p, idx) => (
-                  <g key={`point-${idx}`}>
-                    <circle cx={sx(p.x)} cy={sy(p.y)} r="4.2" fill="#9fd0ff" />
-                    <text x={sx(p.x) + 8} y={sy(p.y) - 8} fill="#7fa7c9" fontSize="10" fontFamily="IBM Plex Mono">
-                      ({formatNum(p.x)}, {formatNum(p.y)})
-                    </text>
-                  </g>
-                ))}
+                  {constraintSegments.map((segment) => {
+                    const palette = ["#8fbf8f", "#89a7d8", "#d8a889", "#b68fd2", "#c6cc85", "#8ebfc3"];
+                    const stroke = palette[segment.idx % palette.length];
 
-                {optimal2D && (
-                  <g>
-                    <circle cx={sx(optimal2D.x)} cy={sy(optimal2D.y)} r="7" fill="#f58f8f" />
-                    <circle cx={sx(optimal2D.x)} cy={sy(optimal2D.y)} r="13" fill="none" stroke="#f58f8f" opacity="0.55" />
-                    <text
-                      x={sx(optimal2D.x) + 10}
-                      y={sy(optimal2D.y) + 18}
-                      fill="#f6b2b2"
-                      fontSize="11"
-                      fontFamily="IBM Plex Mono"
-                    >
-                      ponto ideal (proj.)
-                    </text>
-                  </g>
-                )}
-              </svg>
+                    return (
+                      <Line.Segment
+                        key={`constraint-${segment.id}`}
+                        point1={segment.p1}
+                        point2={segment.p2}
+                        color={stroke}
+                        weight={2}
+                        opacity={0.88}
+                      />
+                    );
+                  })}
+
+                  {hullPoints.length >= 3 && (
+                    <Polygon
+                      points={hullPoints}
+                      color="#77c0aa"
+                      weight={2}
+                      fillOpacity={0.22}
+                      strokeOpacity={0.95}
+                    />
+                  )}
+
+                  {objectiveSegment && (
+                    <Line.Segment
+                      point1={objectiveSegment[0]}
+                      point2={objectiveSegment[1]}
+                      color="#f0bf6b"
+                      weight={2.2}
+                      style="dashed"
+                      opacity={0.95}
+                    />
+                  )}
+
+                  {result.projectedPoints.map((p, idx) => (
+                    <Point
+                      key={`point-${idx}`}
+                      x={p.x}
+                      y={p.y}
+                      color="#9fd0ff"
+                      svgCircleProps={{ r: 4.2 }}
+                    />
+                  ))}
+
+                  {optimal2D && (
+                    <>
+                      <Point x={optimal2D.x} y={optimal2D.y} color="#f58f8f" svgCircleProps={{ r: 7 }} />
+                      <Circle
+                        center={[optimal2D.x, optimal2D.y]}
+                        radius={optimalRingRadius}
+                        color="#f58f8f"
+                        fillOpacity={0}
+                        strokeOpacity={0.55}
+                        weight={2}
+                      />
+                      <Text
+                        x={optimal2D.x}
+                        y={optimal2D.y}
+                        color="#f6b2b2"
+                        attach="ne"
+                        attachDistance={16}
+                        size={11}
+                      >
+                        ponto ideal (proj.)
+                      </Text>
+                    </>
+                  )}
+                </Mafs>
+              </div>
+
+              <div className="pointer-events-none absolute bottom-2 right-3 z-20 font-['IBM_Plex_Mono',monospace] text-[10px] tracking-[0.08em] uppercase text-[#7a7a7a]">
+                Arraste para pan · scroll para zoom
+              </div>
             </div>
 
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] font-['IBM_Plex_Mono',monospace] uppercase tracking-[0.06em]">

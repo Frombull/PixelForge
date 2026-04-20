@@ -26,7 +26,7 @@ type SolverResult = {
 };
 
 const EPS = 1e-7;
-const CHART_HEIGHT = 520;
+const CHART_HEIGHT = 820;
 const MAX_VARIABLES = 8;
 type Vec2 = [number, number];
 

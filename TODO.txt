@@ -19,6 +19,10 @@
 === [ ON IT ] ===========================================================================================================
 
 [IMPORTANT] - Mapa do sucesso 
+[TODO] - Fazer as linhas extenderem até encostar nos eixos
+[TODO] - Tema claro por padrão? Mais facil na sala de aula
+[TODO] - Deixar a UI toda mais pertinha, tá parecendo mta coisa de IA com cards separadas 1 pra cada e adicioanr setinha em cada input
+
  
 === [ TODO ] ============================================================================================================
 

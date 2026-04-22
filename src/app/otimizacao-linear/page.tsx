@@ -1,106 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { Circle, Coordinates, Line, Mafs, Point, Polygon, Text } from "mafs";
+import { ArrowLeft } from "lucide-react";
 import "mafs/core.css";
-
-type ObjectiveMode = "max" | "min";
-type ConstraintRelation = "<=" | ">=" | "=";
-
-type Constraint = {
-  id: number;
-  coeffs: number[];
-  relation: ConstraintRelation;
-  rhs: number;
-};
-
-type SolverResult = {
-  feasibleVertices: number[][];
-  projectedPoints: { x: number; y: number }[];
-  optimal: number[] | null;
-  optimalValue: number | null;
-  feasible: boolean;
-  statusText: string;
-};
+import LinearProgrammingChart from "@/components/otimizacao-linear/LinearProgrammingChart";
+import LinearProgrammingControls from "@/components/otimizacao-linear/LinearProgrammingControls";
+import type {
+  Constraint,
+  ObjectiveMode,
+  SolverResult,
+  Vec2,
+} from "@/components/otimizacao-linear/types";
 
 const EPS = 1e-7;
 const CHART_HEIGHT = 820;
 const MAX_VARIABLES = 8;
-type Vec2 = [number, number];
 
 const FontImport = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
   `}</style>
 );
-
-const NUMERIC_INPUT_REGEX = /^-?\d*(?:[.,]\d*)?$/;
-
-function normalizeNumericText(raw: string) {
-  return raw.replace(",", ".").trim();
-}
-
-function EditableNumberInput({
-  value,
-  onValueChange,
-  className,
-}: {
-  value: number;
-  onValueChange: (next: number) => void;
-  className: string;
-}) {
-  const [text, setText] = useState(() => `${value}`);
-  const [isFocused, setIsFocused] = useState(false);
-
-  useEffect(() => {
-    if (!isFocused) {
-      setText(`${value}`);
-    }
-  }, [value, isFocused]);
-
-  const tryCommit = (raw: string) => {
-    const normalized = normalizeNumericText(raw);
-    if (
-      normalized === "" ||
-      normalized === "-" ||
-      normalized === "." ||
-      normalized === "-."
-    ) {
-      return false;
-    }
-
-    const parsed = Number(normalized);
-    if (!Number.isFinite(parsed)) return false;
-    onValueChange(parsed);
-    return true;
-  };
-
-  return (
-    <input
-      type="text"
-      inputMode="decimal"
-      value={text}
-      onFocus={() => setIsFocused(true)}
-      onChange={(e) => {
-        const raw = e.target.value;
-        if (!NUMERIC_INPUT_REGEX.test(raw)) return;
-        setText(raw);
-        tryCommit(raw);
-      }}
-      onBlur={() => {
-        setIsFocused(false);
-        if (!tryCommit(text)) {
-          setText(`${value}`);
-          return;
-        }
-        setText(normalizeNumericText(text));
-      }}
-      className={className}
-    />
-  );
-}
 
 function formatNum(v: number) {
   return Number.isInteger(v)
@@ -527,366 +448,36 @@ export default function OtimizacaoLinearPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-0.5 bg-[#1a1a1a]">
-          <section className="bg-[#0d0d0d] p-4 md:p-5">
-            <div className="flex items-baseline gap-4 mb-7 pb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
-                entrada
-              </span>
-              <span className="text-[20px] font-normal text-[#ececec] tracking-[-0.01em]">
-                Modelo LP Geral
-              </span>
-            </div>
+          <LinearProgrammingControls
+            mode={mode}
+            onModeChange={setMode}
+            variableCount={variableCount}
+            canDecreaseVariables={canDecreaseVariables}
+            canIncreaseVariables={canIncreaseVariables}
+            onVariableCountChange={setVariableCountSafe}
+            normalizedObjective={normalizedObjective}
+            onObjectiveCoeffChange={updateObjectiveAt}
+            normalizedConstraints={normalizedConstraints}
+            onConstraintCoeffChange={updateConstraintCoeff}
+            onConstraintChange={updateConstraint}
+            onAddConstraint={addConstraint}
+            onRemoveConstraint={removeConstraint}
+            result={result}
+            formatNum={formatNum}
+          />
 
-            <div className="mb-4 bg-[#111] border border-[#1f1f1f] p-3">
-              <label className="flex items-center gap-3">
-                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#575757] uppercase tracking-[0.08em]">
-                  Número de variáveis
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    aria-label="Diminuir número de variáveis"
-                    onClick={() => setVariableCountSafe(variableCount - 1)}
-                    disabled={!canDecreaseVariables}
-                    className={`h-7 w-7 border text-[14px] leading-none transition-colors ${
-                      canDecreaseVariables
-                        ? "border-[#2a2a2a] bg-[#121212] text-[#a0a0a0] hover:text-[#e0e0e0] cursor-pointer"
-                        : "border-[#222] bg-[#101010] text-[#4d4d4d] cursor-not-allowed"
-                    }`}
-                  >
-                    -
-                  </button>
-
-                  <EditableNumberInput
-                    value={variableCount}
-                    onValueChange={(v) => setVariableCountSafe(Math.round(v))}
-                    className="w-16 bg-[#0e0e0e] border border-[#2a2a2a] px-2 py-1 text-[#e5e5e5] focus:outline-none focus:border-[#4b4b4b]"
-                  />
-
-                  <button
-                    type="button"
-                    aria-label="Aumentar número de variáveis"
-                    onClick={() => setVariableCountSafe(variableCount + 1)}
-                    disabled={!canIncreaseVariables}
-                    className={`h-7 w-7 border text-[14px] leading-none transition-colors ${
-                      canIncreaseVariables
-                        ? "border-[#2a2a2a] bg-[#121212] text-[#a0a0a0] hover:text-[#e0e0e0] cursor-pointer"
-                        : "border-[#222] bg-[#101010] text-[#4d4d4d] cursor-not-allowed"
-                    }`}
-                  >
-                    +
-                  </button>
-                </div>
-              </label>
-            </div>
-
-            <div className="mb-6">
-              <div className="font-['IBM_Plex_Mono',monospace] text-[10px] tracking-widest text-[#555] uppercase mb-3">
-                Objetivo
-              </div>
-
-              <div className="flex gap-2 mb-4">
-                <button
-                  type="button"
-                  onClick={() => setMode("max")}
-                  className={`px-4 py-2 border text-[12px] font-['IBM_Plex_Mono',monospace] tracking-[0.08em] uppercase transition-colors cursor-pointer ${
-                    mode === "max"
-                      ? "border-[#76c893] bg-[#14201a] text-[#9be3b2]"
-                      : "border-[#2b2b2b] bg-[#121212] text-[#676767] hover:text-[#9f9f9f]"
-                  }`}
-                >
-                  Maximizar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("min")}
-                  className={`px-4 py-2 border text-[12px] font-['IBM_Plex_Mono',monospace] tracking-[0.08em] uppercase transition-colors cursor-pointer ${
-                    mode === "min"
-                      ? "border-[#f0b26b] bg-[#251b11] text-[#f8c588]"
-                      : "border-[#2b2b2b] bg-[#121212] text-[#676767] hover:text-[#9f9f9f]"
-                  }`}
-                >
-                  Minimizar
-                </button>
-              </div>
-
-              <div className="bg-[#111] border border-[#1f1f1f] p-3">
-                <div className="text-[13px] text-[#858585] mb-3">
-                  {mode === "max" ? "Max" : "Min"} Z = c1.x1 + c2.x2 + ... + cn.xn
-                </div>
-
-                <div className="overflow-x-auto no-scrollbar pb-1">
-                  <div className="flex gap-2 min-w-max">
-                  {normalizedObjective.map((coef, idx) => (
-                    <label key={`obj-${idx}`} className="flex flex-col gap-1 w-19.5 shrink-0">
-                      <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#575757] uppercase tracking-[0.08em]">
-                        c{idx + 1}
-                      </span>
-                      <EditableNumberInput
-                        value={coef}
-                        onValueChange={(v) => updateObjectiveAt(idx, v)}
-                        className="bg-[#0e0e0e] border border-[#2a2a2a] px-2 py-1 text-[#ddd] focus:outline-none focus:border-[#4b4b4b]"
-                      />
-                    </label>
-                  ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <div className="font-['IBM_Plex_Mono',monospace] text-[10px] tracking-widest text-[#555] uppercase">
-                  Restrições
-                </div>
-                <button
-                  type="button"
-                  onClick={addConstraint}
-                  className="inline-flex items-center gap-1.5 border border-[#2a2a2a] bg-[#121212] text-[#8a8a8a] px-2.5 py-1.5 text-[10px] font-['IBM_Plex_Mono',monospace] uppercase tracking-[0.08em] hover:text-[#d0d0d0] transition-colors cursor-pointer"
-                >
-                  <Plus size={12} />
-                  Nova
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {normalizedConstraints.map((constraint) => (
-                  <div key={constraint.id} className="bg-[#111] border border-[#1f1f1f] p-2.5">
-                    <div className="overflow-x-auto no-scrollbar pb-1 mb-2">
-                      <div className="flex gap-2 min-w-max">
-                      {constraint.coeffs.map((coef, idx) => (
-                        <label key={`r-${constraint.id}-${idx}`} className="flex flex-col gap-1 w-19.5 shrink-0">
-                          <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#575757] uppercase tracking-[0.08em]">
-                            x{idx + 1}
-                          </span>
-                          <EditableNumberInput
-                            value={coef}
-                            onValueChange={(v) => updateConstraintCoeff(constraint.id, idx, v)}
-                            className="bg-[#0e0e0e] border border-[#2a2a2a] px-2 py-1 text-[#ddd] focus:outline-none focus:border-[#4b4b4b]"
-                          />
-                        </label>
-                      ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-[95px_1fr_auto] gap-2 items-end">
-                      <label className="flex flex-col gap-1">
-                        <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#575757] uppercase tracking-[0.08em]">
-                          Sinal
-                        </span>
-                        <select
-                          value={constraint.relation}
-                          onChange={(e) =>
-                            updateConstraint(constraint.id, {
-                              relation: e.target.value as ConstraintRelation,
-                            })
-                          }
-                          className="bg-[#0e0e0e] border border-[#2a2a2a] px-2 py-1 text-[#ddd] focus:outline-none focus:border-[#4b4b4b] cursor-pointer"
-                        >
-                          <option value="<=">&lt;=</option>
-                          <option value=">=">&gt;=</option>
-                          <option value="=">=</option>
-                        </select>
-                      </label>
-
-                      <label className="flex flex-col gap-1">
-                        <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#575757] uppercase tracking-[0.08em]">
-                          Lado Direito
-                        </span>
-                        <EditableNumberInput
-                          value={constraint.rhs}
-                          onValueChange={(v) =>
-                            updateConstraint(constraint.id, {
-                              rhs: v,
-                            })
-                          }
-                          className="bg-[#0e0e0e] border border-[#2a2a2a] px-2 py-1 text-[#ddd] focus:outline-none focus:border-[#4b4b4b]"
-                        />
-                      </label>
-
-                      <button
-                        type="button"
-                        onClick={() => removeConstraint(constraint.id)}
-                        className="h-8.5 w-8.5 border border-[#2a2a2a] bg-[#121212] text-[#6e6e6e] hover:text-[#e08f8f] hover:border-[#5a2f2f] transition-colors inline-flex items-center justify-center cursor-pointer"
-                        title="Remover restricao">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="bg-[#101010] border border-dashed border-[#2b2b2b] p-2.5 opacity-90">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#676767] uppercase tracking-[0.08em]">
-                      Não negatividade
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {Array.from({ length: variableCount }, (_, idx) => (
-                      <span
-                        key={`nn-${idx}`}
-                        className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#7b7b7b] border border-[#2a2a2a] bg-[#131313] px-2 py-1">
-                        x{idx + 1} &gt;= 0
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-5 border-t border-[#1a1a1a] space-y-2 text-[13px] leading-[1.7] text-[#888]">
-              <div className="border border-[#2b2b2b] bg-[#141414] px-3 py-2 text-[#b8b8b8]">
-                {result.statusText}
-              </div>
-
-              {result.feasible && result.optimal && result.optimalValue != null && (
-                <div className="border border-[#274430] bg-[#121c15] px-3 py-2 text-[#a3d7b2]">
-                  Solução ótima: Z = {formatNum(result.optimalValue)}
-                </div>
-              )}
-
-              <div className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] uppercase tracking-[0.08em] pt-2">
-                Vértices candidatos viáveis: {result.feasibleVertices.length}
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-[#0d0d0d] p-4 md:p-5 pt-4">
-            <div className="flex items-baseline gap-4 mb-6 pb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
-                saída
-              </span>
-              <span className="text-[20px] font-normal text-[#ececec] tracking-[-0.01em]">
-                Projeção x1-x2 + vetor ótimo
-              </span>
-            </div>
-
-            <div className="relative overflow-hidden border border-[#1f1f1f] bg-[#111]">
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
-                  backgroundSize: "20px 20px",
-                }}
-              />
-
-              <div
-                className="relative z-10 w-full"
-                role="img"
-                aria-label="Gráfico da otimização linear interativo"
-              >
-                <Mafs
-                  height={CHART_HEIGHT}
-                  pan
-                  zoom={{ min: 0.45, max: 7 }}
-                  preserveAspectRatio="contain"
-                  viewBox={{
-                    x: [bounds.minX, bounds.maxX],
-                    y: [bounds.minY, bounds.maxY],
-                    padding: 0.6,
-                  }}
-                >
-                  <Coordinates.Cartesian
-                    xAxis={{ axis: true, lines: 5 }}
-                    yAxis={{ axis: true, lines: 5 }}
-                    subdivisions={2}
-                  />
-
-                  {constraintSegments.map((segment) => {
-                    const palette = ["#8fbf8f", "#89a7d8", "#d8a889", "#b68fd2", "#c6cc85", "#8ebfc3"];
-                    const stroke = palette[segment.idx % palette.length];
-
-                    return (
-                      <Line.Segment
-                        key={`constraint-${segment.id}`}
-                        point1={segment.p1}
-                        point2={segment.p2}
-                        color={stroke}
-                        weight={2}
-                        opacity={0.88}
-                      />
-                    );
-                  })}
-
-                  {hullPoints.length >= 3 && (
-                    <Polygon
-                      points={hullPoints}
-                      color="#77c0aa"
-                      weight={2}
-                      fillOpacity={0.22}
-                      strokeOpacity={0.95}
-                    />
-                  )}
-
-                  {objectiveSegment && (
-                    <Line.Segment
-                      point1={objectiveSegment[0]}
-                      point2={objectiveSegment[1]}
-                      color="#f0bf6b"
-                      weight={2.2}
-                      style="dashed"
-                      opacity={0.95}
-                    />
-                  )}
-
-                  {result.projectedPoints.map((p, idx) => (
-                    <Point
-                      key={`point-${idx}`}
-                      x={p.x}
-                      y={p.y}
-                      color="#9fd0ff"
-                      svgCircleProps={{ r: 4.2 }}
-                    />
-                  ))}
-
-                  {optimal2D && (
-                    <>
-                      <Point x={optimal2D.x} y={optimal2D.y} color="#f58f8f" svgCircleProps={{ r: 7 }} />
-                      <Circle
-                        center={[optimal2D.x, optimal2D.y]}
-                        radius={optimalRingRadius}
-                        color="#f58f8f"
-                        fillOpacity={0}
-                        strokeOpacity={0.55}
-                        weight={2}
-                      />
-                      <Text
-                        x={optimal2D.x}
-                        y={optimal2D.y}
-                        color="#f6b2b2"
-                        attach="ne"
-                        attachDistance={16}
-                        size={11}
-                      >
-                        ponto ideal (proj.)
-                      </Text>
-                    </>
-                  )}
-                </Mafs>
-              </div>
-
-              <div className="pointer-events-none absolute bottom-2 right-3 z-20 font-['IBM_Plex_Mono',monospace] text-[10px] tracking-[0.08em] uppercase text-[#7a7a7a]">
-                Arraste para pan · scroll para zoom
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px] font-['IBM_Plex_Mono',monospace] uppercase tracking-[0.06em]">
-              <div className="border border-[#22372f] bg-[#101814] text-[#82b59c] px-3 py-2">Regiao viavel (proj.)</div>
-              <div className="border border-[#2a2a2a] bg-[#121212] text-[#89a7d8] px-3 py-2">Pontos candidatos</div>
-              <div className="border border-[#472d2d] bg-[#1b1313] text-[#d9a0a0] px-3 py-2">Ponto otimo</div>
-            </div>
-
-            {result.optimal && (
-              <div className="mt-5 pt-5 border-t border-[#1a1a1a] text-[13px] text-[#888] leading-[1.75]">
-                <div className="mb-2 text-[#9f9f9f]">Vetor da solucao:</div>
-                <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#b5b5b5] break-all">
-                  [{result.optimal.map((v) => formatNum(v)).join(", ")}]
-                </div>
-              </div>
-            )}
-          </section>
+          <LinearProgrammingChart
+            chartHeight={CHART_HEIGHT}
+            bounds={bounds}
+            constraintSegments={constraintSegments}
+            hullPoints={hullPoints}
+            objectiveSegment={objectiveSegment}
+            projectedPoints={result.projectedPoints}
+            optimal2D={optimal2D}
+            optimalRingRadius={optimalRingRadius}
+            optimalVector={result.optimal}
+            formatNum={formatNum}
+          />
         </div>
       </main>
     </div>

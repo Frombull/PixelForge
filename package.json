@@ -10,7 +10,10 @@
     "build:p5": "tsc -p tsconfig.p5.json",
     "dev:p5": "tsc -p tsconfig.p5.json --watch",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@fortawesome/react-fontawesome": "^3.3.0",

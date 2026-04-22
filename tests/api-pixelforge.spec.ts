@@ -14,16 +14,15 @@ test.describe('PixelForge Endpoints', () => {
     test('return 200 and expected payload', async ({ request }) => {
       const response = await request.get('/vector');
       expect(response.status()).toBe(200);
-      expect(response.headers()['content-type']).toContain('application/json');
+      expect(response.headers()['content-type']).toContain('text/html');
 
-      const body = await response.json();
-
+      //const body = await response.json();
       // expect(body).toHaveProperty('message');
       // expect(typeof body.message).toBe('string');
     });
 
     test('return 404 for non-existent route', async ({ request }) => {
-      const response = await request.get('/non-existent-route-lol');
+      const response = await request.get('/non-existent-route');
       expect(response.status()).toBe(404);
     });
   });

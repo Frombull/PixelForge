@@ -1,0 +1,44 @@
+{
+    "js/ts.autoClosingTags.enabled": false,
+    "todohighlight.keywords": [
+        {
+            "text": "DONE",
+            "color": "#85bb65",
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+        },
+        {
+            "text": "ON IT",
+            "color": "default",
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+        },
+        {
+            "text": "TODO",
+            "color": "#e2a76f",
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+        },
+        {
+            "text": "LINK",
+            "color": "#6a9fb5",
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+        },
+        {
+            "text": "LIBRARY",
+            "color": "#7ec8a4",
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+        },
+        {
+            "text": "IMPORTANT",
+            "color": "#ff5f5f",
+            "fontWeight": "bold",
+            "backgroundColor": "transparent",
+            "border": "1px solid #ff5f5f",
+            "borderRadius": "2px"
+        }
+    ]
+}
+

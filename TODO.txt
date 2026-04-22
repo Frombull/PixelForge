@@ -1,60 +1,61 @@
-░█████████  ░██████░██    ░██ ░██████████ ░███        ░██████████  ░██████   ░█████████    ░██████  ░██████████ 
-░██     ░██   ░██   ░██  ░██  ░██         ░███        ░██         ░██   ░██  ░██     ░██  ░██   ░██ ░██         
-░██     ░██   ░██    ░██░██   ░██         ░███        ░██        ░██     ░██ ░██     ░██ ░██        ░██         
-░█████████    ░██     ░███    ░█████████  ░███        ░█████████ ░██     ░██ ░█████████  ░██  █████ ░█████████  
-░██           ░██    ░██░██   ░██         ░███        ░██        ░██     ░██ ░██   ░██   ░██     ██ ░██         
-░██           ░██   ░██  ░██  ░██         ░███        ░██         ░██   ░██  ░██    ░██   ░██  ░███ ░██         
-░██         ░██████░██    ░██ ░██████████ ░██████████ ░██          ░██████   ░██     ░██   ░█████░█ ░██████████ 
+░█████████  ░██████░██    ░██ ░█████████ ░███        ░██████████  ░██████   ░█████████    ░██████  ░█████████
+░██     ░██   ░██   ░██  ░██  ░██        ░███        ░██         ░██   ░██  ░██     ░██  ░██   ░██ ░██       
+░██     ░██   ░██    ░██░██   ░██        ░███        ░██        ░██     ░██ ░██     ░██ ░██        ░██       
+░█████████    ░██     ░███    ░████████  ░███        ░█████████ ░██     ░██ ░█████████  ░██  █████ ░████████
+░██           ░██    ░██░██   ░██        ░███        ░██        ░██     ░██ ░██   ░██   ░██     ██ ░██       
+░██           ░██   ░██  ░██  ░██        ░███        ░██         ░██   ░██  ░██    ░██   ░██  ░███ ░██       
+░██         ░██████░██    ░██ ░█████████ ░██████████ ░██          ░██████   ░██     ░██   ░█████░░ ░█████████
 
-=== [ COMPLETED ] =======================================================================================================
+=== [ DONE ] ============================================================================================================
 
 [DONE] - Matriz da tool selecionada na sidebar esquerda (usando Katex)
 [DONE] - Usar o React-number-scrubber para input fields (https://github.com/camwebby/shadcn-react-number-scrubber)
 [DONE] - Debug menu com Tweakpane (https://tweakpane.github.io/docs/)
 [DONE] - wifeframe toggle
 [DONE] - Setinha de back
-[DONE] - Mapa do sucesso
 [DONE] - Pintor, Pintor reverso
 [DONE] - Better color theme
 
 === [ ON IT ] ===========================================================================================================
 
+[IMPORTANT] - Mapa do sucesso 
+[TODO] - Fazer as linhas extenderem até encostar nos eixos
+[TODO] - Tema claro por padrão? Mais facil na sala de aula
+[TODO] - Deixar a UI toda mais pertinha, tá parecendo mta coisa de IA com cards separadas 1 pra cada e adicioanr setinha em cada input
+
  
 === [ TODO ] ============================================================================================================
 
-- There is some constants stuff inside the types.ts, refactor that!
+[TODO] - There is some constants stuff inside the types.ts, refactor that!
+[TODO] - Diferentes pontos de fuga? URGENT
+[TODO] - Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo, talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
+[TODO] - Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
+[TODO] - FOV slider
+[TODO] - Panini projection with FOV sliders! (https://youtu.be/LE9kxUQ-l14)
+[TODO] - Z buffer, A buffer
+[TODO] - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
+[TODO] - Carregar uma cena de um arquivo
+[TODO] - Carregar uma cena com query params
+[TODO] - Adicionar propriedade de hidden em objetos, toggle
+[TODO] - Segurar shift pra dar snap
+[TODO] - Hints em forma de bolinha piscando quando entrar na página
+    BG:
+[TODO] - Iluminação decente
+[TODO] - Arrumar background color picker com skybox atual
+[TODO] - Usar o IRO color picker, redondo pra HSV
+[TODO] - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d) (https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling)
+    Camera secundária:
+[TODO] - Mostrar culling pela câmera secundária
+[TODO] - Resize na tela da câmera secundária
+[TODO] - Ctrl-c / ctrl-v
+[TODO] - ctrl-z
+[TODO] - ctrl-x
+[TODO] - Animação simples com interpolação e keyframes?
+[TODO] - Demo com varios cubos para mostrar frustum culling
+[TODO] - Atualizar readme.md
+[TODO] - Pensar em testes
 
-- Diferentes pontos de fuga?
-- Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo,
-talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
-- Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
-- FOV slider
-- Panini projection with FOV sliders! (https://youtu.be/LE9kxUQ-l14)
-
-- Z buffer, A buffer
-- Serializar uma cena para salvar em um arquivo .json ou um tipo custom
-- Carregar uma cena de um arquivo
-- Carregar uma cena com query params
-- Adicionar propriedade de hidden em objetos, toggle
-- Segurar shift pra dar snap
-- Hints em forma de bolinha piscando quando entrar na página
-BG:
-    - Iluminação decente
-    - Arrumar background color picker com skybox atual
-- Usar o IRO color picker, redondo pra HSV
-- Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d)
-Camera secundária:
-- - Mostrar culling pela câmera secundária
-- - Resize na tela da câmera secundária
-- Ctrl-c / ctrl-v
-- ctrl-z
-- ctrl-x
-- Animação simples com interpolação e keyframes?
-- Demo com varios cubos para mostrar frustum culling
-- Atualizar readme.md
-- Pensar em testes
-
-=== [ LINKS ] ============================================================================================================
+=== [ LINK ] ============================================================================================================
 
 Possiveis UI:
     1. https://headlessui.com/
@@ -63,15 +64,17 @@ Possiveis UI:
     4. https://react-aria.adobe.com/
     5. https://base-ui.com/
     Para context menu: https://tweakpane.github.io/docs/
-- To Early-Z, or Not To Early-Z: https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/
-- Transforms: https://www.brunodorta.com.br/cg/transforms
-- quake fodase: https://mrdoob.com
-- tf2 model viewer: https://github.com/gkjohnson/source-engine-model-loader
-- https://stats.renaudrohlinger.com/worker_tsl.html
-- https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
+[LINK] - To Early-Z, or Not To Early-Z: https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/
+[LINK] - Transforms: https://www.brunodorta.com.br/cg/transforms
+[LINK] - quake fodase: https://mrdoob.com
+[LINK] - tf2 model viewer: https://github.com/gkjohnson/source-engine-model-loader
+[LINK] - https://stats.renaudrohlinger.com/worker_tsl.html
+[LINK] - https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling
 
-=== [ LIBS USADAS ] ============================================================================================================
+=== [ LIBRARY ] =========================================================================================================
 
-- Katex, lib pra matematicas binitas: https://katex.org/
-- Input field scrubber: https://github.com/camwebby/shadcn-react-number-scrubber
+[LIBRARY]- Katex, lib pra matematicas binitas: https://katex.org/
+[LIBRARY]- Input field scrubber: https://github.com/camwebby/shadcn-react-number-scrubber
+[LIBRARY]- IRO color picker: https://iro.js.org/
 
+=========================================================================================================================

@@ -33,6 +33,7 @@ sketch-*.js
 # IDEs and editors
 .vscode/*
 !.vscode/tasks.json
+!.vscode/settings.json
 !.vscode/settings.template.json
 !.vscode/launch.template.json
 !.vscode/extensions.json
@@ -126,3 +127,10 @@ temp/
 .openclaude-profile.json
 openclaude-profile.json
 CLAUDE.md
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

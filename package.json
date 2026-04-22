@@ -10,13 +10,17 @@
     "build:p5": "tsc -p tsconfig.p5.json",
     "dev:p5": "tsc -p tsconfig.p5.json --watch",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@fortawesome/react-fontawesome": "^3.3.0",
     "@jaames/iro": "^5.5.2",
     "katex": "^0.16.45",
     "lucide-react": "^1.7.0",
+    "mafs": "^0.21.0",
     "next": "16.2.2",
     "p5": "^2.2.3",
     "react": "19.2.4",
@@ -28,6 +32,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^25.5.2",
     "@types/p5": "^1.7.7",

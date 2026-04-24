@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CAMERA_PROJECTION_DEFAULTS } from '/canvas-3d/utils/constants.js';
 
 export class ControlsManager {
     constructor(camera, domElement) {
@@ -24,8 +25,8 @@ export class ControlsManager {
         this.controls.enablePan = true;
         this.controls.panSpeed = 1.0;
         this.controls.keyPanSpeed = 7.0;
-        this.controls.maxZoom = 2;
-        this.controls.minZoom = 0.8;
+        this.controls.maxZoom = CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMax;
+        this.controls.minZoom = CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMin;
         
         this.setupPanOnShift();
     }

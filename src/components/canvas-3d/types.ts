@@ -2,6 +2,26 @@ export type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
 export type RenderMethod = "zbuffer" | "painter" | "reversePainter";
 
+export type CameraProjection = "perspective" | "ortographic" | "panini";
+
+export type ProjectionCameraSettings = {
+  perspective: {
+    fov: number;
+    nearClip: number;
+    farClip: number;
+  };
+  ortographic: {
+    nearClip: number;
+    farClip: number;
+    zoom: number;
+  };
+  panini: {
+    fov: number;
+    nearClip: number;
+    farClip: number;
+  };
+};
+
 export type CanvasObjectKind = "cube" | "cylinder" | "subtractCube" | "zFighting";
 
 export type Canvas3DObjectState = {
@@ -53,6 +73,7 @@ export type SettingsState = {
   fov: number;
   nearClip: number;
   farClip: number;
+  orthoZoom: number;
   renderMethod: RenderMethod;
 };
 
@@ -86,6 +107,7 @@ export const EMPTY_STATE: Canvas3DState = {
     fov: 60,
     nearClip: 0.01,
     farClip: 100,
+    orthoZoom: 1,
     renderMethod: "zbuffer",
   },
 };
@@ -141,6 +163,7 @@ export type Canvas3DBridge = {
 
   resetCamera: () => void;
   toggleCameraType: () => boolean | undefined;
+  setCameraProjection: (projection: CameraProjection) => CameraProjection | undefined;
   toggleCullingView: () => boolean | undefined;
 
   setGridVisible: (visible: boolean) => void;
@@ -150,9 +173,10 @@ export type Canvas3DBridge = {
   setSnapSize: (size: number) => void;
   setBackgroundColor: (hex: string) => void;
   setGridColor: (hex: string) => void;
-  setFov: (value: number) => void;
-  setNearClip: (value: number) => void;
-  setFarClip: (value: number) => void;
+  setFov: (value: number, projection?: CameraProjection) => void;
+  setNearClip: (value: number, projection?: CameraProjection) => void;
+  setFarClip: (value: number, projection?: CameraProjection) => void;
+  setOrthoZoom: (value: number) => void;
   setRenderMethod: (method: RenderMethod) => void;
   resetSetting: (target: "snap-size" | "near-clip" | "far-clip" | "fov") => void;
 

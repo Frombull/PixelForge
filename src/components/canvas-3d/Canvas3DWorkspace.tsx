@@ -297,9 +297,9 @@ export default function Canvas3DWorkspace() {
               }`}
               onContextMenu={(e) => e.preventDefault()}
               onClick={() => window.Canvas3DBridge?.toggleCameraType()}
-              title="Ortografica"
+              title="Ortográfica"
               type="button">
-              Ortografica
+              Ortográfica
             </button>
 
             <button
@@ -334,7 +334,7 @@ export default function Canvas3DWorkspace() {
                 setIsInfoOpen(false);
               }}
               ref={settingsButtonRef}
-              title="Configuracoes"
+              title="Configurações"
               type="button">
               ⚙
             </button>

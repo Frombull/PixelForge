@@ -139,14 +139,14 @@ export default function Canvas3DWorkspace() {
     const handleOutside = (event: MouseEvent) => {
       const target = event.target as Node;
 
-      if (
-        settingsRef.current &&
-        !settingsRef.current.contains(target) &&
-        settingsButtonRef.current &&
-        !settingsButtonRef.current.contains(target)
-      ) {
-        setIsSettingsOpen(false);
-      }
+      // if (
+      //   settingsRef.current &&
+      //   !settingsRef.current.contains(target) &&
+      //   settingsButtonRef.current &&
+      //   !settingsButtonRef.current.contains(target)
+      // ) {
+      //   setIsSettingsOpen(false);
+      // }
 
       if (
         infoRef.current &&

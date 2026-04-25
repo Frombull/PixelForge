@@ -5,7 +5,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
-import { APP_CONFIG, DEFAULT_VALUES, KEY_BINDINGS, MODES } from '/canvas-3d/utils/constants.js';
+import { APP_CONFIG, CAMERA_PROJECTION_DEFAULTS, DEFAULT_VALUES, KEY_BINDINGS, MODES } from '/canvas-3d/utils/constants.js';
 import { ViewportGizmo } from 'three-viewport-gizmo';
 
 const STATE_EVENT_NAME = APP_CONFIG.stateEventName;
@@ -91,6 +91,24 @@ class App {
         this.renderMethod = 'zbuffer';
         this.snapToGrid = false;
         this.snapSize = DEFAULT_VALUES.snapSize;
+        this.currentProjection = 'perspective';
+        this.projectionCameraSettings = {
+            perspective: {
+                fov: CAMERA_PROJECTION_DEFAULTS.perspective.fov,
+                nearClip: CAMERA_PROJECTION_DEFAULTS.perspective.near,
+                farClip: CAMERA_PROJECTION_DEFAULTS.perspective.far,
+            },
+            ortographic: {
+                nearClip: CAMERA_PROJECTION_DEFAULTS.orthographic.near,
+                farClip: CAMERA_PROJECTION_DEFAULTS.orthographic.far,
+                zoom: CAMERA_PROJECTION_DEFAULTS.orthographic.zoom,
+            },
+            panini: {
+                fov: CAMERA_PROJECTION_DEFAULTS.panini.fov,
+                nearClip: CAMERA_PROJECTION_DEFAULTS.panini.near,
+                farClip: CAMERA_PROJECTION_DEFAULTS.panini.far,
+            },
+        };
         this.isSkewDragging = false;
         this.skewDragAxis = null;
         this.skewDragPlane = null;
@@ -106,6 +124,10 @@ class App {
         this.handleWindowKeyDown = (e) => this.onKeyDown(e);
         this.handleCanvasWheel = () => {
             if (!this.sceneManager.isPerspective) {
+                const zoom = this.sceneManager.orthographicCamera?.zoom;
+                if (Number.isFinite(zoom)) {
+                    this.projectionCameraSettings.ortographic.zoom = zoom;
+                }
                 requestAnimationFrame(() => {
                     this.emitState();
                 });
@@ -235,6 +257,24 @@ class App {
             ? this.sceneManager.getBackgroundColorHex()
             : '#ffffff';
 
+        const orthoZoom = this.sceneManager.orthographicCamera?.zoom ?? this.projectionCameraSettings.ortographic.zoom;
+        this.projectionCameraSettings.ortographic.zoom = orthoZoom;
+
+        if (this.currentProjection === 'perspective') {
+            this.projectionCameraSettings.perspective.fov = this.sceneManager.perspectiveCamera.fov;
+            this.projectionCameraSettings.perspective.nearClip = this.sceneManager.perspectiveCamera.near;
+            this.projectionCameraSettings.perspective.farClip = this.sceneManager.perspectiveCamera.far;
+        } else if (this.currentProjection === 'panini') {
+            this.projectionCameraSettings.panini.fov = this.sceneManager.perspectiveCamera.fov;
+            this.projectionCameraSettings.panini.nearClip = this.sceneManager.perspectiveCamera.near;
+            this.projectionCameraSettings.panini.farClip = this.sceneManager.perspectiveCamera.far;
+        } else {
+            this.projectionCameraSettings.ortographic.nearClip = this.sceneManager.orthographicCamera.near;
+            this.projectionCameraSettings.ortographic.farClip = this.sceneManager.orthographicCamera.far;
+        }
+
+        const activeSettings = this.projectionCameraSettings[this.currentProjection];
+
         return {
             gridVisible: this.sceneManager.gridHelper?.visible ?? true,
             axesVisible: this.sceneManager.axesHelper?.visible ?? true,
@@ -243,10 +283,18 @@ class App {
             snapSize: this.snapSize,
             backgroundColor: bgColor,
             gridColor: this.getGridColorHex(),
-            fov: this.sceneManager.perspectiveCamera.fov,
-            nearClip: this.sceneManager.perspectiveCamera.near,
-            farClip: this.sceneManager.perspectiveCamera.far,
-            orthoZoom: this.sceneManager.orthographicCamera?.zoom ?? 1,
+            fov: activeSettings?.fov ?? this.projectionCameraSettings.perspective.fov,
+            nearClip: activeSettings?.nearClip ?? this.projectionCameraSettings.perspective.nearClip,
+            farClip: activeSettings?.farClip ?? this.projectionCameraSettings.perspective.farClip,
+            orthoZoom: orthoZoom,
+            perspectiveFov: this.projectionCameraSettings.perspective.fov,
+            perspectiveNearClip: this.projectionCameraSettings.perspective.nearClip,
+            perspectiveFarClip: this.projectionCameraSettings.perspective.farClip,
+            ortographicNearClip: this.projectionCameraSettings.ortographic.nearClip,
+            ortographicFarClip: this.projectionCameraSettings.ortographic.farClip,
+            paniniFov: this.projectionCameraSettings.panini.fov,
+            paniniNearClip: this.projectionCameraSettings.panini.nearClip,
+            paniniFarClip: this.projectionCameraSettings.panini.farClip,
             renderMethod: this.renderMethod
         };
     }
@@ -447,6 +495,8 @@ class App {
             this.viewportGizmo.camera = this.sceneManager.camera;
             this.viewportGizmo.update();
         }
+        this.currentProjection = isOrtho ? 'ortographic' : 'perspective';
+        this.applyProjectionCameraSettings(this.currentProjection);
         this.emitState();
         return isOrtho;
     }
@@ -458,6 +508,24 @@ class App {
         return 'perspective';
     }
 
+    isProjectionActive(projection) {
+        return this.currentProjection === this.normalizeCameraProjection(projection);
+    }
+
+    applyProjectionCameraSettings(projection) {
+        const normalized = this.normalizeCameraProjection(projection);
+        if (normalized === 'ortographic') {
+            const cameraSettings = this.projectionCameraSettings.ortographic;
+            this.sceneManager.setClipPlanes(cameraSettings.nearClip, cameraSettings.farClip, 'ortographic');
+            this.sceneManager.setOrthoZoom(cameraSettings.zoom);
+            return;
+        }
+
+        const cameraSettings = this.projectionCameraSettings[normalized];
+        this.sceneManager.setClipPlanes(cameraSettings.nearClip, cameraSettings.farClip, 'perspective');
+        this.sceneManager.setFov(cameraSettings.fov);
+    }
+
     setCameraProjection(projection) {
         const target = this.normalizeCameraProjection(projection);
 
@@ -466,8 +534,17 @@ class App {
         const isOrthographic = !this.sceneManager.isPerspective;
 
         if (shouldBeOrthographic !== isOrthographic) {
-            this.toggleCameraType();
+            this.sceneManager.toggleCameraType(this.controlsManager.controls);
+            this.transformControls.camera = this.sceneManager.camera;
+            if (this.viewportGizmo) {
+                this.viewportGizmo.camera = this.sceneManager.camera;
+                this.viewportGizmo.update();
+            }
         }
+
+        this.currentProjection = target;
+        this.applyProjectionCameraSettings(target);
+        this.emitState();
 
         return target;
     }
@@ -524,8 +601,12 @@ class App {
         if (!Number.isFinite(near) || near <= 0) return;
 
         const normalizedProjection = this.normalizeCameraProjection(projection);
-        const cameraType = normalizedProjection === 'ortographic' ? 'ortographic' : 'perspective';
-        this.sceneManager.setClipPlanes(near, undefined, cameraType);
+        this.projectionCameraSettings[normalizedProjection].nearClip = near;
+
+        if (this.isProjectionActive(normalizedProjection)) {
+            const cameraType = normalizedProjection === 'ortographic' ? 'ortographic' : 'perspective';
+            this.sceneManager.setClipPlanes(near, undefined, cameraType);
+        }
         this.emitState();
     }
 
@@ -536,7 +617,11 @@ class App {
         const normalizedProjection = this.normalizeCameraProjection(projection);
         if (normalizedProjection === 'ortographic') return;
 
-        this.sceneManager.setFov(fov);
+        this.projectionCameraSettings[normalizedProjection].fov = fov;
+
+        if (this.isProjectionActive(normalizedProjection)) {
+            this.sceneManager.setFov(fov);
+        }
         this.emitState();
     }
 
@@ -545,8 +630,12 @@ class App {
         if (!Number.isFinite(far) || far <= 0) return;
 
         const normalizedProjection = this.normalizeCameraProjection(projection);
-        const cameraType = normalizedProjection === 'ortographic' ? 'ortographic' : 'perspective';
-        this.sceneManager.setClipPlanes(undefined, far, cameraType);
+        this.projectionCameraSettings[normalizedProjection].farClip = far;
+
+        if (this.isProjectionActive(normalizedProjection)) {
+            const cameraType = normalizedProjection === 'ortographic' ? 'ortographic' : 'perspective';
+            this.sceneManager.setClipPlanes(undefined, far, cameraType);
+        }
         this.emitState();
     }
 
@@ -554,7 +643,11 @@ class App {
         const zoom = Number(value);
         if (!Number.isFinite(zoom) || zoom <= 0) return;
 
-        this.sceneManager.setOrthoZoom(zoom);
+        this.projectionCameraSettings.ortographic.zoom = zoom;
+
+        if (this.currentProjection === 'ortographic') {
+            this.sceneManager.setOrthoZoom(zoom);
+        }
         this.emitState();
     }
 
@@ -576,9 +669,11 @@ class App {
 
     resetSetting(target) {
         if (target === 'near-clip') {
-            this.sceneManager.setClipPlanes(DEFAULT_VALUES.nearClip, undefined);
+            this.setNearClip(DEFAULT_VALUES.nearClip, this.currentProjection);
+            return;
         } else if (target === 'far-clip') {
-            this.sceneManager.setClipPlanes(undefined, DEFAULT_VALUES.farClip);
+            this.setFarClip(DEFAULT_VALUES.farClip, this.currentProjection);
+            return;
         } else if (target === 'snap-size') {
             this.snapSize = DEFAULT_VALUES.snapSize;
             this.applyTransformSnapSettings();

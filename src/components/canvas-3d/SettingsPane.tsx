@@ -27,15 +27,6 @@ type SettingsPaneProps = {
 };
 
 type SettingsPaneState = SettingsState & {
-  perspectiveFov: number;
-  perspectiveNearClip: number;
-  perspectiveFarClip: number;
-  ortographicNearClip: number;
-  ortographicFarClip: number;
-  paniniFov: number;
-  paniniNearClip: number;
-  paniniFarClip: number;
-  ortographicZoom: number;
   paniniStrength: number;
 };
 
@@ -85,18 +76,17 @@ export default function SettingsPane({
         gridColor: settings.gridColor,
         nearClip: Number.isFinite(settings.nearClip) ? settings.nearClip : CAMERA_CONFIG.near,
         farClip: Number.isFinite(settings.farClip) ? settings.farClip : CAMERA_CONFIG.far,
-        orthoZoom: Number.isFinite(settings.orthoZoom) ? settings.orthoZoom : CAMERA_PROJECTION_DEFAULTS.orthographic.zoom,
+        orthoZoom: Number.isFinite(cameraSettings.ortographic.zoom) ? cameraSettings.ortographic.zoom : CAMERA_PROJECTION_DEFAULTS.orthographic.zoom,
         renderMethod: settings.renderMethod,
         fov: Number.isFinite(settings.fov) ? settings.fov : CAMERA_CONFIG.fov,
-        perspectiveFov: cameraSettings.perspective.fov,
-        perspectiveNearClip: cameraSettings.perspective.nearClip,
-        perspectiveFarClip: cameraSettings.perspective.farClip,
-        ortographicNearClip: cameraSettings.ortographic.nearClip,
-        ortographicFarClip: cameraSettings.ortographic.farClip,
-        ortographicZoom: cameraSettings.ortographic.zoom,
-        paniniFov: cameraSettings.panini.fov,
-        paniniNearClip: cameraSettings.panini.nearClip,
-        paniniFarClip: cameraSettings.panini.farClip,
+        perspectiveFov: Number.isFinite(cameraSettings.perspective.fov) ? cameraSettings.perspective.fov : CAMERA_PROJECTION_DEFAULTS.perspective.fov,
+        perspectiveNearClip: Number.isFinite(cameraSettings.perspective.nearClip) ? cameraSettings.perspective.nearClip : CAMERA_PROJECTION_DEFAULTS.perspective.near,
+        perspectiveFarClip: Number.isFinite(cameraSettings.perspective.farClip) ? cameraSettings.perspective.farClip : CAMERA_PROJECTION_DEFAULTS.perspective.far,
+        ortographicNearClip: Number.isFinite(cameraSettings.ortographic.nearClip) ? cameraSettings.ortographic.nearClip : CAMERA_PROJECTION_DEFAULTS.orthographic.near,
+        ortographicFarClip: Number.isFinite(cameraSettings.ortographic.farClip) ? cameraSettings.ortographic.farClip : CAMERA_PROJECTION_DEFAULTS.orthographic.far,
+        paniniFov: Number.isFinite(cameraSettings.panini.fov) ? cameraSettings.panini.fov : CAMERA_PROJECTION_DEFAULTS.panini.fov,
+        paniniNearClip: Number.isFinite(cameraSettings.panini.nearClip) ? cameraSettings.panini.nearClip : CAMERA_PROJECTION_DEFAULTS.panini.near,
+        paniniFarClip: Number.isFinite(cameraSettings.panini.farClip) ? cameraSettings.panini.farClip : CAMERA_PROJECTION_DEFAULTS.panini.far,
         paniniStrength: CAMERA_PROJECTION_DEFAULTS.panini.strength,
       };
 
@@ -163,7 +153,7 @@ export default function SettingsPane({
       controllers.orthoFar = ortographicTab.addInput(settingsObj, "ortographicFarClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
       controllers.orthoFar.on("change", (ev: any) => onFarClipChange("ortographic", ev.value));
 
-      controllers.orthoZoom = ortographicTab.addInput(settingsObj, "ortographicZoom", {
+      controllers.orthoZoom = ortographicTab.addInput(settingsObj, "orthoZoom", {
         min: CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMin,
         max: CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMax,
         step: 0.1,
@@ -228,13 +218,12 @@ export default function SettingsPane({
       info.settingsObj.snapSize = settings.snapSize;
       info.settingsObj.backgroundColor = settings.backgroundColor;
       info.settingsObj.gridColor = settings.gridColor;
-      info.settingsObj.orthoZoom = settings.orthoZoom;
       info.settingsObj.perspectiveFov = cameraSettings.perspective.fov;
       info.settingsObj.perspectiveNearClip = cameraSettings.perspective.nearClip;
       info.settingsObj.perspectiveFarClip = cameraSettings.perspective.farClip;
       info.settingsObj.ortographicNearClip = cameraSettings.ortographic.nearClip;
       info.settingsObj.ortographicFarClip = cameraSettings.ortographic.farClip;
-      info.settingsObj.ortographicZoom = cameraSettings.ortographic.zoom;
+      info.settingsObj.orthoZoom = cameraSettings.ortographic.zoom;
       info.settingsObj.paniniFov = cameraSettings.panini.fov;
       info.settingsObj.paniniNearClip = cameraSettings.panini.nearClip;
       info.settingsObj.paniniFarClip = cameraSettings.panini.farClip;

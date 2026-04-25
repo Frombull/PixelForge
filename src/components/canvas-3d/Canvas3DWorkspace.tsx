@@ -171,6 +171,56 @@ export default function Canvas3DWorkspace() {
     setCameraProjection((prev) => (prev === "ortographic" ? "perspective" : prev));
   }, [engineState.isOrthographic]);
 
+  useEffect(() => {
+    const settings = engineState.settings;
+
+    setProjectionSettings((prev) => {
+      const next: ProjectionCameraSettings = {
+        perspective: {
+          fov: Number.isFinite(settings.perspectiveFov) ? settings.perspectiveFov : prev.perspective.fov,
+          nearClip: Number.isFinite(settings.perspectiveNearClip) ? settings.perspectiveNearClip : prev.perspective.nearClip,
+          farClip: Number.isFinite(settings.perspectiveFarClip) ? settings.perspectiveFarClip : prev.perspective.farClip,
+        },
+        ortographic: {
+          nearClip: Number.isFinite(settings.ortographicNearClip) ? settings.ortographicNearClip : prev.ortographic.nearClip,
+          farClip: Number.isFinite(settings.ortographicFarClip) ? settings.ortographicFarClip : prev.ortographic.farClip,
+          zoom: Number.isFinite(settings.orthoZoom) ? settings.orthoZoom : prev.ortographic.zoom,
+        },
+        panini: {
+          fov: Number.isFinite(settings.paniniFov) ? settings.paniniFov : prev.panini.fov,
+          nearClip: Number.isFinite(settings.paniniNearClip) ? settings.paniniNearClip : prev.panini.nearClip,
+          farClip: Number.isFinite(settings.paniniFarClip) ? settings.paniniFarClip : prev.panini.farClip,
+        },
+      };
+
+      const unchanged =
+        prev.perspective.fov === next.perspective.fov &&
+        prev.perspective.nearClip === next.perspective.nearClip &&
+        prev.perspective.farClip === next.perspective.farClip &&
+        prev.ortographic.nearClip === next.ortographic.nearClip &&
+        prev.ortographic.farClip === next.ortographic.farClip &&
+        prev.ortographic.zoom === next.ortographic.zoom &&
+        prev.panini.fov === next.panini.fov &&
+        prev.panini.nearClip === next.panini.nearClip &&
+        prev.panini.farClip === next.panini.farClip;
+
+      if (unchanged) return prev;
+
+      projectionSettingsRef.current = next;
+      return next;
+    });
+  }, [
+    engineState.settings.orthoZoom,
+    engineState.settings.ortographicFarClip,
+    engineState.settings.ortographicNearClip,
+    engineState.settings.paniniFarClip,
+    engineState.settings.paniniFov,
+    engineState.settings.paniniNearClip,
+    engineState.settings.perspectiveFarClip,
+    engineState.settings.perspectiveFov,
+    engineState.settings.perspectiveNearClip,
+  ]);
+
 
   useEffect(() => {
     if (!shouldShowTransformMatrix) {
@@ -268,21 +318,6 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setSelectedAlpha(normalized);
   };
 
-  const applyProjectionCameraSettings = (projection: CameraProjection) => {
-    if (projection === "ortographic") {
-      const next = projectionSettingsRef.current.ortographic;
-      window.Canvas3DBridge?.setNearClip(next.nearClip, projection);
-      window.Canvas3DBridge?.setFarClip(next.farClip, projection);
-      window.Canvas3DBridge?.setOrthoZoom(next.zoom);
-      return;
-    }
-
-    const next = projectionSettingsRef.current[projection];
-    window.Canvas3DBridge?.setNearClip(next.nearClip, projection);
-    window.Canvas3DBridge?.setFarClip(next.farClip, projection);
-    window.Canvas3DBridge?.setFov(next.fov, projection);
-  };
-
   const handleNearClipChange = (projection: CameraProjection, value: number) => {
     const next = Number(value);
     if (!Number.isFinite(next) || next <= 0) return;
@@ -365,7 +400,6 @@ export default function Canvas3DWorkspace() {
   const handleCameraProjectionChange = (projection: CameraProjection) => {
     setCameraProjection(projection);
     window.Canvas3DBridge?.setCameraProjection(projection);
-    applyProjectionCameraSettings(projection);
   };
 
   const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff] select-none";

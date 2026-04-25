@@ -74,6 +74,14 @@ export type SettingsState = {
   nearClip: number;
   farClip: number;
   orthoZoom: number;
+  perspectiveFov: number;
+  perspectiveNearClip: number;
+  perspectiveFarClip: number;
+  ortographicNearClip: number;
+  ortographicFarClip: number;
+  paniniFov: number;
+  paniniNearClip: number;
+  paniniFarClip: number;
   renderMethod: RenderMethod;
 };
 
@@ -108,6 +116,14 @@ export const EMPTY_STATE: Canvas3DState = {
     nearClip: 0.01,
     farClip: 100,
     orthoZoom: 1,
+    perspectiveFov: 60,
+    perspectiveNearClip: 0.01,
+    perspectiveFarClip: 50,
+    ortographicNearClip: 0.01,
+    ortographicFarClip: 50,
+    paniniFov: 60,
+    paniniNearClip: 0.01,
+    paniniFarClip: 50,
     renderMethod: "zbuffer",
   },
 };

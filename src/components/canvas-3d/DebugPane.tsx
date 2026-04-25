@@ -5,12 +5,11 @@ import { Pane } from "tweakpane";
 import { type Canvas3DState } from "./types";
 
 type Props = {
-  isOpen: boolean;
   engineState: Canvas3DState;
   className?: string;
 };
 
-export default function DebugPane({ isOpen, engineState, className }: Props) {
+export default function DebugPane({ engineState, className }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const paneRef = useRef<any>(null);
   const debugObjRef = useRef<any>(null);
@@ -25,11 +24,10 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
   }, [engineState]);
 
   useEffect(() => {
-    if (!isOpen) return;
     if (!containerRef.current) return;
 
     try {
-      const pane: any = new Pane({ container: containerRef.current, title: "Debug" });
+      const pane: any = new Pane({ container: containerRef.current, title: "Debug", expanded: false });
 
       const s = latestStateRef.current;
       const debugObj = {
@@ -115,10 +113,10 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
       controllersRef.current = null;
       lastTsRef.current = null;
     };
-  }, [isOpen]);
+  }, []);
 
   return (
-    <div className={`${className ?? ""} ${isOpen ? "" : "hidden"}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`${className ?? ""}`} onClick={(e) => e.stopPropagation()}>
       <div ref={containerRef} className="w-full" />
     </div>
   );

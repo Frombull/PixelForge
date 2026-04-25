@@ -6,6 +6,7 @@ import DebugPane from "./DebugPane";
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import SettingsPane from "./SettingsPane";
+import TopBar from "./TopBar";
 import { injectImportMap, loadCanvasRuntimeModule, waitForBridge } from "./runtime";
 import { buildTransformMatrixLatex, clamp, getMatrixTitle } from "./workspaceMath";
 import {
@@ -42,7 +43,6 @@ export default function Canvas3DWorkspace() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isDebugOpen, setIsDebugOpen] = useState(true);
   const [isTransformOpen, setIsTransformOpen] = useState(true);
   const [isMaterialOpen, setIsMaterialOpen] = useState(true);
   const [cameraProjection, setCameraProjection] = useState<CameraProjection>("perspective");
@@ -402,8 +402,15 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setCameraProjection(projection);
   };
 
-  const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff] select-none";
-  const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
+  const handleToggleInfo = () => {
+    setIsInfoOpen((prev) => !prev);
+    setIsSettingsOpen(false);
+  };
+
+  const handleToggleSettings = () => {
+    setIsSettingsOpen((prev) => !prev);
+    setIsInfoOpen(false);
+  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-(--ui-main-bg) font-mono text-(--ui-text)" style={themeVars}>
@@ -442,60 +449,17 @@ export default function Canvas3DWorkspace() {
 
         <main id="center-area" className="relative flex-1 bg-(--ui-main-bg)">
           <div id="canvas-container" className="absolute inset-0" />
-          <div id="canvas-actions" className="absolute right-2 top-2 z-50 flex items-center gap-2 backdrop-blur-[2px]">
-            <button className={topbarButtonClass} onContextMenu={(e) => e.preventDefault()} onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 11.5 12 4l9 7.5" />
-                <path d="M6.5 10v9.5h11V10" />
-              </svg>
-            </button>
-
-            <button
-              className={`${topbarButtonClass} w-auto min-w-16 px-2 text-[0.7rem] ${
-                engineState.isCullingViewEnabled ? topbarButtonActiveClass : ""
-              }`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => window.Canvas3DBridge?.toggleCullingView()}
-              title="Culling View"
-              type="button">
-              Culling View
-            </button>
-
-            <button
-              className={`${topbarButtonClass} ${isInfoOpen ? topbarButtonActiveClass : ""}`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => {
-                setIsInfoOpen((prev) => !prev);
-                setIsSettingsOpen(false);
-              }}
-              ref={infoButtonRef}
-              title="Controles"
-              type="button">
-              i
-            </button>
-
-            <button
-              className={`${topbarButtonClass} ${isSettingsOpen ? topbarButtonActiveClass : ""}`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => {
-                setIsSettingsOpen((prev) => !prev);
-                setIsInfoOpen(false);
-              }}
-              ref={settingsButtonRef}
-              title="Configurações"
-              type="button">
-              ⚙
-            </button>
-          </div>
+          <TopBar
+            infoButtonRef={infoButtonRef}
+            isCullingViewEnabled={engineState.isCullingViewEnabled}
+            isInfoOpen={isInfoOpen}
+            isSettingsOpen={isSettingsOpen}
+            onResetCamera={() => window.Canvas3DBridge?.resetCamera()}
+            onToggleCullingView={() => window.Canvas3DBridge?.toggleCullingView()}
+            onToggleInfo={handleToggleInfo}
+            onToggleSettings={handleToggleSettings}
+            settingsButtonRef={settingsButtonRef}
+          />
 
           <SettingsPane
             cameraSettings={projectionSettings}
@@ -517,7 +481,7 @@ export default function Canvas3DWorkspace() {
             panelRef={settingsRef}
             settings={engineState.settings}
           />
-          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute left-2 top-2 z-60 w-72 rounded-[0.1rem]" />
+          <DebugPane engineState={engineState} className="absolute left-2 top-2 z-60 w-72 rounded-[0.1rem]" />
           <div
             className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.1rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-(--ui-text) ${
               isInfoOpen ? "" : "hidden"

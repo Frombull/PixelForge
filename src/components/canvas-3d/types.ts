@@ -1,3 +1,5 @@
+import type { RefObject } from "react";
+
 export type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
 export type RenderMethod = "zbuffer" | "painter" | "reversePainter";
@@ -139,6 +141,18 @@ export type ColorInputState = {
   h: number;
   s: number;
   v: number;
+};
+
+export type TopBarProps = {
+  isCullingViewEnabled: boolean;
+  isInfoOpen: boolean;
+  isSettingsOpen: boolean;
+  infoButtonRef: RefObject<HTMLButtonElement | null>;
+  settingsButtonRef: RefObject<HTMLButtonElement | null>;
+  onResetCamera: () => void;
+  onToggleCullingView: () => void;
+  onToggleInfo: () => void;
+  onToggleSettings: () => void;
 };
 
 export const EMPTY_COLOR_INPUTS: ColorInputState = {

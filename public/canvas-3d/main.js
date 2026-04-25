@@ -300,10 +300,17 @@ class App {
     }
 
     getStateSnapshot() {
+        const cameraPosition = this.sceneManager.camera?.position;
+
         return {
             mode: this.gizmoManager.currentMode,
             isOrthographic: !this.sceneManager.isPerspective,
             isCullingViewEnabled: this.sceneManager.showSecondViewport,
+            cameraPosition: {
+                x: cameraPosition?.x ?? 0,
+                y: cameraPosition?.y ?? 0,
+                z: cameraPosition?.z ?? 0,
+            },
             selectedUuid: this.objectManager.selectedObject?.uuid || null,
             objects: this.objectManager.objects.map(obj => ({
                 uuid: obj.uuid,

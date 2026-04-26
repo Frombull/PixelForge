@@ -5,12 +5,11 @@ import { Pane } from "tweakpane";
 import { type Canvas3DState } from "./types";
 
 type Props = {
-  isOpen: boolean;
   engineState: Canvas3DState;
   className?: string;
 };
 
-export default function DebugPane({ isOpen, engineState, className }: Props) {
+export default function DebugPane({ engineState, className }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const paneRef = useRef<any>(null);
   const debugObjRef = useRef<any>(null);
@@ -20,16 +19,18 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
   const lastTsRef = useRef<number | null>(null);
   const fpsRef = useRef<number>(0);
 
+  const formatCoord = (value: number) => Math.round((value + Number.EPSILON) * 1000) / 1000;
+  const formatCameraPos = (x: number, y: number, z: number) => `${formatCoord(x)}, ${formatCoord(y)}, ${formatCoord(z)}`;
+
   useEffect(() => {
     latestStateRef.current = engineState;
   }, [engineState]);
 
   useEffect(() => {
-    if (!isOpen) return;
     if (!containerRef.current) return;
 
     try {
-      const pane: any = new Pane({ container: containerRef.current, title: "Debug" });
+      const pane: any = new Pane({ container: containerRef.current, title: "Debug", expanded: false });
 
       const s = latestStateRef.current;
       const debugObj = {
@@ -40,6 +41,7 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
         isOrthographic: s.isOrthographic,
         isCullingViewEnabled: s.isCullingViewEnabled,
         fps: 0,
+        cameraPos: formatCameraPos(s.cameraPosition.x ?? 0, s.cameraPosition.y ?? 0, s.cameraPosition.z ?? 0),
       };
 
       const controllers: Record<string, any> = {};
@@ -50,7 +52,15 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
       controllers.objectsCount = pane.addMonitor(debugObj, "objectsCount", { label: "Objects" });
       controllers.isOrthographic = pane.addMonitor(debugObj, "isOrthographic", { label: "Orthographic" });
       controllers.isCullingViewEnabled = pane.addMonitor(debugObj, "isCullingViewEnabled", { label: "Culling View" });
+      controllers.cameraPos = pane.addMonitor(debugObj, "cameraPos", { label: "Camera XYZ" });
       controllers.fps = pane.addMonitor(debugObj, "fps", { label: "FPS" });
+      controllers.fpsGraph = pane.addMonitor(debugObj, "fps", {
+        label: "FPS Graph",
+        view: "graph",
+        min: 0,
+        max: 200,
+        interval: 200,
+      });
 
       paneRef.current = pane;
       debugObjRef.current = debugObj;
@@ -69,12 +79,16 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
         info.isOrthographic = latest.isOrthographic;
         info.isCullingViewEnabled = latest.isCullingViewEnabled;
 
+        const bridgeState = window.Canvas3DBridge?.getState?.();
+        const cameraPosition = bridgeState?.cameraPosition ?? latest.cameraPosition;
+        info.cameraPos = formatCameraPos(cameraPosition?.x ?? 0, cameraPosition?.y ?? 0, cameraPosition?.z ?? 0);
+
         if (lastTsRef.current) {
           const dt = ts - lastTsRef.current;
           const inst = dt > 0 ? 1000 / dt : 0;
           fpsRef.current = fpsRef.current ? fpsRef.current * 0.85 + inst * 0.15 : inst;
-          info.fps = Math.round(fpsRef.current);
         }
+        info.fps = Math.round(fpsRef.current);
         lastTsRef.current = ts;
 
         try {
@@ -86,6 +100,7 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
             if (ctr.objectsCount) ctr.objectsCount.value = info.objectsCount;
             if (ctr.isOrthographic) ctr.isOrthographic.value = info.isOrthographic;
             if (ctr.isCullingViewEnabled) ctr.isCullingViewEnabled.value = info.isCullingViewEnabled;
+            if (ctr.cameraPos) ctr.cameraPos.value = info.cameraPos;
             if (ctr.fps) ctr.fps.value = info.fps;
           }
         } catch (e) {
@@ -115,10 +130,10 @@ export default function DebugPane({ isOpen, engineState, className }: Props) {
       controllersRef.current = null;
       lastTsRef.current = null;
     };
-  }, [isOpen]);
+  }, []);
 
   return (
-    <div className={`${className ?? ""} ${isOpen ? "" : "hidden"}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`${className ?? ""}`} onClick={(e) => e.stopPropagation()}>
       <div ref={containerRef} className="w-full" />
     </div>
   );

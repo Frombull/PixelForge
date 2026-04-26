@@ -6,21 +6,24 @@ import DebugPane from "./DebugPane";
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import SettingsPane from "./SettingsPane";
+import TopBar from "./TopBar";
 import { injectImportMap, loadCanvasRuntimeModule, waitForBridge } from "./runtime";
 import { buildTransformMatrixLatex, clamp, getMatrixTitle } from "./workspaceMath";
 import {
   EMPTY_COLOR_INPUTS,
   EMPTY_STATE,
   UI_THEME,
+  type CameraProjection,
   type Canvas3DMode,
   type Canvas3DState,
   type Canvas3DStatus,
   type CanvasObjectKind,
   type ColorInputState,
   type ColorMode,
+  type ProjectionCameraSettings,
 } from "./types";
 import "katex/dist/katex.min.css";
-import { KEY_BINDINGS } from "../../../public/canvas-3d/utils/constants";
+import { CAMERA_PROJECTION_DEFAULTS, KEY_BINDINGS } from "../../../public/canvas-3d/utils/constants";
 
 export default function Canvas3DWorkspace() {
   const themeVars: CSSProperties = {
@@ -40,9 +43,26 @@ export default function Canvas3DWorkspace() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
-  const [isDebugOpen, setIsDebugOpen] = useState(true);
   const [isTransformOpen, setIsTransformOpen] = useState(true);
   const [isMaterialOpen, setIsMaterialOpen] = useState(true);
+  const [cameraProjection, setCameraProjection] = useState<CameraProjection>("perspective");
+  const [projectionSettings, setProjectionSettings] = useState<ProjectionCameraSettings>({
+    perspective: {
+      fov: CAMERA_PROJECTION_DEFAULTS.perspective.fov,
+      nearClip: CAMERA_PROJECTION_DEFAULTS.perspective.near,
+      farClip: CAMERA_PROJECTION_DEFAULTS.perspective.far,
+    },
+    ortographic: {
+      nearClip: CAMERA_PROJECTION_DEFAULTS.orthographic.near,
+      farClip: CAMERA_PROJECTION_DEFAULTS.orthographic.far,
+      zoom: CAMERA_PROJECTION_DEFAULTS.orthographic.zoom,
+    },
+    panini: {
+      fov: CAMERA_PROJECTION_DEFAULTS.panini.fov,
+      nearClip: CAMERA_PROJECTION_DEFAULTS.panini.near,
+      farClip: CAMERA_PROJECTION_DEFAULTS.panini.far,
+    },
+  });
 
   const [colorMode, setColorMode] = useState<ColorMode>("rgb");
   const [colorInputs, setColorInputs] = useState<ColorInputState>(EMPTY_COLOR_INPUTS);
@@ -52,9 +72,14 @@ export default function Canvas3DWorkspace() {
   const infoRef = useRef<HTMLDivElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
   const scaleMatrixRef = useRef<HTMLDivElement | null>(null);
+  const projectionSettingsRef = useRef<ProjectionCameraSettings>(projectionSettings);
   const selected = engineState.selected;
   const shouldShowTransformMatrix = ["translate", "rotate", "scale", "skew"].includes(engineState.mode);
   const matrixTitle = getMatrixTitle(engineState.mode);
+
+  useEffect(() => {
+    projectionSettingsRef.current = projectionSettings;
+  }, [projectionSettings]);
 
   useEffect(() => {
     let cancelled = false;
@@ -114,14 +139,14 @@ export default function Canvas3DWorkspace() {
     const handleOutside = (event: MouseEvent) => {
       const target = event.target as Node;
 
-      if (
-        settingsRef.current &&
-        !settingsRef.current.contains(target) &&
-        settingsButtonRef.current &&
-        !settingsButtonRef.current.contains(target)
-      ) {
-        setIsSettingsOpen(false);
-      }
+      // if (
+      //   settingsRef.current &&
+      //   !settingsRef.current.contains(target) &&
+      //   settingsButtonRef.current &&
+      //   !settingsButtonRef.current.contains(target)
+      // ) {
+      //   setIsSettingsOpen(false);
+      // }
 
       if (
         infoRef.current &&
@@ -136,6 +161,65 @@ export default function Canvas3DWorkspace() {
     document.addEventListener("click", handleOutside);
     return () => document.removeEventListener("click", handleOutside);
   }, []);
+
+  useEffect(() => {
+    if (engineState.isOrthographic) {
+      setCameraProjection("ortographic");
+      return;
+    }
+
+    setCameraProjection((prev) => (prev === "ortographic" ? "perspective" : prev));
+  }, [engineState.isOrthographic]);
+
+  useEffect(() => {
+    const settings = engineState.settings;
+
+    setProjectionSettings((prev) => {
+      const next: ProjectionCameraSettings = {
+        perspective: {
+          fov: Number.isFinite(settings.perspectiveFov) ? settings.perspectiveFov : prev.perspective.fov,
+          nearClip: Number.isFinite(settings.perspectiveNearClip) ? settings.perspectiveNearClip : prev.perspective.nearClip,
+          farClip: Number.isFinite(settings.perspectiveFarClip) ? settings.perspectiveFarClip : prev.perspective.farClip,
+        },
+        ortographic: {
+          nearClip: Number.isFinite(settings.ortographicNearClip) ? settings.ortographicNearClip : prev.ortographic.nearClip,
+          farClip: Number.isFinite(settings.ortographicFarClip) ? settings.ortographicFarClip : prev.ortographic.farClip,
+          zoom: Number.isFinite(settings.orthoZoom) ? settings.orthoZoom : prev.ortographic.zoom,
+        },
+        panini: {
+          fov: Number.isFinite(settings.paniniFov) ? settings.paniniFov : prev.panini.fov,
+          nearClip: Number.isFinite(settings.paniniNearClip) ? settings.paniniNearClip : prev.panini.nearClip,
+          farClip: Number.isFinite(settings.paniniFarClip) ? settings.paniniFarClip : prev.panini.farClip,
+        },
+      };
+
+      const unchanged =
+        prev.perspective.fov === next.perspective.fov &&
+        prev.perspective.nearClip === next.perspective.nearClip &&
+        prev.perspective.farClip === next.perspective.farClip &&
+        prev.ortographic.nearClip === next.ortographic.nearClip &&
+        prev.ortographic.farClip === next.ortographic.farClip &&
+        prev.ortographic.zoom === next.ortographic.zoom &&
+        prev.panini.fov === next.panini.fov &&
+        prev.panini.nearClip === next.panini.nearClip &&
+        prev.panini.farClip === next.panini.farClip;
+
+      if (unchanged) return prev;
+
+      projectionSettingsRef.current = next;
+      return next;
+    });
+  }, [
+    engineState.settings.orthoZoom,
+    engineState.settings.ortographicFarClip,
+    engineState.settings.ortographicNearClip,
+    engineState.settings.paniniFarClip,
+    engineState.settings.paniniFov,
+    engineState.settings.paniniNearClip,
+    engineState.settings.perspectiveFarClip,
+    engineState.settings.perspectiveFov,
+    engineState.settings.perspectiveNearClip,
+  ]);
 
 
   useEffect(() => {
@@ -234,8 +318,99 @@ export default function Canvas3DWorkspace() {
     window.Canvas3DBridge?.setSelectedAlpha(normalized);
   };
 
-  const topbarButtonClass = "inline-flex h-[1.55rem] w-[1.55rem] items-center justify-center rounded-[0.1rem] bg-black/12 text-[#f3f3f3] transition-all duration-100 hover:cursor-pointer hover:border-[rgb(200,200,200)] hover:bg-[rgba(229,231,235,0.24)] hover:text-[#ffffff] select-none";
-  const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
+  const handleNearClipChange = (projection: CameraProjection, value: number) => {
+    const next = Number(value);
+    if (!Number.isFinite(next) || next <= 0) return;
+
+    setProjectionSettings((prev) => {
+      const updated: ProjectionCameraSettings = {
+        ...prev,
+        [projection]: {
+          ...prev[projection],
+          nearClip: next,
+        },
+      };
+      projectionSettingsRef.current = updated;
+      return updated;
+    });
+
+    window.Canvas3DBridge?.setNearClip(next, projection);
+  };
+
+  const handleFarClipChange = (projection: CameraProjection, value: number) => {
+    const next = Number(value);
+    if (!Number.isFinite(next) || next <= 0) return;
+
+    setProjectionSettings((prev) => {
+      const updated: ProjectionCameraSettings = {
+        ...prev,
+        [projection]: {
+          ...prev[projection],
+          farClip: next,
+        },
+      };
+      projectionSettingsRef.current = updated;
+      return updated;
+    });
+
+    window.Canvas3DBridge?.setFarClip(next, projection);
+  };
+
+  const handleFovChange = (projection: CameraProjection, value: number) => {
+    if (projection === "ortographic") return;
+
+    const next = Number(value);
+    if (!Number.isFinite(next) || next <= 0 || next >= 180) return;
+
+    setProjectionSettings((prev) => {
+      const key: "perspective" | "panini" = projection;
+      const updated: ProjectionCameraSettings = {
+        ...prev,
+        [key]: {
+          ...prev[key],
+          fov: next,
+        },
+      };
+      projectionSettingsRef.current = updated;
+      return updated;
+    });
+
+    window.Canvas3DBridge?.setFov(next, projection);
+  };
+
+  const handleOrthoZoomChange = (value: number) => {
+    const next = Number(value);
+    if (!Number.isFinite(next) || next <= 0) return;
+
+    setProjectionSettings((prev) => {
+      const updated: ProjectionCameraSettings = {
+        ...prev,
+        ortographic: {
+          ...prev.ortographic,
+          zoom: next,
+        },
+      };
+      projectionSettingsRef.current = updated;
+      return updated;
+    });
+
+    window.Canvas3DBridge?.setOrthoZoom(next);
+  };
+
+  const handleCameraProjectionChange = (projection: CameraProjection) => {
+    setCameraProjection(projection);
+    window.Canvas3DBridge?.setCameraProjection(projection);
+  };
+
+  const handleToggleInfo = () => {
+    setIsInfoOpen((prev) => !prev);
+    setIsSettingsOpen(false);
+  };
+
+  const handleToggleSettings = () => {
+    setIsSettingsOpen((prev) => !prev);
+    setIsInfoOpen(false);
+  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-(--ui-main-bg) font-mono text-(--ui-text)" style={themeVars}>
@@ -274,81 +449,31 @@ export default function Canvas3DWorkspace() {
 
         <main id="center-area" className="relative flex-1 bg-(--ui-main-bg)">
           <div id="canvas-container" className="absolute inset-0" />
-          <div id="canvas-actions" className="absolute right-2 top-2 z-50 flex items-center gap-2 backdrop-blur-[2px]">
-            <button className={topbarButtonClass} onContextMenu={(e) => e.preventDefault()} onClick={() => window.Canvas3DBridge?.resetCamera()} title="Reset Camera" type="button">
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 11.5 12 4l9 7.5" />
-                <path d="M6.5 10v9.5h11V10" />
-              </svg>
-            </button>
-
-            <button
-              className={`${topbarButtonClass} w-auto min-w-16 px-2 text-[0.7rem] ${
-                engineState.isOrthographic ? topbarButtonActiveClass : ""
-              }`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => window.Canvas3DBridge?.toggleCameraType()}
-              title="Ortografica"
-              type="button">
-              Ortografica
-            </button>
-
-            <button
-              className={`${topbarButtonClass} w-auto min-w-16 px-2 text-[0.7rem] ${
-                engineState.isCullingViewEnabled ? topbarButtonActiveClass : ""
-              }`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => window.Canvas3DBridge?.toggleCullingView()}
-              title="Culling View"
-              type="button">
-              Culling View
-            </button>
-
-            <button
-              className={`${topbarButtonClass} ${isInfoOpen ? topbarButtonActiveClass : ""}`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => {
-                setIsInfoOpen((prev) => !prev);
-                setIsSettingsOpen(false);
-              }}
-              ref={infoButtonRef}
-              title="Controles"
-              type="button">
-              i
-            </button>
-
-            <button
-              className={`${topbarButtonClass} ${isSettingsOpen ? topbarButtonActiveClass : ""}`}
-              onContextMenu={(e) => e.preventDefault()}
-              onClick={() => {
-                setIsSettingsOpen((prev) => !prev);
-                setIsInfoOpen(false);
-              }}
-              ref={settingsButtonRef}
-              title="Configuracoes"
-              type="button">
-              ⚙
-            </button>
-          </div>
+          <TopBar
+            infoButtonRef={infoButtonRef}
+            isCullingViewEnabled={engineState.isCullingViewEnabled}
+            isInfoOpen={isInfoOpen}
+            isSettingsOpen={isSettingsOpen}
+            onResetCamera={() => window.Canvas3DBridge?.resetCamera()}
+            onToggleCullingView={() => window.Canvas3DBridge?.toggleCullingView()}
+            onToggleInfo={handleToggleInfo}
+            onToggleSettings={handleToggleSettings}
+            settingsButtonRef={settingsButtonRef}
+          />
 
           <SettingsPane
+            cameraSettings={projectionSettings}
+            cameraProjection={cameraProjection}
             isOpen={isSettingsOpen}
             onAxesVisibleChange={(visible) => window.Canvas3DBridge?.setAxesVisible(visible)}
             onBackgroundColorChange={(hex) => window.Canvas3DBridge?.setBackgroundColor(hex)}
-            onFovChange={(value) => window.Canvas3DBridge?.setFov(value)}
-            onFarClipChange={(value) => window.Canvas3DBridge?.setFarClip(value)}
+            onCameraProjectionChange={handleCameraProjectionChange}
+            onFovChange={handleFovChange}
+            onFarClipChange={handleFarClipChange}
             onGridColorChange={(hex) => window.Canvas3DBridge?.setGridColor(hex)}
             onGridVisibleChange={(visible) => window.Canvas3DBridge?.setGridVisible(visible)}
-            onNearClipChange={(value) => window.Canvas3DBridge?.setNearClip(value)}
+            onNearClipChange={handleNearClipChange}
+            onOrthoZoomChange={handleOrthoZoomChange}
             onRenderMethodChange={(method) => window.Canvas3DBridge?.setRenderMethod(method)}
             onSnapEnabledChange={(enabled) => window.Canvas3DBridge?.setSnapEnabled(enabled)}
             onSnapSizeChange={(size) => window.Canvas3DBridge?.setSnapSize(size)}
@@ -356,7 +481,7 @@ export default function Canvas3DWorkspace() {
             panelRef={settingsRef}
             settings={engineState.settings}
           />
-          <DebugPane isOpen={isDebugOpen} engineState={engineState} className="absolute left-2 top-2 z-60 w-72 rounded-[0.1rem]" />
+          <DebugPane engineState={engineState} className="absolute left-2 top-2 z-60 w-72 rounded-[0.1rem]" />
           <div
             className={`absolute right-3 top-[2.65rem] z-60 w-76 rounded-[0.1rem] bg-[rgba(26,27,38,0.85)] p-3 text-xs leading-[1.45] backdrop-blur-[5px] text-(--ui-text) ${
               isInfoOpen ? "" : "hidden"

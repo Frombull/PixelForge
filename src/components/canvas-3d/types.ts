@@ -1,6 +1,28 @@
+import type { RefObject } from "react";
+
 export type Canvas3DMode = "translate" | "scale" | "rotate" | "skew";
 
 export type RenderMethod = "zbuffer" | "painter" | "reversePainter";
+
+export type CameraProjection = "perspective" | "ortographic" | "panini";
+
+export type ProjectionCameraSettings = {
+  perspective: {
+    fov: number;
+    nearClip: number;
+    farClip: number;
+  };
+  ortographic: {
+    nearClip: number;
+    farClip: number;
+    zoom: number;
+  };
+  panini: {
+    fov: number;
+    nearClip: number;
+    farClip: number;
+  };
+};
 
 export type CanvasObjectKind = "cube" | "cylinder" | "subtractCube" | "zFighting";
 
@@ -53,6 +75,15 @@ export type SettingsState = {
   fov: number;
   nearClip: number;
   farClip: number;
+  orthoZoom: number;
+  perspectiveFov: number;
+  perspectiveNearClip: number;
+  perspectiveFarClip: number;
+  ortographicNearClip: number;
+  ortographicFarClip: number;
+  paniniFov: number;
+  paniniNearClip: number;
+  paniniFarClip: number;
   renderMethod: RenderMethod;
 };
 
@@ -60,6 +91,7 @@ export type Canvas3DState = {
   mode: Canvas3DMode;
   isOrthographic: boolean;
   isCullingViewEnabled: boolean;
+  cameraPosition: NumericVec3;
   selectedUuid: string | null;
   objects: Canvas3DObjectState[];
   selected: SelectedObjectState | null;
@@ -72,6 +104,7 @@ export const EMPTY_STATE: Canvas3DState = {
   mode: "translate",
   isOrthographic: false,
   isCullingViewEnabled: false,
+  cameraPosition: { x: 0, y: 0, z: 0 },
   selectedUuid: null,
   objects: [],
   selected: null,
@@ -86,6 +119,15 @@ export const EMPTY_STATE: Canvas3DState = {
     fov: 60,
     nearClip: 0.01,
     farClip: 100,
+    orthoZoom: 1,
+    perspectiveFov: 60,
+    perspectiveNearClip: 0.01,
+    perspectiveFarClip: 50,
+    ortographicNearClip: 0.01,
+    ortographicFarClip: 50,
+    paniniFov: 60,
+    paniniNearClip: 0.01,
+    paniniFarClip: 50,
     renderMethod: "zbuffer",
   },
 };
@@ -101,6 +143,18 @@ export type ColorInputState = {
   h: number;
   s: number;
   v: number;
+};
+
+export type TopBarProps = {
+  isCullingViewEnabled: boolean;
+  isInfoOpen: boolean;
+  isSettingsOpen: boolean;
+  infoButtonRef: RefObject<HTMLButtonElement | null>;
+  settingsButtonRef: RefObject<HTMLButtonElement | null>;
+  onResetCamera: () => void;
+  onToggleCullingView: () => void;
+  onToggleInfo: () => void;
+  onToggleSettings: () => void;
 };
 
 export const EMPTY_COLOR_INPUTS: ColorInputState = {
@@ -141,6 +195,7 @@ export type Canvas3DBridge = {
 
   resetCamera: () => void;
   toggleCameraType: () => boolean | undefined;
+  setCameraProjection: (projection: CameraProjection) => CameraProjection | undefined;
   toggleCullingView: () => boolean | undefined;
 
   setGridVisible: (visible: boolean) => void;
@@ -150,9 +205,10 @@ export type Canvas3DBridge = {
   setSnapSize: (size: number) => void;
   setBackgroundColor: (hex: string) => void;
   setGridColor: (hex: string) => void;
-  setFov: (value: number) => void;
-  setNearClip: (value: number) => void;
-  setFarClip: (value: number) => void;
+  setFov: (value: number, projection?: CameraProjection) => void;
+  setNearClip: (value: number, projection?: CameraProjection) => void;
+  setFarClip: (value: number, projection?: CameraProjection) => void;
+  setOrthoZoom: (value: number) => void;
   setRenderMethod: (method: RenderMethod) => void;
   resetSetting: (target: "snap-size" | "near-clip" | "far-clip" | "fov") => void;
 

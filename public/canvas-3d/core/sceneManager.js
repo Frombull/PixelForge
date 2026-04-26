@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
-import { CAMERA_CONFIG, DEFAULT_VALUES, COLORS } from '/canvas-3d/utils/constants.js';
+import { CAMERA_CONFIG, CAMERA_PROJECTION_DEFAULTS, DEFAULT_VALUES, COLORS } from '/canvas-3d/utils/constants.js';
 
 export class SceneManager {
     constructor(container) {
@@ -79,8 +79,10 @@ export class SceneManager {
             frustumSize * aspect / -2, frustumSize * aspect / 2,
             frustumSize / 2, frustumSize / -2, near, far
         );
+        this.orthographicCamera.zoom = CAMERA_PROJECTION_DEFAULTS.orthographic.zoom;
         this.orthographicCamera.position.set(position.x, position.y, position.z);
         this.orthographicCamera.lookAt(0, 0, 0);
+        this.orthographicCamera.updateProjectionMatrix();
         
         this.camera = this.perspectiveCamera;
     }
@@ -366,12 +368,18 @@ export class SceneManager {
         if (this.axesHelper) this.axesHelper.visible = visible;
     }
     
-    setClipPlanes(near, far) {
-        [this.perspectiveCamera, this.orthographicCamera].forEach(cam => {
-            if (near !== undefined) cam.near = near;
-            if (far !== undefined) cam.far = far;
-            cam.updateProjectionMatrix();
-        });
+    setClipPlanes(near, far, projection = null) {
+        const targetCamera = projection === 'ortographic'
+            ? this.orthographicCamera
+            : projection === 'perspective'
+                ? this.perspectiveCamera
+                : this.camera;
+
+        if (!targetCamera) return;
+
+        if (near !== undefined) targetCamera.near = near;
+        if (far !== undefined) targetCamera.far = far;
+        targetCamera.updateProjectionMatrix();
 
         const skyRadius = Math.max(10, this.perspectiveCamera.far * 0.9);
         if (this.sky) {
@@ -389,5 +397,15 @@ export class SceneManager {
             this.perspectiveCamera.fov = fov;
             this.perspectiveCamera.updateProjectionMatrix();
         }
+    }
+
+    setOrthoZoom(zoom) {
+        const next = Number(zoom);
+        if (!this.orthographicCamera || !Number.isFinite(next) || next <= 0) return;
+
+        const min = CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMin;
+        const max = CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMax;
+        this.orthographicCamera.zoom = THREE.MathUtils.clamp(next, min, max);
+        this.orthographicCamera.updateProjectionMatrix();
     }
 }

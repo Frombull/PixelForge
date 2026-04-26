@@ -2,11 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import { Pane } from "tweakpane";
-import { type RenderMethod, type SettingsState } from "./types";
+import { CAMERA_CONFIG, CAMERA_PROJECTION_DEFAULTS } from "../../../public/canvas-3d/utils/constants";
+import { type CameraProjection, type ProjectionCameraSettings, type RenderMethod, type SettingsState } from "./types";
 
 type SettingsPaneProps = {
   isOpen: boolean;
   settings: SettingsState;
+  cameraSettings: ProjectionCameraSettings;
+  cameraProjection: CameraProjection;
   panelRef: React.RefObject<HTMLDivElement | null>;
   onGridVisibleChange: (visible: boolean) => void;
   onAxesVisibleChange: (visible: boolean) => void;
@@ -15,21 +18,29 @@ type SettingsPaneProps = {
   onSnapSizeChange: (size: number) => void;
   onBackgroundColorChange: (hex: string) => void;
   onGridColorChange: (hex: string) => void;
-  onFovChange: (value: number) => void;
-  onNearClipChange: (value: number) => void;
-  onFarClipChange: (value: number) => void;
+  onFovChange: (projection: CameraProjection, value: number) => void;
+  onNearClipChange: (projection: CameraProjection, value: number) => void;
+  onFarClipChange: (projection: CameraProjection, value: number) => void;
+  onOrthoZoomChange: (value: number) => void;
+  onCameraProjectionChange: (projection: CameraProjection) => void;
   onRenderMethodChange: (method: RenderMethod) => void;
+};
+
+type SettingsPaneState = SettingsState & {
+  paniniStrength: number;
 };
 
 type TweakpaneInfo = {
   pane: any;
-  settingsObj: SettingsState;
+  settingsObj: SettingsPaneState;
   controllers: Record<string, any>;
 };
 
 export default function SettingsPane({
   isOpen,
   settings,
+  cameraSettings,
+  cameraProjection,
   panelRef,
   onGridVisibleChange,
   onAxesVisibleChange,
@@ -41,6 +52,8 @@ export default function SettingsPane({
   onFovChange,
   onNearClipChange,
   onFarClipChange,
+  onOrthoZoomChange,
+  onCameraProjectionChange,
   onRenderMethodChange,
 }: SettingsPaneProps) {
   const tweakpaneRef = useRef<TweakpaneInfo | null>(null);
@@ -53,7 +66,7 @@ export default function SettingsPane({
     try {
       const pane: any = new Pane({ container: tweakpaneContainerRef.current });
 
-      const settingsObj: SettingsState = {
+      const settingsObj: SettingsPaneState = {
         gridVisible: settings.gridVisible,
         axesVisible: settings.axesVisible,
         wireframeVisible: settings.wireframeVisible,
@@ -61,16 +74,26 @@ export default function SettingsPane({
         snapSize: settings.snapSize,
         backgroundColor: settings.backgroundColor,
         gridColor: settings.gridColor,
-        nearClip: settings.nearClip,
-        farClip: settings.farClip,
+        nearClip: Number.isFinite(settings.nearClip) ? settings.nearClip : CAMERA_CONFIG.near,
+        farClip: Number.isFinite(settings.farClip) ? settings.farClip : CAMERA_CONFIG.far,
+        orthoZoom: Number.isFinite(cameraSettings.ortographic.zoom) ? cameraSettings.ortographic.zoom : CAMERA_PROJECTION_DEFAULTS.orthographic.zoom,
         renderMethod: settings.renderMethod,
-        fov: settings.fov,
+        fov: Number.isFinite(settings.fov) ? settings.fov : CAMERA_CONFIG.fov,
+        perspectiveFov: Number.isFinite(cameraSettings.perspective.fov) ? cameraSettings.perspective.fov : CAMERA_PROJECTION_DEFAULTS.perspective.fov,
+        perspectiveNearClip: Number.isFinite(cameraSettings.perspective.nearClip) ? cameraSettings.perspective.nearClip : CAMERA_PROJECTION_DEFAULTS.perspective.near,
+        perspectiveFarClip: Number.isFinite(cameraSettings.perspective.farClip) ? cameraSettings.perspective.farClip : CAMERA_PROJECTION_DEFAULTS.perspective.far,
+        ortographicNearClip: Number.isFinite(cameraSettings.ortographic.nearClip) ? cameraSettings.ortographic.nearClip : CAMERA_PROJECTION_DEFAULTS.orthographic.near,
+        ortographicFarClip: Number.isFinite(cameraSettings.ortographic.farClip) ? cameraSettings.ortographic.farClip : CAMERA_PROJECTION_DEFAULTS.orthographic.far,
+        paniniFov: Number.isFinite(cameraSettings.panini.fov) ? cameraSettings.panini.fov : CAMERA_PROJECTION_DEFAULTS.panini.fov,
+        paniniNearClip: Number.isFinite(cameraSettings.panini.nearClip) ? cameraSettings.panini.nearClip : CAMERA_PROJECTION_DEFAULTS.panini.near,
+        paniniFarClip: Number.isFinite(cameraSettings.panini.farClip) ? cameraSettings.panini.farClip : CAMERA_PROJECTION_DEFAULTS.panini.far,
+        paniniStrength: CAMERA_PROJECTION_DEFAULTS.panini.strength,
       };
 
       const controllers: Record<string, any> = {};
 
       const visualFolder = pane.addFolder({ title: "Visual" });
-      const CameraFolder = pane.addFolder({ title: "Camera" });
+      const cameraFolder = pane.addFolder({ title: "Camera" });
 
       controllers.grid = visualFolder.addInput(settingsObj, "gridVisible", { label: "Grid" });
       controllers.grid.on("change", (ev: any) => onGridVisibleChange(ev.value));
@@ -93,16 +116,68 @@ export default function SettingsPane({
       controllers.snapSize = pane.addInput(settingsObj, "snapSize", { min: 0.1, max: 1, step: 0.1, label: "Snap Size" });
       controllers.snapSize.on("change", (ev: any) => onSnapSizeChange(ev.value));
 
-      controllers.fov = CameraFolder.addInput(settingsObj, "fov", { min: 10, max: 120, step: 1, label: "FOV" });
-      controllers.fov.on("change", (ev: any) => onFovChange(ev.value));
+      const cameraTabs = cameraFolder.addTab({
+        pages: [
+          { title: "Perspective" },
+          { title: "Ortographic" },
+          { title: "Panini" },
+        ],
+      });
+      const projectionByIndex: CameraProjection[] = ["perspective", "ortographic", "panini"];
+      const selectedTabIndex = projectionByIndex.indexOf(cameraProjection);
+      if (selectedTabIndex >= 0) {
+        cameraTabs.pages[selectedTabIndex].selected = true;
+      }
+      cameraTabs.on("select", (ev: any) => {
+        const projection = projectionByIndex[ev.index] ?? "perspective";
+        onCameraProjectionChange(projection);
+      });
+      controllers.cameraTabs = cameraTabs;
 
-      controllers.near = CameraFolder.addInput(settingsObj, "nearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
-      controllers.near.on("change", (ev: any) => onNearClipChange(ev.value));
+      const perspectiveTab = cameraTabs.pages[0];
+      const ortographicTab = cameraTabs.pages[1];
+      const paniniTab = cameraTabs.pages[2];
 
-      controllers.far = CameraFolder.addInput(settingsObj, "farClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
-      controllers.far.on("change", (ev: any) => onFarClipChange(ev.value));
+      controllers.fov = perspectiveTab.addInput(settingsObj, "perspectiveFov", { min: 10, max: 120, step: 1, label: "FOV" });
+      controllers.fov.on("change", (ev: any) => onFovChange("perspective", ev.value));
 
-      controllers.renderMethod = CameraFolder.addInput(settingsObj, "renderMethod", {
+      controllers.near = perspectiveTab.addInput(settingsObj, "perspectiveNearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+      controllers.near.on("change", (ev: any) => onNearClipChange("perspective", ev.value));
+
+      controllers.far = perspectiveTab.addInput(settingsObj, "perspectiveFarClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+      controllers.far.on("change", (ev: any) => onFarClipChange("perspective", ev.value));
+
+      controllers.orthoNear = ortographicTab.addInput(settingsObj, "ortographicNearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+      controllers.orthoNear.on("change", (ev: any) => onNearClipChange("ortographic", ev.value));
+
+      controllers.orthoFar = ortographicTab.addInput(settingsObj, "ortographicFarClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+      controllers.orthoFar.on("change", (ev: any) => onFarClipChange("ortographic", ev.value));
+
+      controllers.orthoZoom = ortographicTab.addInput(settingsObj, "orthoZoom", {
+        min: CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMin,
+        max: CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMax,
+        step: 0.1,
+        label: "Zoom",
+      });
+      controllers.orthoZoom.on("change", (ev: any) => onOrthoZoomChange(ev.value));
+
+      controllers.paniniFov = paniniTab.addInput(settingsObj, "paniniFov", { min: 10, max: 120, step: 1, label: "FOV" });
+      controllers.paniniFov.on("change", (ev: any) => onFovChange("panini", ev.value));
+
+      controllers.paniniNear = paniniTab.addInput(settingsObj, "paniniNearClip", { min: 0.01, max: 5, step: 0.01, label: "Near Clip" });
+      controllers.paniniNear.on("change", (ev: any) => onNearClipChange("panini", ev.value));
+
+      controllers.paniniFar = paniniTab.addInput(settingsObj, "paniniFarClip", { min: 5, max: 50, step: 1, label: "Far Clip" });
+      controllers.paniniFar.on("change", (ev: any) => onFarClipChange("panini", ev.value));
+
+      controllers.paniniStrength = paniniTab.addInput(settingsObj, "paniniStrength", {
+        min: 0,
+        max: 1,
+        step: 0.01,
+        label: "Strength (UI)",
+      });
+
+      controllers.renderMethod = cameraFolder.addInput(settingsObj, "renderMethod", {
         label: "Render Method",
         options: {
           "Z-Buffer": "zbuffer",
@@ -143,10 +218,22 @@ export default function SettingsPane({
       info.settingsObj.snapSize = settings.snapSize;
       info.settingsObj.backgroundColor = settings.backgroundColor;
       info.settingsObj.gridColor = settings.gridColor;
-      info.settingsObj.fov = settings.fov;
-      info.settingsObj.nearClip = settings.nearClip;
-      info.settingsObj.farClip = settings.farClip;
+      info.settingsObj.perspectiveFov = cameraSettings.perspective.fov;
+      info.settingsObj.perspectiveNearClip = cameraSettings.perspective.nearClip;
+      info.settingsObj.perspectiveFarClip = cameraSettings.perspective.farClip;
+      info.settingsObj.ortographicNearClip = cameraSettings.ortographic.nearClip;
+      info.settingsObj.ortographicFarClip = cameraSettings.ortographic.farClip;
+      info.settingsObj.orthoZoom = cameraSettings.ortographic.zoom;
+      info.settingsObj.paniniFov = cameraSettings.panini.fov;
+      info.settingsObj.paniniNearClip = cameraSettings.panini.nearClip;
+      info.settingsObj.paniniFarClip = cameraSettings.panini.farClip;
       info.settingsObj.renderMethod = settings.renderMethod;
+
+      const projectionByIndex: CameraProjection[] = ["perspective", "ortographic", "panini"];
+      const selectedTabIndex = projectionByIndex.indexOf(cameraProjection);
+      if (selectedTabIndex >= 0 && info.controllers.cameraTabs?.pages?.[selectedTabIndex]) {
+        info.controllers.cameraTabs.pages[selectedTabIndex].selected = true;
+      }
 
       info.controllers.grid.value = settings.gridVisible;
       info.controllers.axes.value = settings.axesVisible;
@@ -155,21 +242,26 @@ export default function SettingsPane({
       info.controllers.snapSize.value = settings.snapSize;
       info.controllers.bg.value = settings.backgroundColor;
       info.controllers.gridColor.value = settings.gridColor;
-      info.controllers.fov.value = settings.fov;
-      info.controllers.near.value = settings.nearClip;
-      info.controllers.far.value = settings.farClip;
+      info.controllers.fov.value = cameraSettings.perspective.fov;
+      info.controllers.near.value = cameraSettings.perspective.nearClip;
+      info.controllers.far.value = cameraSettings.perspective.farClip;
+      info.controllers.orthoNear.value = cameraSettings.ortographic.nearClip;
+      info.controllers.orthoFar.value = cameraSettings.ortographic.farClip;
+      info.controllers.orthoZoom.value = cameraSettings.ortographic.zoom;
+      info.controllers.paniniFov.value = cameraSettings.panini.fov;
+      info.controllers.paniniNear.value = cameraSettings.panini.nearClip;
+      info.controllers.paniniFar.value = cameraSettings.panini.farClip;
       info.controllers.renderMethod.value = settings.renderMethod;
     } catch {
       // ignore if a controller does not expose .value
     }
   }, [
     settings.axesVisible,
-    settings.fov,
+    cameraSettings,
+    cameraProjection,
     settings.backgroundColor,
-    settings.farClip,
     settings.gridColor,
     settings.gridVisible,
-    settings.nearClip,
     settings.renderMethod,
     settings.snapSize,
     settings.snapToGrid,

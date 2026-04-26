@@ -10,6 +10,32 @@ export const CONSTANTS = {
         far: 50,
         position: { x: 3, y: 3, z: 3 }
     },
+    CAMERA_PROJECTION_DEFAULTS: {
+        perspective: {
+            fov: 60,
+            near: 0.01,
+            far: 50,
+            aspectRatio: 1.78,
+            focalLength: 35
+        },
+        orthographic: {
+            near: 0.01,
+            far: 50,
+            zoom: 1,
+            zoomMin: 0.1,
+            zoomMax: 5,
+            aspectRatio: 1.78,
+            size: 5
+        },
+        panini: {
+            fov: 60,
+            near: 0.01,
+            far: 50,
+            distance: 1,
+            squeeze: 0.5,
+            strength: 0.45
+        }
+    },
     GIZMO_CONFIG: {
         arrowLength: 1.5,
         arrowRadius: 0.03,
@@ -72,6 +98,7 @@ export const CONSTANTS = {
 export const {
     DEFAULT_VALUES,
     CAMERA_CONFIG,
+    CAMERA_PROJECTION_DEFAULTS,
     GIZMO_CONFIG,
     COLORS,
     MODES,

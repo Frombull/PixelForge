@@ -25,10 +25,10 @@ export class SceneManager {
             rim: null
         };
         this.visualSettings = {
-            exposure: 1.0,
-            hemisphereIntensity: 0.5,
+            exposure: 0.3,
+            hemisphereIntensity: 0.6,
             keyIntensity: 1.1,
-            fillIntensity: 0.35,
+            fillIntensity: 0.5,
             rimIntensity: 0.2,
             atmosphereEnabled: false,
             atmosphereDensity: 0.008,
@@ -66,7 +66,7 @@ export class SceneManager {
 
     configureRenderer(renderer) {
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMapping = THREE.LinearToneMapping; // TODO: mess around with this
         renderer.toneMappingExposure = this.visualSettings.exposure;
         renderer.shadowMap.enabled = this.visualSettings.shadowsEnabled;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;

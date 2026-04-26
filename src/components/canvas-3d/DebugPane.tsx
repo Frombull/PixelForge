@@ -55,7 +55,7 @@ export default function DebugPane({ engineState, className }: Props) {
       controllers.cameraPos = pane.addMonitor(debugObj, "cameraPos", { label: "Camera XYZ" });
       controllers.fps = pane.addMonitor(debugObj, "fps", { label: "FPS" });
       controllers.fpsGraph = pane.addMonitor(debugObj, "fps", {
-        label: "FPS Graph",
+        label: "FPS",
         view: "graph",
         min: 0,
         max: 200,

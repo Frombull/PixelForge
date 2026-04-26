@@ -21,6 +21,7 @@
 
 [TODO] - Panini projection and sliders (https://youtu.be/LE9kxUQ-l14)
 [TODO] - Load custom preset scene. 
+[TODO] - Toggle of EXTREME aliasing for example
 
  
 === [ TODO ] ============================================================================================================

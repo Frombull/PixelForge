@@ -18,6 +18,15 @@ type SettingsPaneProps = {
   onSnapSizeChange: (size: number) => void;
   onBackgroundColorChange: (hex: string) => void;
   onGridColorChange: (hex: string) => void;
+  onExposureChange: (value: number) => void;
+  onHemisphereIntensityChange: (value: number) => void;
+  onKeyLightIntensityChange: (value: number) => void;
+  onFillLightIntensityChange: (value: number) => void;
+  onRimLightIntensityChange: (value: number) => void;
+  onAtmosphereEnabledChange: (enabled: boolean) => void;
+  onAtmosphereDensityChange: (value: number) => void;
+  onAtmosphereColorChange: (hex: string) => void;
+  onShadowsEnabledChange: (enabled: boolean) => void;
   onFovChange: (projection: CameraProjection, value: number) => void;
   onNearClipChange: (projection: CameraProjection, value: number) => void;
   onFarClipChange: (projection: CameraProjection, value: number) => void;
@@ -49,6 +58,15 @@ export default function SettingsPane({
   onSnapSizeChange,
   onBackgroundColorChange,
   onGridColorChange,
+  onExposureChange,
+  onHemisphereIntensityChange,
+  onKeyLightIntensityChange,
+  onFillLightIntensityChange,
+  onRimLightIntensityChange,
+  onAtmosphereEnabledChange,
+  onAtmosphereDensityChange,
+  onAtmosphereColorChange,
+  onShadowsEnabledChange,
   onFovChange,
   onNearClipChange,
   onFarClipChange,
@@ -88,11 +106,21 @@ export default function SettingsPane({
         paniniNearClip: Number.isFinite(cameraSettings.panini.nearClip) ? cameraSettings.panini.nearClip : CAMERA_PROJECTION_DEFAULTS.panini.near,
         paniniFarClip: Number.isFinite(cameraSettings.panini.farClip) ? cameraSettings.panini.farClip : CAMERA_PROJECTION_DEFAULTS.panini.far,
         paniniStrength: CAMERA_PROJECTION_DEFAULTS.panini.strength,
+        exposure: Number.isFinite(settings.exposure) ? settings.exposure : 1,
+        hemisphereIntensity: Number.isFinite(settings.hemisphereIntensity) ? settings.hemisphereIntensity : 0.5,
+        keyLightIntensity: Number.isFinite(settings.keyLightIntensity) ? settings.keyLightIntensity : 1.1,
+        fillLightIntensity: Number.isFinite(settings.fillLightIntensity) ? settings.fillLightIntensity : 0.35,
+        rimLightIntensity: Number.isFinite(settings.rimLightIntensity) ? settings.rimLightIntensity : 0.2,
+        atmosphereEnabled: settings.atmosphereEnabled,
+        atmosphereDensity: Number.isFinite(settings.atmosphereDensity) ? settings.atmosphereDensity : 0.008,
+        atmosphereColor: settings.atmosphereColor || "#ffffff",
+        shadowsEnabled: settings.shadowsEnabled,
       };
 
       const controllers: Record<string, any> = {};
 
       const visualFolder = pane.addFolder({ title: "Visual" });
+      const lightingFolder = pane.addFolder({ title: "Lighting" });
       const cameraFolder = pane.addFolder({ title: "Camera" });
 
       controllers.grid = visualFolder.addInput(settingsObj, "gridVisible", { label: "Grid" });
@@ -109,6 +137,65 @@ export default function SettingsPane({
 
       controllers.gridColor = visualFolder.addInput(settingsObj, "gridColor", { view: "color", label: "Cor do Grid" });
       controllers.gridColor.on("change", (ev: any) => onGridColorChange(ev.value));
+
+      controllers.exposure = lightingFolder.addInput(settingsObj, "exposure", { min: 0.2, max: 3, step: 0.01, label: "Exposure" });
+      controllers.exposure.on("change", (ev: any) => onExposureChange(ev.value));
+
+      controllers.hemiIntensity = lightingFolder.addInput(settingsObj, "hemisphereIntensity", {
+        min: 0,
+        max: 2.5,
+        step: 0.01,
+        label: "Hemisphere",
+      });
+      controllers.hemiIntensity.on("change", (ev: any) => onHemisphereIntensityChange(ev.value));
+
+      controllers.keyIntensity = lightingFolder.addInput(settingsObj, "keyLightIntensity", {
+        min: 0,
+        max: 4,
+        step: 0.01,
+        label: "Key Light",
+      });
+      controllers.keyIntensity.on("change", (ev: any) => onKeyLightIntensityChange(ev.value));
+
+      controllers.fillIntensity = lightingFolder.addInput(settingsObj, "fillLightIntensity", {
+        min: 0,
+        max: 3,
+        step: 0.01,
+        label: "Fill Light",
+      });
+      controllers.fillIntensity.on("change", (ev: any) => onFillLightIntensityChange(ev.value));
+
+      controllers.rimIntensity = lightingFolder.addInput(settingsObj, "rimLightIntensity", {
+        min: 0,
+        max: 3,
+        step: 0.01,
+        label: "Rim Light",
+      });
+      controllers.rimIntensity.on("change", (ev: any) => onRimLightIntensityChange(ev.value));
+
+      controllers.shadowsEnabled = lightingFolder.addInput(settingsObj, "shadowsEnabled", {
+        label: "Shadows",
+      });
+      controllers.shadowsEnabled.on("change", (ev: any) => onShadowsEnabledChange(ev.value));
+
+      controllers.atmosphereEnabled = lightingFolder.addInput(settingsObj, "atmosphereEnabled", {
+        label: "Atmosphere",
+      });
+      controllers.atmosphereEnabled.on("change", (ev: any) => onAtmosphereEnabledChange(ev.value));
+
+      controllers.atmosphereDensity = lightingFolder.addInput(settingsObj, "atmosphereDensity", {
+        min: 0.0001,
+        max: 0.08,
+        step: 0.0001,
+        label: "Atmos Density",
+      });
+      controllers.atmosphereDensity.on("change", (ev: any) => onAtmosphereDensityChange(ev.value));
+
+      controllers.atmosphereColor = lightingFolder.addInput(settingsObj, "atmosphereColor", {
+        view: "color",
+        label: "Atmos Color",
+      });
+      controllers.atmosphereColor.on("change", (ev: any) => onAtmosphereColorChange(ev.value));
 
       controllers.snap = pane.addInput(settingsObj, "snapToGrid", { label: "Snap to Grid" });
       controllers.snap.on("change", () => onSnapEnabledChange(settingsObj.snapToGrid));
@@ -228,6 +315,15 @@ export default function SettingsPane({
       info.settingsObj.paniniNearClip = cameraSettings.panini.nearClip;
       info.settingsObj.paniniFarClip = cameraSettings.panini.farClip;
       info.settingsObj.renderMethod = settings.renderMethod;
+      info.settingsObj.exposure = settings.exposure;
+      info.settingsObj.hemisphereIntensity = settings.hemisphereIntensity;
+      info.settingsObj.keyLightIntensity = settings.keyLightIntensity;
+      info.settingsObj.fillLightIntensity = settings.fillLightIntensity;
+      info.settingsObj.rimLightIntensity = settings.rimLightIntensity;
+      info.settingsObj.shadowsEnabled = settings.shadowsEnabled;
+      info.settingsObj.atmosphereEnabled = settings.atmosphereEnabled;
+      info.settingsObj.atmosphereDensity = settings.atmosphereDensity;
+      info.settingsObj.atmosphereColor = settings.atmosphereColor;
 
       const projectionByIndex: CameraProjection[] = ["perspective", "ortographic", "panini"];
       const selectedTabIndex = projectionByIndex.indexOf(cameraProjection);
@@ -252,6 +348,15 @@ export default function SettingsPane({
       info.controllers.paniniNear.value = cameraSettings.panini.nearClip;
       info.controllers.paniniFar.value = cameraSettings.panini.farClip;
       info.controllers.renderMethod.value = settings.renderMethod;
+      info.controllers.exposure.value = settings.exposure;
+      info.controllers.hemiIntensity.value = settings.hemisphereIntensity;
+      info.controllers.keyIntensity.value = settings.keyLightIntensity;
+      info.controllers.fillIntensity.value = settings.fillLightIntensity;
+      info.controllers.rimIntensity.value = settings.rimLightIntensity;
+      info.controllers.shadowsEnabled.value = settings.shadowsEnabled;
+      info.controllers.atmosphereEnabled.value = settings.atmosphereEnabled;
+      info.controllers.atmosphereDensity.value = settings.atmosphereDensity;
+      info.controllers.atmosphereColor.value = settings.atmosphereColor;
     } catch {
       // ignore if a controller does not expose .value
     }
@@ -262,6 +367,15 @@ export default function SettingsPane({
     settings.backgroundColor,
     settings.gridColor,
     settings.gridVisible,
+    settings.hemisphereIntensity,
+    settings.keyLightIntensity,
+    settings.fillLightIntensity,
+    settings.rimLightIntensity,
+    settings.exposure,
+    settings.shadowsEnabled,
+    settings.atmosphereEnabled,
+    settings.atmosphereDensity,
+    settings.atmosphereColor,
     settings.renderMethod,
     settings.snapSize,
     settings.snapToGrid,

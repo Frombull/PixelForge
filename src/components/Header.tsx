@@ -51,7 +51,7 @@ function Separator() {
   return <span aria-hidden="true" className="h-4 w-px bg-[#3a3a3a]" />;
 }
 
-//  Header 
+// Header 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Head from "next/head";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function AliasingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -167,8 +168,17 @@ export default function AliasingPage() {
           <div className="font-mono text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5">
             Computação Gráfica — Amostragem
           </div>
-          <h1 className="text-[36px] font-light tracking-tight leading-tight text-[#f0f0f0] m-0">
-            <strong className="font-medium text-white">Sampling</strong> &amp; <strong className="font-medium text-white">Aliasing</strong>
+          <h1 className="flex items-center gap-4 text-[36px] font-light tracking-tight leading-tight text-[#f0f0f0] m-0">
+            <Link
+              href="/"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              title="Voltar para a Home"
+            >
+              <ArrowLeft size={32} strokeWidth={1} />
+            </Link>
+            <span>
+              <strong className="font-medium text-white">Sampling</strong> &amp; <strong className="font-medium text-white">Aliasing</strong>
+            </span>
           </h1>
         </div>
         <div className="font-mono text-[11px] text-[#444] text-right leading-loose">

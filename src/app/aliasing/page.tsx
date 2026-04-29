@@ -162,13 +162,13 @@ export default function AliasingPage() {
   const pct = Math.min((f0T / nyqT) * 50, 100);
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] font-sans font-light overflow-x-hidden pb-20">
-      <header className="flex items-end justify-between gap-8 py-5 px-6 sm:px-16 border-b border-[#222]">
+    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] font-['DM_Sans',_sans-serif] font-light overflow-x-hidden pb-20">
+      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-6 border-b border-[#222]">
         <div>
-          <div className="font-mono text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5">
+          <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
             Computação Gráfica — Amostragem
           </div>
-          <h1 className="flex items-center gap-4 text-[36px] font-light tracking-tight leading-tight text-[#f0f0f0] m-0">
+          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0] m-0">
             <Link
               href="/"
               className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
@@ -181,35 +181,35 @@ export default function AliasingPage() {
             </span>
           </h1>
         </div>
-        <div className="font-mono text-[11px] text-[#444] text-right leading-loose">
+        <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
           <div>Nyquist · Shannon</div>
           <div>f₀ · fₛ · f_alias</div>
         </div>
       </header>
 
-      <div className="px-6 sm:px-16 mt-8">
-        <div className="flex items-center gap-6 font-mono text-[10px] text-[#444] tracking-[0.2em] uppercase pb-3.5 mb-7 border-b border-[#1a1a1a]">
+      <div className="px-16 mt-8">
+        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-3.5 mb-7 border-b border-[#1a1a1a]">
           01 <span className="text-[#333]">—</span> Visualização interativa
         </div>
 
         <div className="relative bg-[#111] border border-[#1e1e1e] overflow-hidden" ref={wrapRef}>
           <canvas ref={canvasRef} className="block w-full"></canvas>
-          <div className="absolute font-mono text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 left-3.5">sinal original (f₀)</div>
-          <div className="absolute font-mono text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">fₛ = {fsT} Hz</div>
-          <div className="absolute font-mono text-[10px] text-[#555] tracking-widest pointer-events-none bottom-2.5 left-3.5">signal domain</div>
-          <div className="absolute font-mono text-[10px] text-[#555] tracking-widest pointer-events-none bottom-2.5 right-3.5">{hasAlias ? `f_alias = ${faT.toFixed(1)} Hz` : 'sem alias'}</div>
+          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 left-3.5">sinal original (f₀)</div>
+          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">fₛ = {fsT} Hz</div>
+          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none bottom-2.5 left-3.5">signal domain</div>
+          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none bottom-2.5 right-3.5">{hasAlias ? `f_alias = ${faT.toFixed(1)} Hz` : 'sem alias'}</div>
         </div>
 
         <div className="flex gap-7 items-center py-2.5 px-3.5 border border-[#1e1e1e] border-t-0 bg-[#0d0d0d] flex-wrap">
-          <div className="flex items-center gap-2 font-mono text-[10px] text-[#444] tracking-[0.06em]">
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.06em]">
             <div className="w-5 h-px bg-[#555]"></div>
             sinal original (f₀)
           </div>
-          <div className="flex items-center gap-2 font-mono text-[10px] text-[#444] tracking-[0.06em]">
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.06em]">
             <svg className="w-1.75 h-1.75 shrink-0" viewBox="0 0 7 7"><rect width="7" height="7" fill="#c8c8c8"/></svg>
             amostras
           </div>
-          <div className="flex items-center gap-2 font-mono text-[10px] text-[#444] tracking-[0.06em]">
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.06em]">
             <div className="w-5 h-px" style={{ background: hasAlias ? '#8a5a5a' : '#5a8a5a' }}></div>
             <span>{hasAlias ? 'sinal com aliasing' : 'sinal reconstruído'}</span>
           </div>
@@ -218,16 +218,16 @@ export default function AliasingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[#1a1a1a] mt-0.5">
           <div className="bg-[#0d0d0d] py-6 px-7">
             <div className="flex items-baseline gap-3.5 pb-4.5 mb-5 border-b border-[#1e1e1e]">
-              <span className="font-mono text-[10px] text-[#555] tracking-[0.18em] uppercase">parâmetro</span>
+              <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">parâmetro</span>
               <span className="text-[20px] font-normal text-[#ececec] tracking-tight">Taxa de Amostragem</span>
-              <span className="font-mono text-[11px] text-[#3a3a3a] ml-auto">.fₛ = {fsT} Hz</span>
+              <span className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#3a3a3a] ml-auto">.fₛ = {fsT} Hz</span>
             </div>
             <div className="flex items-center gap-4 mb-3.5">
-              <span className="w-22.5 shrink-0 font-mono text-[10px] text-[#444] tracking-[0.08em] uppercase">fₛ (hz)</span>
+              <span className="w-22.5 shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.08em] uppercase">fₛ (hz)</span>
               <input 
                 type="range" min="2" max="60" value={tgt.fs} step="1" 
                 onChange={(e) => setTgt({...tgt, fs: parseFloat(e.target.value)})} 
-                className="flex-1 h-px bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:cursor-grab"
+                className="flex-1 h-px bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-none [&::-moz-range-thumb]:cursor-grab"
               />
               <span className="w-11 shrink-0 text-right font-mono text-[10px] text-[#555]">{fsT}</span>
             </div>
@@ -270,7 +270,7 @@ export default function AliasingPage() {
               <input 
                 type="range" min="1" max="30" value={tgt.f0} step="1" 
                 onChange={(e) => setTgt({...tgt, f0: parseFloat(e.target.value)})} 
-                className="flex-1 h-px bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:cursor-grab"
+                className="flex-1 h-px bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-none [&::-moz-range-thumb]:cursor-grab"
               />
               <span className="w-11 shrink-0 text-right font-mono text-[10px] text-[#555]">{f0T}</span>
             </div>

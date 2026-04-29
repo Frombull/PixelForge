@@ -188,10 +188,6 @@ export default function AliasingPage() {
       </header>
 
       <div className="px-16 mt-8">
-        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-3.5 mb-7 border-b border-[#1a1a1a]">
-          01 <span className="text-[#333]">—</span> Visualização interativa
-        </div>
-
         <div className="relative bg-[#111] border border-[#1e1e1e] overflow-hidden" ref={wrapRef}>
           <canvas ref={canvasRef} className="block w-full"></canvas>
           <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 left-3.5">sinal original (f₀)</div>
@@ -298,7 +294,7 @@ export default function AliasingPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 font-mono text-[10px] text-[#444] tracking-[0.2em] uppercase mt-8 pb-3.5 mb-7 border-b border-[#1a1a1a]">
+        <div className="flex items-center gap-6 font-mono text-[10px] text-[#444] tracking-[0.2em] uppercase mt-8 pb-3.5">
           02 <span className="text-[#333]">—</span> Fundamentos teóricos
         </div>
 

@@ -46,10 +46,10 @@ export default function AliasingPage() {
       Math.round(lerp(a[2], b[2], t))
     ];
 
-    const COL_ORIG = [85, 85, 85];
-    const COL_OK = [90, 138, 90];
-    const COL_ALIAS = [138, 90, 90];
-    const COL_SAMPLE = [200, 200, 200];
+    const COL_ORIG = [160, 160, 160];
+    const COL_OK = [70, 200, 80];
+    const COL_ALIAS = [220, 70, 70];
+    const COL_SAMPLE = [240, 240, 240];
 
     const draw = () => {
       const c = curRef.current;
@@ -75,7 +75,7 @@ export default function AliasingPage() {
       for (let y = 0; y <= H; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
       ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
 
       ctx.beginPath();
@@ -84,8 +84,8 @@ export default function AliasingPage() {
         const v = Math.sin(2 * Math.PI * f0 * t);
         i === 0 ? ctx.moveTo(xOf(t), yOf(v)) : ctx.lineTo(xOf(t), yOf(v));
       }
-      ctx.strokeStyle = `rgba(${COL_ORIG.join(',')},0.55)`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = `rgba(${COL_ORIG.join(',')},0.7)`;
+      ctx.lineWidth = 4;
       ctx.setLineDash([]);
       ctx.stroke();
       ctx.lineTo(xOf(tEnd), cy); ctx.lineTo(0, cy); ctx.closePath();
@@ -100,16 +100,16 @@ export default function AliasingPage() {
         const v = Math.sin(2 * Math.PI * freqRec * t);
         i === 0 ? ctx.moveTo(xOf(t), yOf(v)) : ctx.lineTo(xOf(t), yOf(v));
       }
-      ctx.strokeStyle = `rgba(${recRGB.join(',')},${lerp(0.65, 0.9, mix)})`;
-      ctx.lineWidth = lerp(1, 1.5, mix);
+      ctx.strokeStyle = `rgba(${recRGB.join(',')},${lerp(0.85, 1, mix)})`;
+      ctx.lineWidth = lerp(2, 3, mix);
       ctx.setLineDash(mix > 0.05 ? [lerp(0, 8, mix), lerp(0, 5, mix)] : []);
       ctx.stroke();
       ctx.setLineDash([]);
 
       const nSamples = Math.ceil(fs * tEnd) + 1;
       const dt = 1 / (fs || 1);
-      ctx.strokeStyle = 'rgba(200,200,200,0.08)';
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(200,200,200,0.5)';
+      ctx.lineWidth = 2;
       for (let i = 0; i < nSamples; i++) {
         const t = i * dt;
         if (t > tEnd + 0.001) break;
@@ -183,57 +183,42 @@ export default function AliasingPage() {
         </div>
         <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
           <div>Nyquist · Shannon</div>
-          <div>f₀ · fₛ · f_alias</div>
+          <div>f_alias</div>
         </div>
       </header>
 
       <div className="px-16 mt-8">
         <div className="relative bg-[#111] border border-[#1e1e1e] overflow-hidden" ref={wrapRef}>
           <canvas ref={canvasRef} className="block w-full"></canvas>
-          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 left-3.5">sinal original (f₀)</div>
-          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">fₛ = {fsT} Hz</div>
-          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none bottom-2.5 left-3.5">signal domain</div>
-          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-widest pointer-events-none bottom-2.5 right-3.5">{hasAlias ? `f_alias = ${faT.toFixed(1)} Hz` : 'sem alias'}</div>
+          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[20px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">{fsT}Hz</div>
         </div>
 
         <div className="flex gap-7 items-center py-2.5 px-3.5 border border-[#1e1e1e] border-t-0 bg-[#0d0d0d] flex-wrap">
-          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.06em]">
-            <div className="w-5 h-px bg-[#555]"></div>
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+            <div className="w-5 h-[2px] bg-[#6e6e6e]"></div>
             sinal original (f₀)
           </div>
-          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.06em]">
-            <svg className="w-1.75 h-1.75 shrink-0" viewBox="0 0 7 7"><rect width="7" height="7" fill="#c8c8c8"/></svg>
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+            <svg className="w-2 h-2 shrink-0" viewBox="0 0 7 7"><rect width="7" height="7" fill="#f0f0f0"/></svg>
             amostras
           </div>
-          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.06em]">
-            <div className="w-5 h-px" style={{ background: hasAlias ? '#8a5a5a' : '#5a8a5a' }}></div>
-            <span>{hasAlias ? 'sinal com aliasing' : 'sinal reconstruído'}</span>
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+            <div className="w-5 h-[2px]" style={{ background: hasAlias ? '#dc4646' : '#46c850' }}></div>
+            <span>{hasAlias ? 'sinal com aliasing' : 'sinal sem aliasing'}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[#1a1a1a] mt-0.5">
           <div className="bg-[#0d0d0d] py-6 px-7">
-            <div className="flex items-baseline gap-3.5 pb-4.5 mb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">parâmetro</span>
-              <span className="text-[20px] font-normal text-[#ececec] tracking-tight">Taxa de Amostragem</span>
-              <span className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#3a3a3a] ml-auto">.fₛ = {fsT} Hz</span>
-            </div>
             <div className="flex items-center gap-4 mb-3.5">
-              <span className="w-22.5 shrink-0 font-['IBM_Plex_Mono',_monospace] text-[10px] text-[#444] tracking-[0.08em] uppercase">fₛ (hz)</span>
+              <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Taxa de Amostragem</span>
+              {/* <span className="w-22.5 shrink-0 font-['IBM_Plex_Mono',_monospace] text-[12px] text-[#888] tracking-[0.08em] uppercase">Taxa de Amostragem</span> */}
               <input 
                 type="range" min="2" max="60" value={tgt.fs} step="1" 
                 onChange={(e) => setTgt({...tgt, fs: parseFloat(e.target.value)})} 
-                className="flex-1 h-px bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-none [&::-moz-range-thumb]:cursor-grab"
+                className="flex-1 h-[4px] rounded-full bg-[#444] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#eee] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#eee] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-grab"
               />
-              <span className="w-11 shrink-0 text-right font-mono text-[10px] text-[#555]">{fsT}</span>
-            </div>
-            <div className="flex items-center gap-2.5 mt-1">
-              <span className="font-mono text-[9px] text-[#3a3a3a] tracking-[0.06em] whitespace-nowrap">nyquist</span>
-              <div className="flex-1 h-px bg-[#1e1e1e] relative">
-                <div className="h-full transition-all duration-100 ease-linear" style={{ width: `${pct}%`, background: hasAlias ? '#8a5a5a' : '#5a8a5a' }}></div>
-                <div className="absolute -top-1 left-1/2 w-px h-2.25 bg-[#555]"></div>
-              </div>
-              <span className="font-mono text-[9px] text-[#3a3a3a] tracking-[0.06em] whitespace-nowrap">fₛ/2 = {nyqT} Hz</span>
+              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[#eee] font-medium">{fsT}</span>
             </div>
             <div className="mt-5">
               <div className="flex justify-between items-center py-2.25 border-b border-t border-[#181818]">
@@ -245,30 +230,31 @@ export default function AliasingPage() {
                 <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">{nyqT} Hz</span>
               </div>
               <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">frequência alias</span>
-                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#8a5a5a' : '#3e3e3e' }}>{hasAlias ? `${faT.toFixed(1)} Hz` : '—'}</span>
+                <span className="font-mono text-[11px] text-[#666] tracking-[0.08em] uppercase">frequência alias</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#555' }}>{hasAlias ? `${faT.toFixed(1)} Hz` : '—'}</span>
               </div>
               <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">estado</span>
-                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#8a5a5a' : '#5a8a5a' }}>{hasAlias ? 'ALIAS — distorção detectada' : 'OK — sem distorção'}</span>
+                <span className="font-mono text-[11px] text-[#666] tracking-[0.08em] uppercase">estado</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#46c850' }}>{hasAlias ? 'ALIASING' : 'SEM ALIASING'}</span>
               </div>
             </div>
           </div>
 
           <div className="bg-[#0d0d0d] py-6 px-7">
-            <div className="flex items-baseline gap-3.5 pb-4.5 mb-5 border-b border-[#1e1e1e]">
+            {/* <div className="flex items-baseline gap-3.5 pb-4.5 mb-5 border-b border-[#1e1e1e]">
               <span className="font-mono text-[10px] text-[#555] tracking-[0.18em] uppercase">parâmetro</span>
               <span className="text-[20px] font-normal text-[#ececec] tracking-tight">Frequência do Sinal</span>
               <span className="font-mono text-[11px] text-[#3a3a3a] ml-auto">.f₀ = {f0T} Hz</span>
-            </div>
+            </div> */}
             <div className="flex items-center gap-4 mb-3.5">
-              <span className="w-22.5 shrink-0 font-mono text-[10px] text-[#444] tracking-[0.08em] uppercase">f₀ (hz)</span>
+              {/* <span className="w-22.5 shrink-0 font-mono text-[12px] text-[#888] tracking-[0.08em] uppercase">f₀ (hz)</span> */}
+              <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Frequência do Sinal</span>
               <input 
                 type="range" min="1" max="30" value={tgt.f0} step="1" 
                 onChange={(e) => setTgt({...tgt, f0: parseFloat(e.target.value)})} 
-                className="flex-1 h-px bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-2.5 [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-none [&::-moz-range-thumb]:cursor-grab"
+                className="flex-1 h-[4px] rounded-full bg-[#444] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#eee] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#eee] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-grab"
               />
-              <span className="w-11 shrink-0 text-right font-mono text-[10px] text-[#555]">{f0T}</span>
+              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[#eee] font-medium">{f0T}Hz</span>
             </div>
             <div className="mt-3.5 text-[12px] font-light text-[#555] leading-[1.7]">
               Frequência do sinal contínuo de entrada. Aumente até ultrapassar o limite de Nyquist (fₛ/2) para induzir aliasing e observar o surgimento da frequência fantasma no sinal reconstruído.

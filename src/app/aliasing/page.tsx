@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function AliasingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,10 +46,10 @@ export default function AliasingPage() {
       Math.round(lerp(a[2], b[2], t))
     ];
 
-    const COL_ORIG = [160, 160, 160];
-    const COL_OK = [70, 200, 80];
-    const COL_ALIAS = [220, 70, 70];
-    const COL_SAMPLE = [240, 240, 240];
+    const COL_ORIG = [160, 160, 160];     // Sinal original do BG
+    const COL_OK = [70, 200, 80];         // Sinal sem aliasing
+    const COL_ALIAS = [220, 70, 70];      // Sinal com aliasing
+    const COL_SAMPLE = [240, 240, 240];   // Sample rects
 
     const draw = () => {
       const c = curRef.current;
@@ -212,7 +212,6 @@ export default function AliasingPage() {
           <div className="bg-[#0d0d0d] py-6 px-7">
             <div className="flex items-center gap-4 mb-3.5">
               <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Taxa de Amostragem</span>
-              {/* <span className="w-22.5 shrink-0 font-['IBM_Plex_Mono',_monospace] text-[12px] text-[#888] tracking-[0.08em] uppercase">Taxa de Amostragem</span> */}
               <input 
                 type="range" min="2" max="60" value={tgt.fs} step="1" 
                 onChange={(e) => setTgt({...tgt, fs: parseFloat(e.target.value)})} 
@@ -241,13 +240,7 @@ export default function AliasingPage() {
           </div>
 
           <div className="bg-[#0d0d0d] py-6 px-7">
-            {/* <div className="flex items-baseline gap-3.5 pb-4.5 mb-5 border-b border-[#1e1e1e]">
-              <span className="font-mono text-[10px] text-[#555] tracking-[0.18em] uppercase">parâmetro</span>
-              <span className="text-[20px] font-normal text-[#ececec] tracking-tight">Frequência do Sinal</span>
-              <span className="font-mono text-[11px] text-[#3a3a3a] ml-auto">.f₀ = {f0T} Hz</span>
-            </div> */}
             <div className="flex items-center gap-4 mb-3.5">
-              {/* <span className="w-22.5 shrink-0 font-mono text-[12px] text-[#888] tracking-[0.08em] uppercase">f₀ (hz)</span> */}
               <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Frequência do Sinal</span>
               <input 
                 type="range" min="1" max="30" value={tgt.f0} step="1" 

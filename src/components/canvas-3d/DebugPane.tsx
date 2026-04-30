@@ -133,7 +133,9 @@ export default function DebugPane({ engineState, className }: Props) {
   }, []);
 
   return (
-    <div className={`${className ?? ""}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`${className ?? ""}`} 
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}>
       <div ref={containerRef} className="w-full" />
     </div>
   );

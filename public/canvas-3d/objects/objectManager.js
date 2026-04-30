@@ -16,6 +16,13 @@ export class ObjectManager {
             const count = this.objects.filter(o => o.userData.type === mesh.userData.type).length;
             mesh.userData.name = `${type}${count}`;
         }
+
+        mesh.traverse((node) => {
+            if (!node.isMesh) return;
+            node.castShadow = true;
+            node.receiveShadow = true;
+        });
+
         this.scene.add(mesh);
         this.objects.push(mesh);
         this.skewValues.set(mesh, { xy: 0, xz: 0, yx: 0, yz: 0, zx: 0, zy: 0 });

@@ -1,278 +1,303 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function AliasingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [samplingFrequency, setSamplingFrequency] = useState(5);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const sineFrequency = 3; // Frequência maior, ex: 6 Hz
-  const totalTime = 2; // 2 segundos para uma ou duas ondas
+  const [tgt, setTgt] = useState({ fs: 8, f0: 5 });
+  const curRef = useRef({ fs: 8, f0: 5 });
+  const [windowWidth, setWindowWidth] = useState(1000);
 
   useEffect(() => {
+    let animationFrameId: number;
+    let W = 0, H = 0;
+    const SPEED = 0.10;
+
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const wrap = wrapRef.current;
+    if (!canvas || !wrap) return;
+
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Resize handler
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
-
-    let animationId: number;
-    const amplitude = canvas.height * 0.3;
-    const centerY = canvas.height / 2;
-
-    const animate = () => {
-      // Limpa fundo
-      ctx.fillStyle = "#1a1a1a";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Grade
-      drawGrid(ctx, canvas.width, canvas.height, centerY);
-
-      // Senoide contínua
-      drawContinuousSine(
-        ctx,
-        canvas.width,
-        amplitude,
-        centerY,
-        sineFrequency,
-        totalTime
-      );
-
-      // Amostragem
-      drawSampledPoints(
-        ctx,
-        canvas.width,
-        amplitude,
-        centerY,
-        sineFrequency,
-        samplingFrequency,
-        totalTime
-      );
-
-      // Legenda
-      drawLegend(
-        ctx,
-        canvas.width,
-        canvas.height,
-        sineFrequency,
-        samplingFrequency
-      );
-
-      animationId = requestAnimationFrame(animate);
+    const resize = () => {
+      if (!wrap) return;
+      W = wrap.clientWidth;
+      H = Math.round(W * 0.36);
+      canvas.width = W;
+      canvas.height = H;
+      setWindowWidth(window.innerWidth);
     };
 
-    animate();
+    const aliasFreq = (f0: number, fs: number) => {
+      let f = ((f0 % fs) + fs) % fs;
+      if (f > fs / 2) f = fs - f;
+      return f;
+    };
+
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+    const lerpRGB = (a: number[], b: number[], t: number) => [
+      Math.round(lerp(a[0], b[0], t)),
+      Math.round(lerp(a[1], b[1], t)),
+      Math.round(lerp(a[2], b[2], t))
+    ];
+
+    const COL_ORIG = [160, 160, 160];     // Sinal original do BG
+    const COL_OK = [70, 200, 80];         // Sinal sem aliasing
+    const COL_ALIAS = [220, 70, 70];      // Sinal com aliasing
+    const COL_SAMPLE = [240, 240, 240];   // Sample rects
+
+    const draw = () => {
+      const c = curRef.current;
+      const fs = c.fs;
+      const f0 = c.f0;
+      const nyq = fs / 2;
+      const fa = aliasFreq(f0, fs);
+      const mix = Math.max(0, Math.min(1, (f0 - nyq) / Math.max(nyq * 0.12, 0.3)));
+
+      ctx.clearRect(0, 0, W, H);
+
+      const cy = H / 2;
+      const amp = H * 0.38;
+      const tEnd = Math.max(1, 2 / (f0 || 1));
+      const xOf = (t: number) => (t / tEnd) * W;
+      const yOf = (v: number) => cy - v * amp;
+      const steps = W * 2;
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.015)';
+      ctx.lineWidth = 1;
+      const gs = 24;
+      for (let x = 0; x <= W; x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+      for (let y = 0; y <= H; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+
+      ctx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const t = (i / steps) * tEnd;
+        const v = Math.sin(2 * Math.PI * f0 * t);
+        i === 0 ? ctx.moveTo(xOf(t), yOf(v)) : ctx.lineTo(xOf(t), yOf(v));
+      }
+      ctx.strokeStyle = `rgba(${COL_ORIG.join(',')},0.7)`;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([]);
+      ctx.stroke();
+      ctx.lineTo(xOf(tEnd), cy); ctx.lineTo(0, cy); ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.01)';
+      ctx.fill();
+
+      const freqRec = lerp(f0, fa, mix);
+      const recRGB = lerpRGB(COL_OK, COL_ALIAS, mix);
+      ctx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const t = (i / steps) * tEnd;
+        const v = Math.sin(2 * Math.PI * freqRec * t);
+        i === 0 ? ctx.moveTo(xOf(t), yOf(v)) : ctx.lineTo(xOf(t), yOf(v));
+      }
+      ctx.strokeStyle = `rgba(${recRGB.join(',')},${lerp(0.85, 1, mix)})`;
+      ctx.lineWidth = lerp(2, 3, mix);
+      ctx.setLineDash(mix > 0.05 ? [lerp(0, 8, mix), lerp(0, 5, mix)] : []);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const nSamples = Math.ceil(fs * tEnd) + 1;
+      const dt = 1 / (fs || 1);
+      ctx.strokeStyle = 'rgba(200,200,200,0.5)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < nSamples; i++) {
+        const t = i * dt;
+        if (t > tEnd + 0.001) break;
+        const v = Math.sin(2 * Math.PI * f0 * t);
+        ctx.beginPath(); ctx.moveTo(xOf(t), cy); ctx.lineTo(xOf(t), yOf(v)); ctx.stroke();
+      }
+
+      for (let i = 0; i < nSamples; i++) {
+        const t = i * dt;
+        if (t > tEnd + 0.001) break;
+        const v = Math.sin(2 * Math.PI * f0 * t);
+        ctx.fillStyle = `rgba(${COL_SAMPLE.join(',')},0.75)`;
+        ctx.fillRect(xOf(t) - 3, yOf(v) - 3, 6, 6);
+      }
+    };
+
+    const loop = () => {
+      const eps = 0.004;
+      const prev = curRef.current;
+      const nextFs = Math.abs(prev.fs - tgt.fs) > eps ? lerp(prev.fs, tgt.fs, SPEED) : tgt.fs;
+      const nextF0 = Math.abs(prev.f0 - tgt.f0) > eps ? lerp(prev.f0, tgt.f0, SPEED) : tgt.f0;
+      curRef.current = { fs: nextFs, f0: nextF0 };
+      
+      draw();
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
+    loop();
 
     return () => {
-      window.removeEventListener("resize", resizeCanvas);
-      cancelAnimationFrame(animationId);
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, [samplingFrequency]);
+  }, [tgt]);
 
-  const drawGrid = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    centerY: number
-  ) => {
-    ctx.strokeStyle = "#3c3c3c";
-    ctx.lineWidth = 1;
-
-    for (let y = 0; y <= height; y += 50) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
-    for (let x = 0; x <= width; x += 50) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle = "#646464";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, centerY);
-    ctx.lineTo(width, centerY);
-    ctx.stroke();
+  const fsT = Math.round(tgt.fs);
+  const f0T = Math.round(tgt.f0);
+  const nyqT = fsT / 2;
+  
+  const aliasFreqHelper = (f0: number, fs: number) => {
+    let f = ((f0 % fs) + fs) % fs;
+    if (f > fs / 2) f = fs - f;
+    return f;
   };
-
-  const drawContinuousSine = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    amplitude: number,
-    centerY: number,
-    frequency: number,
-    totalTime: number
-  ) => {
-    ctx.strokeStyle = "#6496ff";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-
-    for (let x = 0; x <= width; x += 2) {
-      const t = (x / width) * totalTime;
-      const y = centerY + amplitude * Math.sin(2 * Math.PI * frequency * t);
-      if (x === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    }
-
-    ctx.stroke();
-  };
-
-  const drawSampledPoints = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    amplitude: number,
-    centerY: number,
-    sineFreq: number,
-    samplingFreq: number,
-    totalTime: number
-  ) => {
-    const numPoints = Math.ceil(samplingFreq * totalTime);
-    const dt = totalTime / (numPoints - 1);
-    const sampledPoints = [];
-
-    for (let i = 0; i < numPoints; i++) {
-      const t = i * dt;
-      const x = (t / totalTime) * width;
-      const y = centerY + amplitude * Math.sin(2 * Math.PI * sineFreq * t);
-      sampledPoints.push({ x, y });
-    }
-
-    // Conecta pontos
-    ctx.strokeStyle = "#ff6b35";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    sampledPoints.forEach((p, i) =>
-      i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)
-    );
-    ctx.stroke();
-
-    // Pontos
-    ctx.fillStyle = "#ff6b35";
-    sampledPoints.forEach((p) => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-  };
-
-  const drawLegend = (
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    sineFreq: number,
-    samplingFreq: number
-  ) => {
-    const statusY = height - 120;
-    const statusX = width - 300;
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    ctx.font = "14px Segoe UI";
-    ctx.textAlign = "left";
-    ctx.fillText(`Frequência do Sinal: ${sineFreq} Hz`, statusX, statusY);
-    ctx.fillText(
-      `Frequência de Amostragem: ${samplingFreq} Hz`,
-      statusX,
-      statusY + 20
-    );
-    ctx.fillText(
-      `Frequência de Nyquist: ${sineFreq * 2} Hz`,
-      statusX,
-      statusY + 40
-    );
-
-    if (samplingFreq < sineFreq * 2) {
-      ctx.fillStyle = "#ff6464";
-      ctx.font = "bold 16px Segoe UI";
-      ctx.fillText("⚠ ALIASING DETECTADO!", statusX, statusY + 70);
-    } else {
-      ctx.fillStyle = "#64ff64";
-      ctx.font = "bold 16px Segoe UI";
-      ctx.fillText("✓ Amostragem adequada", statusX, statusY + 70);
-    }
-  };
+  
+  const faT = aliasFreqHelper(f0T, fsT);
+  const hasAlias = f0T > nyqT;
+  const pct = Math.min((f0T / nyqT) * 50, 100);
 
   return (
-    <div className="relative w-full h-screen bg-[#1a1a1a] overflow-hidden">
-      <Link
-        href="/"
-        className="fixed top-5 left-5 z-50 text-white px-6 py-3 rounded-full font-semibold hover:-translate-y-0.5 transition"
-      >
-        ← Menu Principal
-      </Link>
+    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] font-['DM_Sans',_sans-serif] font-light overflow-x-hidden pb-20">
+      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-6 border-b border-[#222]">
+        <div>
+          <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
+            Computação Gráfica — Amostragem
+          </div>
+          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0] m-0">
+            <Link
+              href="/"
+              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              title="Voltar para a Home"
+            >
+              <ArrowLeft size={32} strokeWidth={1} />
+            </Link>
+            <span>
+              <strong className="font-medium text-white">Sampling</strong> &amp; <strong className="font-medium text-white">Aliasing</strong>
+            </span>
+          </h1>
+        </div>
+        <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
+          <div>Nyquist · Shannon</div>
+          <div>f_alias</div>
+        </div>
+      </header>
 
-      {/* Controles */}
-      <div className="fixed top-5 right-5 z-50 bg-gray-800/95 text-white p-5 rounded-2xl backdrop-blur-md border border-white/10 min-w-[280px]">
-        <label className="block mb-2 text-sm font-medium text-gray-200">
-          Frequência de Amostragem
-          <span className="ml-2 px-2 py-1 bg-orange-500/10 text-orange-500 rounded text-xs font-semibold">
-            {samplingFrequency} Hz
-          </span>
-        </label>
-        <input
-          type="range"
-          min="1"
-          max={sineFrequency * 40} // 3× frequência do sinal para mostrar aliasing claramente
-          step="1"
-          value={samplingFrequency}
-          onChange={(e) => setSamplingFrequency(Number(e.target.value))}
-          className="w-full slider"
-        />
+      <div className="px-16 mt-8">
+        <div className="relative bg-[#111] border border-[#1e1e1e] overflow-hidden" ref={wrapRef}>
+          <canvas ref={canvasRef} className="block w-full"></canvas>
+          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[20px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">{fsT}Hz</div>
+        </div>
+
+        <div className="flex gap-7 items-center py-2.5 px-3.5 border border-[#1e1e1e] border-t-0 bg-[#0d0d0d] flex-wrap">
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+            <div className="w-5 h-[2px] bg-[#6e6e6e]"></div>
+            sinal original (f₀)
+          </div>
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+            <svg className="w-2 h-2 shrink-0" viewBox="0 0 7 7"><rect width="7" height="7" fill="#f0f0f0"/></svg>
+            amostras
+          </div>
+          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+            <div className="w-5 h-[2px]" style={{ background: hasAlias ? '#dc4646' : '#46c850' }}></div>
+            <span>{hasAlias ? 'sinal com aliasing' : 'sinal sem aliasing'}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[#1a1a1a] mt-0.5">
+          <div className="bg-[#0d0d0d] py-6 px-7">
+            <div className="flex items-center gap-4 mb-3.5">
+              <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Taxa de Amostragem</span>
+              <input 
+                type="range" min="2" max="60" value={tgt.fs} step="1" 
+                onChange={(e) => setTgt({...tgt, fs: parseFloat(e.target.value)})} 
+                className="flex-1 h-[4px] rounded-full bg-[#444] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#eee] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#eee] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-grab"
+              />
+              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[#eee] font-medium">{fsT}</span>
+            </div>
+            <div className="mt-5">
+              <div className="flex justify-between items-center py-2.25 border-b border-t border-[#181818]">
+                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">frequência original</span>
+                <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">{f0T} Hz</span>
+              </div>
+              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
+                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">limite de nyquist</span>
+                <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">{nyqT} Hz</span>
+              </div>
+              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
+                <span className="font-mono text-[11px] text-[#666] tracking-[0.08em] uppercase">frequência alias</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#555' }}>{hasAlias ? `${faT.toFixed(1)} Hz` : '—'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
+                <span className="font-mono text-[11px] text-[#666] tracking-[0.08em] uppercase">estado</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#46c850' }}>{hasAlias ? 'ALIASING' : 'SEM ALIASING'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#0d0d0d] py-6 px-7">
+            <div className="flex items-center gap-4 mb-3.5">
+              <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Frequência do Sinal</span>
+              <input 
+                type="range" min="1" max="30" value={tgt.f0} step="1" 
+                onChange={(e) => setTgt({...tgt, f0: parseFloat(e.target.value)})} 
+                className="flex-1 h-[4px] rounded-full bg-[#444] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#eee] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#eee] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-grab"
+              />
+              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[#eee] font-medium">{f0T}Hz</span>
+            </div>
+            <div className="mt-3.5 text-[12px] font-light text-[#555] leading-[1.7]">
+              Frequência do sinal contínuo de entrada. Aumente até ultrapassar o limite de Nyquist (fₛ/2) para induzir aliasing e observar o surgimento da frequência fantasma no sinal reconstruído.
+            </div>
+            <div className="mt-5">
+              <div className="flex justify-between items-center py-2.25 border-b border-t border-[#181818]">
+                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">fₛ ≥ 2·f₀ ?</span>
+                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#8a5a5a' : '#5a8a5a' }}>{hasAlias ? 'não' : 'sim'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
+                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">recuperação</span>
+                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#8a5a5a' : '#5a8a5a' }}>{hasAlias ? 'impossível' : 'perfeita'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
+                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">artefato</span>
+                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#7a7a5a' : '#3e3e3e' }}>{hasAlias ? `alias em ${faT.toFixed(1)} Hz` : 'nenhum'}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
+                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">aplicação</span>
+                <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">áudio · imagem · vídeo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 font-mono text-[10px] text-[#444] tracking-[0.2em] uppercase mt-8 pb-3.5">
+          02 <span className="text-[#333]">—</span> Fundamentos teóricos
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[#1a1a1a] border-t-2 border-[#1a1a1a]">
+          <div className="bg-[#0d0d0d] py-7 px-8">
+            <h3 className="font-mono text-[10px] text-[#444] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[#1a1a1a]">Teorema de Nyquist–Shannon</h3>
+            <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-3">
+              Para reconstruir um sinal de frequência <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">f₀</code> sem distorção, a taxa de amostragem <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">fₛ</code> deve satisfazer <strong className="font-medium text-[#b0b0b0]">fₛ &gt; 2·f₀</strong>. Este limiar é chamado de <strong className="font-medium text-[#b0b0b0]">frequência de Nyquist</strong>.
+            </p>
+            <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+              Quando a condição é atendida, o Teorema da Amostragem garante que o sinal contínuo original pode ser recuperado <em className="italic">exatamente</em> a partir das amostras discretas, via filtragem passa-baixas ideal.
+            </p>
+          </div>
+          <div className="bg-[#0d0d0d] py-7 px-8">
+            <h3 className="font-mono text-[10px] text-[#444] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[#1a1a1a]">Aliasing — Frequência Fantasma</h3>
+            <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-3">
+              Quando <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">fₛ &lt; 2·f₀</code>, ocorre <strong className="font-medium text-[#b0b0b0]">aliasing</strong>: componentes de frequência acima de Nyquist são dobradas de volta ao espectro em outra frequência, criando um sinal fantasma.
+            </p>
+            <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+              A frequência alias é calculada por <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">f_alias = | f₀ − round(f₀/fₛ)·fₛ |</code>. O artefato é irreversível — amostrado com fₛ insuficiente, a informação original não pode ser recuperada.
+            </p>
+          </div>
+        </div>
       </div>
-
-      {/* Painel info */}
-      <div className="fixed bottom-5 left-5 z-50 bg-gray-800/95 text-white p-4 rounded-xl backdrop-blur-md border border-white/10 max-w-[300px] text-sm leading-relaxed">
-        <h3 className="text-orange-500 font-semibold mb-2">
-          Aliasing em Sinais
-        </h3>
-        <p className="mb-2">
-          A senoide azul tem frequência de <strong>{sineFrequency} Hz</strong>.
-          Os pontos laranja mostram a amostragem do sinal.
-        </p>
-        <p>
-          Quando a frequência de amostragem é menor que 2× a frequência do sinal
-          ({sineFrequency * 2} Hz), ocorre <strong>aliasing</strong>.
-        </p>
-        <Link href="/infos/audio">
-          <strong>Clique para saber mais →</strong>
-        </Link>
-      </div>
-
-      <canvas ref={canvasRef} className="w-full h-full" />
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          cursor: pointer;
-        }
-        .slider::-moz-range-thumb {
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: #ff6b35;
-          border: none;
-          cursor: pointer;
-        }
-      `}</style>
     </div>
   );
 }

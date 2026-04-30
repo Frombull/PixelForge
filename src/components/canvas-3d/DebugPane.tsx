@@ -55,7 +55,7 @@ export default function DebugPane({ engineState, className }: Props) {
       controllers.cameraPos = pane.addMonitor(debugObj, "cameraPos", { label: "Camera XYZ" });
       controllers.fps = pane.addMonitor(debugObj, "fps", { label: "FPS" });
       controllers.fpsGraph = pane.addMonitor(debugObj, "fps", {
-        label: "FPS Graph",
+        label: "FPS",
         view: "graph",
         min: 0,
         max: 200,
@@ -133,7 +133,9 @@ export default function DebugPane({ engineState, className }: Props) {
   }, []);
 
   return (
-    <div className={`${className ?? ""}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`${className ?? ""}`} 
+      onClick={(e) => e.stopPropagation()}
+      onContextMenu={(e) => e.preventDefault()}>
       <div ref={containerRef} className="w-full" />
     </div>
   );

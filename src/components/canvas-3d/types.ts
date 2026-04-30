@@ -85,6 +85,15 @@ export type SettingsState = {
   paniniNearClip: number;
   paniniFarClip: number;
   renderMethod: RenderMethod;
+  exposure: number;
+  hemisphereIntensity: number;
+  keyLightIntensity: number;
+  fillLightIntensity: number;
+  rimLightIntensity: number;
+  atmosphereEnabled: boolean;
+  atmosphereDensity: number;
+  atmosphereColor: string;
+  shadowsEnabled: boolean;
 };
 
 export type Canvas3DState = {
@@ -129,6 +138,15 @@ export const EMPTY_STATE: Canvas3DState = {
     paniniNearClip: 0.01,
     paniniFarClip: 50,
     renderMethod: "zbuffer",
+    exposure: 1,
+    hemisphereIntensity: 0.5,
+    keyLightIntensity: 1.1,
+    fillLightIntensity: 0.35,
+    rimLightIntensity: 0.2,
+    atmosphereEnabled: false,
+    atmosphereDensity: 0.008,
+    atmosphereColor: "#ffffff",
+    shadowsEnabled: true,
   },
 };
 
@@ -205,6 +223,15 @@ export type Canvas3DBridge = {
   setSnapSize: (size: number) => void;
   setBackgroundColor: (hex: string) => void;
   setGridColor: (hex: string) => void;
+  setExposure: (value: number) => void;
+  setHemisphereLightIntensity: (value: number) => void;
+  setKeyLightIntensity: (value: number) => void;
+  setFillLightIntensity: (value: number) => void;
+  setRimLightIntensity: (value: number) => void;
+  setAtmosphereEnabled: (enabled: boolean) => void;
+  setAtmosphereDensity: (value: number) => void;
+  setAtmosphereColor: (hex: string) => void;
+  setShadowsEnabled: (enabled: boolean) => void;
   setFov: (value: number, projection?: CameraProjection) => void;
   setNearClip: (value: number, projection?: CameraProjection) => void;
   setFarClip: (value: number, projection?: CameraProjection) => void;

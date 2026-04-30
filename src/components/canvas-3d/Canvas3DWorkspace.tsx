@@ -472,6 +472,15 @@ export default function Canvas3DWorkspace() {
             onFarClipChange={handleFarClipChange}
             onGridColorChange={(hex) => window.Canvas3DBridge?.setGridColor(hex)}
             onGridVisibleChange={(visible) => window.Canvas3DBridge?.setGridVisible(visible)}
+            onExposureChange={(value) => window.Canvas3DBridge?.setExposure(value)}
+            onHemisphereIntensityChange={(value) => window.Canvas3DBridge?.setHemisphereLightIntensity(value)}
+            onKeyLightIntensityChange={(value) => window.Canvas3DBridge?.setKeyLightIntensity(value)}
+            onFillLightIntensityChange={(value) => window.Canvas3DBridge?.setFillLightIntensity(value)}
+            onRimLightIntensityChange={(value) => window.Canvas3DBridge?.setRimLightIntensity(value)}
+            onShadowsEnabledChange={(enabled) => window.Canvas3DBridge?.setShadowsEnabled(enabled)}
+            onAtmosphereEnabledChange={(enabled) => window.Canvas3DBridge?.setAtmosphereEnabled(enabled)}
+            onAtmosphereDensityChange={(value) => window.Canvas3DBridge?.setAtmosphereDensity(value)}
+            onAtmosphereColorChange={(hex) => window.Canvas3DBridge?.setAtmosphereColor(hex)}
             onNearClipChange={handleNearClipChange}
             onOrthoZoomChange={handleOrthoZoomChange}
             onRenderMethodChange={(method) => window.Canvas3DBridge?.setRenderMethod(method)}

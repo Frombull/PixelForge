@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Sky } from 'three/addons/objects/Sky.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CAMERA_CONFIG, CAMERA_PROJECTION_DEFAULTS, DEFAULT_VALUES, COLORS } from '/canvas-3d/utils/constants.js';
 
 export class SceneManager {
@@ -16,6 +17,24 @@ export class SceneManager {
         this.axesHelper = null;
         this.cameraHelper = null;
         this.sky = null;
+        this.environmentRenderTarget = null;
+        this.lights = {
+            hemisphere: null,
+            key: null,
+            fill: null,
+            rim: null
+        };
+        this.visualSettings = {
+            exposure: 0.3,
+            hemisphereIntensity: 0.6,
+            keyIntensity: 1.1,
+            fillIntensity: 0.5,
+            rimIntensity: 0.2,
+            atmosphereEnabled: false,
+            atmosphereDensity: 0.008,
+            atmosphereColor: '#ffffff',
+            shadowsEnabled: true
+        };
         this.backgroundColor = new THREE.Color(COLORS.background);
         this.isPerspective = true;
         this.showSecondViewport = false;
@@ -31,6 +50,7 @@ export class SceneManager {
         this.createScene();
         this.createCameras();
         this.createRenderer();
+        this.createEnvironment();
         this.createSecondViewport();
         this.createLights();
         this.createSky();
@@ -41,7 +61,15 @@ export class SceneManager {
     createScene() {
         this.scene = new THREE.Scene();
         this.scene.background = this.backgroundColor.clone();
-        this.scene.fog = new THREE.Fog(this.backgroundColor.clone(), 20, 90);
+        this.scene.fog = null;
+    }
+
+    configureRenderer(renderer) {
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.LinearToneMapping; // TODO: mess around with this
+        renderer.toneMappingExposure = this.visualSettings.exposure;
+        renderer.shadowMap.enabled = this.visualSettings.shadowsEnabled;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     }
 
     createSky() {
@@ -49,14 +77,14 @@ export class SceneManager {
         this.sky.scale.setScalar(this.perspectiveCamera.far * 0.9);
 
         const uniforms = this.sky.material.uniforms;
-        uniforms.turbidity.value = 0.3;
-        uniforms.rayleigh.value = 103;
-        uniforms.mieCoefficient.value = 0.005;
-        uniforms.mieDirectionalG.value = 0.86;
+        uniforms.turbidity.value = 4;
+        uniforms.rayleigh.value = 1.25;
+        uniforms.mieCoefficient.value = 0.006;
+        uniforms.mieDirectionalG.value = 0.82;
 
         const sun = new THREE.Vector3();
-        const phi = THREE.MathUtils.degToRad(88);
-        const theta = THREE.MathUtils.degToRad(180);
+        const phi = THREE.MathUtils.degToRad(55);
+        const theta = THREE.MathUtils.degToRad(210);
         sun.setFromSphericalCoords(1, phi, theta);
         uniforms.sunPosition.value.copy(sun);
 
@@ -89,10 +117,24 @@ export class SceneManager {
     
     createRenderer() {
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.configureRenderer(this.renderer);
         this.renderer.setPixelRatio(this.getEffectivePixelRatio());
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.domElement.classList.add('main-canvas3d');
         this.container.appendChild(this.renderer.domElement);
+    }
+
+    createEnvironment() {
+        if (!this.scene || !this.renderer) return;
+
+        const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+        const roomEnvironment = new RoomEnvironment();
+
+        this.environmentRenderTarget = pmremGenerator.fromScene(roomEnvironment, 0.04);
+        this.scene.environment = this.environmentRenderTarget.texture;
+
+        roomEnvironment.dispose?.();
+        pmremGenerator.dispose();
     }
     
     createSecondViewport() {
@@ -101,6 +143,7 @@ export class SceneManager {
         this.secondCamera.lookAt(0, 0, 0);
         
         this.secondRenderer = new THREE.WebGLRenderer({ antialias: true });
+        this.configureRenderer(this.secondRenderer);
         this.secondRenderer.setPixelRatio(this.getEffectivePixelRatio());
         this.secondRenderer.domElement.classList.add('culling-preview-canvas');
         
@@ -135,10 +178,134 @@ export class SceneManager {
     }
     
     createLights() {
-        const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-        const directional = new THREE.DirectionalLight(0xffffff, 0.8);
-        directional.position.set(5, 10, 5);
-        this.scene.add(ambient, directional);
+        const hemisphere = new THREE.HemisphereLight(0xeaf2ff, 0x6a5a4a, this.visualSettings.hemisphereIntensity);
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, this.visualSettings.keyIntensity);
+        keyLight.position.set(8, 12, 6);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.set(2048, 2048);
+        keyLight.shadow.camera.near = 0.5;
+        keyLight.shadow.camera.far = 50;
+        keyLight.shadow.camera.left = -12;
+        keyLight.shadow.camera.right = 12;
+        keyLight.shadow.camera.top = 12;
+        keyLight.shadow.camera.bottom = -12;
+
+        const fillLight = new THREE.DirectionalLight(0xbecfff, this.visualSettings.fillIntensity);
+        fillLight.position.set(-7, 6, -5);
+
+        const rimLight = new THREE.DirectionalLight(0xffefd8, this.visualSettings.rimIntensity);
+        rimLight.position.set(2, 5, -10);
+
+        this.lights.hemisphere = hemisphere;
+        this.lights.key = keyLight;
+        this.lights.fill = fillLight;
+        this.lights.rim = rimLight;
+
+        this.scene.add(hemisphere, keyLight, fillLight, rimLight);
+    }
+
+    getLightingSettings() {
+        return {
+            exposure: this.visualSettings.exposure,
+            hemisphereIntensity: this.lights.hemisphere?.intensity ?? this.visualSettings.hemisphereIntensity,
+            keyIntensity: this.lights.key?.intensity ?? this.visualSettings.keyIntensity,
+            fillIntensity: this.lights.fill?.intensity ?? this.visualSettings.fillIntensity,
+            rimIntensity: this.lights.rim?.intensity ?? this.visualSettings.rimIntensity,
+            atmosphereEnabled: this.visualSettings.atmosphereEnabled,
+            atmosphereDensity: this.visualSettings.atmosphereDensity,
+            atmosphereColor: this.visualSettings.atmosphereColor,
+            shadowsEnabled: this.visualSettings.shadowsEnabled
+        };
+    }
+
+    setToneMappingExposure(value) {
+        const next = Number(value);
+        if (!Number.isFinite(next)) return;
+
+        const exposure = THREE.MathUtils.clamp(next, 0.2, 3);
+        this.visualSettings.exposure = exposure;
+        if (this.renderer) this.renderer.toneMappingExposure = exposure;
+        if (this.secondRenderer) this.secondRenderer.toneMappingExposure = exposure;
+    }
+
+    setLightIntensity(lightKey, value, min = 0, max = 4) {
+        const light = this.lights[lightKey];
+        const next = Number(value);
+        if (!light || !Number.isFinite(next)) return;
+
+        light.intensity = THREE.MathUtils.clamp(next, min, max);
+    }
+
+    setHemisphereLightIntensity(value) {
+        this.setLightIntensity('hemisphere', value, 0, 2.5);
+        this.visualSettings.hemisphereIntensity = this.lights.hemisphere?.intensity ?? this.visualSettings.hemisphereIntensity;
+    }
+
+    setKeyLightIntensity(value) {
+        this.setLightIntensity('key', value, 0, 4);
+        this.visualSettings.keyIntensity = this.lights.key?.intensity ?? this.visualSettings.keyIntensity;
+    }
+
+    setFillLightIntensity(value) {
+        this.setLightIntensity('fill', value, 0, 3);
+        this.visualSettings.fillIntensity = this.lights.fill?.intensity ?? this.visualSettings.fillIntensity;
+    }
+
+    setRimLightIntensity(value) {
+        this.setLightIntensity('rim', value, 0, 3);
+        this.visualSettings.rimIntensity = this.lights.rim?.intensity ?? this.visualSettings.rimIntensity;
+    }
+
+    updateAtmosphere() {
+        if (!this.scene) return;
+
+        if (!this.visualSettings.atmosphereEnabled) {
+            this.scene.fog = null;
+            return;
+        }
+
+        const color = new THREE.Color(this.visualSettings.atmosphereColor);
+        const density = THREE.MathUtils.clamp(this.visualSettings.atmosphereDensity, 0.0001, 0.08);
+
+        if (this.scene.fog?.isFogExp2) {
+            this.scene.fog.color.copy(color);
+            this.scene.fog.density = density;
+            return;
+        }
+
+        this.scene.fog = new THREE.FogExp2(color, density);
+    }
+
+    setAtmosphereEnabled(enabled) {
+        this.visualSettings.atmosphereEnabled = Boolean(enabled);
+        this.updateAtmosphere();
+    }
+
+    setAtmosphereDensity(value) {
+        const next = Number(value);
+        if (!Number.isFinite(next)) return;
+
+        this.visualSettings.atmosphereDensity = THREE.MathUtils.clamp(next, 0.0001, 0.08);
+        this.updateAtmosphere();
+    }
+
+    setAtmosphereColor(color) {
+        if (typeof color !== 'string') return;
+        this.visualSettings.atmosphereColor = color;
+        this.updateAtmosphere();
+    }
+
+    setShadowsEnabled(enabled) {
+        const next = Boolean(enabled);
+        this.visualSettings.shadowsEnabled = next;
+
+        if (this.renderer) this.renderer.shadowMap.enabled = next;
+        if (this.secondRenderer) this.secondRenderer.shadowMap.enabled = next;
+
+        if (this.lights.key) {
+            this.lights.key.castShadow = next;
+        }
     }
     
     createGrid() {
@@ -343,10 +510,6 @@ export class SceneManager {
         } else {
             this.scene.background = this.backgroundColor.clone();
         }
-
-        if (this.scene.fog?.isFog) {
-            this.scene.fog.color.copy(this.backgroundColor);
-        }
     }
 
     getBackgroundColorHex() {
@@ -385,11 +548,6 @@ export class SceneManager {
         if (this.sky) {
             this.sky.scale.setScalar(skyRadius);
         }
-
-        if (this.scene.fog?.isFog) {
-            this.scene.fog.near = Math.max(5, skyRadius * 0.22);
-            this.scene.fog.far = skyRadius;
-        }
     }
 
     setFov(fov) {
@@ -407,5 +565,22 @@ export class SceneManager {
         const max = CAMERA_PROJECTION_DEFAULTS.orthographic.zoomMax;
         this.orthographicCamera.zoom = THREE.MathUtils.clamp(next, min, max);
         this.orthographicCamera.updateProjectionMatrix();
+    }
+
+    dispose() {
+        if (this.environmentRenderTarget) {
+            this.environmentRenderTarget.dispose();
+            this.environmentRenderTarget = null;
+        }
+
+        if (this.scene) {
+            this.scene.environment = null;
+            this.scene.fog = null;
+        }
+
+        this.lights.hemisphere = null;
+        this.lights.key = null;
+        this.lights.fill = null;
+        this.lights.rim = null;
     }
 }

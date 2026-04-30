@@ -256,6 +256,19 @@ class App {
         const bgColor = this.sceneManager.getBackgroundColorHex
             ? this.sceneManager.getBackgroundColorHex()
             : '#ffffff';
+        const lighting = this.sceneManager.getLightingSettings
+            ? this.sceneManager.getLightingSettings()
+            : {
+                exposure: 1,
+                hemisphereIntensity: 0.5,
+                keyIntensity: 1.1,
+                fillIntensity: 0.35,
+                rimIntensity: 0.2,
+                atmosphereEnabled: false,
+                atmosphereDensity: 0.008,
+                atmosphereColor: '#ffffff',
+                shadowsEnabled: true
+            };
 
         const orthoZoom = this.sceneManager.orthographicCamera?.zoom ?? this.projectionCameraSettings.ortographic.zoom;
         this.projectionCameraSettings.ortographic.zoom = orthoZoom;
@@ -295,7 +308,16 @@ class App {
             paniniFov: this.projectionCameraSettings.panini.fov,
             paniniNearClip: this.projectionCameraSettings.panini.nearClip,
             paniniFarClip: this.projectionCameraSettings.panini.farClip,
-            renderMethod: this.renderMethod
+            renderMethod: this.renderMethod,
+            exposure: lighting.exposure,
+            hemisphereIntensity: lighting.hemisphereIntensity,
+            keyLightIntensity: lighting.keyIntensity,
+            fillLightIntensity: lighting.fillIntensity,
+            rimLightIntensity: lighting.rimIntensity,
+            atmosphereEnabled: lighting.atmosphereEnabled,
+            atmosphereDensity: lighting.atmosphereDensity,
+            atmosphereColor: lighting.atmosphereColor,
+            shadowsEnabled: lighting.shadowsEnabled
         };
     }
 
@@ -600,6 +622,51 @@ class App {
 
     setGridColor(hex) {
         this.sceneManager.setGridColor(hex);
+        this.emitState();
+    }
+
+    setExposure(value) {
+        this.sceneManager.setToneMappingExposure(value);
+        this.emitState();
+    }
+
+    setHemisphereLightIntensity(value) {
+        this.sceneManager.setHemisphereLightIntensity(value);
+        this.emitState();
+    }
+
+    setKeyLightIntensity(value) {
+        this.sceneManager.setKeyLightIntensity(value);
+        this.emitState();
+    }
+
+    setFillLightIntensity(value) {
+        this.sceneManager.setFillLightIntensity(value);
+        this.emitState();
+    }
+
+    setRimLightIntensity(value) {
+        this.sceneManager.setRimLightIntensity(value);
+        this.emitState();
+    }
+
+    setAtmosphereEnabled(enabled) {
+        this.sceneManager.setAtmosphereEnabled(enabled);
+        this.emitState();
+    }
+
+    setAtmosphereDensity(value) {
+        this.sceneManager.setAtmosphereDensity(value);
+        this.emitState();
+    }
+
+    setAtmosphereColor(value) {
+        this.sceneManager.setAtmosphereColor(value);
+        this.emitState();
+    }
+
+    setShadowsEnabled(enabled) {
+        this.sceneManager.setShadowsEnabled(enabled);
         this.emitState();
     }
 
@@ -958,6 +1025,7 @@ class App {
         this.controlsManager?.controls?.dispose?.();
         this.viewportGizmo?.dispose();
         this.viewportGizmo = null;
+        this.sceneManager?.dispose?.();
 
         if (this.sceneManager?.secondRenderer?.domElement) {
             this.sceneManager.secondRenderer.domElement.remove();
@@ -1010,6 +1078,15 @@ window.Canvas3DBridge = {
     setSnapSize: (size) => appInstance?.setSnapSize(size),
     setBackgroundColor: (hex) => appInstance?.setBackgroundColor(hex),
     setGridColor: (hex) => appInstance?.setGridColor(hex),
+    setExposure: (value) => appInstance?.setExposure(value),
+    setHemisphereLightIntensity: (value) => appInstance?.setHemisphereLightIntensity(value),
+    setKeyLightIntensity: (value) => appInstance?.setKeyLightIntensity(value),
+    setFillLightIntensity: (value) => appInstance?.setFillLightIntensity(value),
+    setRimLightIntensity: (value) => appInstance?.setRimLightIntensity(value),
+    setAtmosphereEnabled: (enabled) => appInstance?.setAtmosphereEnabled(enabled),
+    setAtmosphereDensity: (value) => appInstance?.setAtmosphereDensity(value),
+    setAtmosphereColor: (value) => appInstance?.setAtmosphereColor(value),
+    setShadowsEnabled: (enabled) => appInstance?.setShadowsEnabled(enabled),
     setFov: (value, projection) => appInstance?.setFov(value, projection),
     setNearClip: (value, projection) => appInstance?.setNearClip(value, projection),
     setFarClip: (value, projection) => appInstance?.setFarClip(value, projection),

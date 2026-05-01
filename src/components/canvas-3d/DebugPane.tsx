@@ -40,6 +40,7 @@ export default function DebugPane({ engineState, className }: Props) {
         objectsCount: Math.trunc(s.objects.length),
         isOrthographic: s.isOrthographic,
         isCullingViewEnabled: s.isCullingViewEnabled,
+        isShiftSnapActive: s.isShiftSnapActive,
         fps: 0,
         cameraPos: formatCameraPos(s.cameraPosition.x ?? 0, s.cameraPosition.y ?? 0, s.cameraPosition.z ?? 0),
       };
@@ -52,6 +53,7 @@ export default function DebugPane({ engineState, className }: Props) {
       controllers.objectsCount = pane.addMonitor(debugObj, "objectsCount", { label: "Objects" });
       controllers.isOrthographic = pane.addMonitor(debugObj, "isOrthographic", { label: "Orthographic" });
       controllers.isCullingViewEnabled = pane.addMonitor(debugObj, "isCullingViewEnabled", { label: "Culling View" });
+      controllers.isShiftSnapActive = pane.addMonitor(debugObj, "isShiftSnapActive", { label: "Shift Snap" });
       controllers.cameraPos = pane.addMonitor(debugObj, "cameraPos", { label: "Camera XYZ" });
       controllers.fps = pane.addMonitor(debugObj, "fps", { label: "FPS" });
       controllers.fpsGraph = pane.addMonitor(debugObj, "fps", {
@@ -78,6 +80,7 @@ export default function DebugPane({ engineState, className }: Props) {
         info.objectsCount = Math.trunc(latest.objects.length);
         info.isOrthographic = latest.isOrthographic;
         info.isCullingViewEnabled = latest.isCullingViewEnabled;
+        info.isShiftSnapActive = latest.isShiftSnapActive;
 
         const bridgeState = window.Canvas3DBridge?.getState?.();
         const cameraPosition = bridgeState?.cameraPosition ?? latest.cameraPosition;
@@ -100,6 +103,7 @@ export default function DebugPane({ engineState, className }: Props) {
             if (ctr.objectsCount) ctr.objectsCount.value = info.objectsCount;
             if (ctr.isOrthographic) ctr.isOrthographic.value = info.isOrthographic;
             if (ctr.isCullingViewEnabled) ctr.isCullingViewEnabled.value = info.isCullingViewEnabled;
+            if (ctr.isShiftSnapActive) ctr.isShiftSnapActive.value = info.isShiftSnapActive;
             if (ctr.cameraPos) ctr.cameraPos.value = info.cameraPos;
             if (ctr.fps) ctr.fps.value = info.fps;
           }

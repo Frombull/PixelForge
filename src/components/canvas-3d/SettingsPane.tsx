@@ -384,7 +384,7 @@ export default function SettingsPane({
 
   return (
     <div
-      className={`absolute right-3 top-[2.65rem] z-60 w-72 rounded-[0.2rem] ${isOpen ? "" : "hidden"}`}
+      className={`absolute right-1 top-8 z-60 w-72 ${isOpen ? "" : "hidden"}`}
       ref={panelRef}
       onContextMenu={(e) => e.preventDefault()}>
       <div className="px-2 py-2">

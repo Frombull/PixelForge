@@ -27,26 +27,23 @@
  
 === [ TODO ] ============================================================================================================
 
+[TODO] - Deixar a UI toda mais pertinha, tá parecendo mta coisa de IA com cards separadas 1 pra cada e adicioanr setinha em cada input
+[TODO] - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
+[TODO] - Iluminação decente | Arrumar background color picker com skybox atual
+[TODO] - Z buffer, A buffer - Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
 [TODO] - Panini projection and sliders (https://youtu.be/LE9kxUQ-l14)
 [TODO] - Load custom preset scene. 
 [TODO] - Toggle of EXTREME aliasing for example
 [TODO] - Tema claro por padrão? Mais facil na sala de aula
 [TODO] - Refatorar o material teorico visualmente e... materialmente
-[TODO] - Fazer as linhas extenderem até encostar nos eixos na página do Yvo
-[TODO] - Deixar a UI toda mais pertinha, tá parecendo mta coisa de IA com cards separadas 1 pra cada e adicioanr setinha em cada input
 [TODO] - Diferentes pontos de fuga?
 [TODO] - Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo, talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
-[TODO] - Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
-[TODO] - Z buffer, A buffer
-[TODO] - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
 [TODO] - Carregar uma cena de um arquivo
 [TODO] - Carregar uma cena com query params
 [TODO] - Adicionar propriedade de hidden em objetos, toggle
 [TODO] - Segurar shift pra dar snap
 [TODO] - Hints em forma de bolinha piscando quando entrar na página
     BG:
-[TODO] - Iluminação decente
-[TODO] - Arrumar background color picker com skybox atual
 [TODO] - Usar o IRO color picker, redondo pra HSV
 [TODO] - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d) (https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling)
     Camera secundária:

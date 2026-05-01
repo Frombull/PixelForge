@@ -100,6 +100,7 @@ export type Canvas3DState = {
   mode: Canvas3DMode;
   isOrthographic: boolean;
   isCullingViewEnabled: boolean;
+  isShiftSnapActive: boolean;
   cameraPosition: NumericVec3;
   selectedUuid: string | null;
   objects: Canvas3DObjectState[];
@@ -113,6 +114,7 @@ export const EMPTY_STATE: Canvas3DState = {
   mode: "translate",
   isOrthographic: false,
   isCullingViewEnabled: false,
+  isShiftSnapActive: false,
   cameraPosition: { x: 0, y: 0, z: 0 },
   selectedUuid: null,
   objects: [],

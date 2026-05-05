@@ -1,9 +1,37 @@
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import SectionsGrid from "@/components/ComputacaoGraficaSection";
 import Multimedia from "@/components/MultimediaSection";
 import AISection from "@/components/AISection";
 import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Pixel Forge",
+  description:
+    "PixelForge é uma plataforma educacional interativa para aprender computação gráfica, multimídia e inteligência artificial com demos, visualizações e material teórico.",
+  openGraph: {
+    title: "Pixel Forge",
+    description:
+      "Plataforma educacional interativa para computação gráfica, multimídia e IA.",
+    type: "website",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "PixelForge landing page preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pixel Forge",
+    description:
+      "Plataforma educacional interativa para computação gráfica, multimídia e IA.",
+    images: ["/og.png"],
+  },
+};
 
 export default function Home() {
   return (

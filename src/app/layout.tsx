@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "Uma plataforma para aprender e experimentar conceitos de computação gráfica e multimídia e IA de maneira interativa.",
   icons: {
-    icon: "./images/anvil.svg",
+    icon: "./images/PixelForge_Logo_V2.png",
   },
 };
 

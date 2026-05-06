@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og.png",
+        url: "/og",
         width: 1200,
         height: 630,
         alt: "PixelForge landing page preview",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "Pixel Forge",
     description:
       "Plataforma educacional interativa para computação gráfica, multimídia e IA.",
-    images: ["/og.png"],
+    images: ["/og"],
   },
 };
 

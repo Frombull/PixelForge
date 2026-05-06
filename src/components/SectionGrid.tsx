@@ -11,14 +11,14 @@ export interface ToolCard {
   features: string[];
 }
 
-interface SectionGridProps {
+interface ModuleGridProps {
   id: string;
   title: string;
-  tools: ToolCard[];
+  modules: ToolCard[];
   className?: string;
 }
 
-export default function SectionGrid({ id, title, tools, className = "" }: SectionGridProps) {
+export default function ModuleGrid({ id, title, modules: tools, className = "" }: ModuleGridProps) {
   return (
     <section
       id={id}

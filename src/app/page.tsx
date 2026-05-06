@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
-import Header from "@/components/Header";
+import ComputacaoGraficaSection from "@/components/ComputacaoGraficaSection";
+import MultimediaSection from "@/components/MultimediaSection";
 import HeroSection from "@/components/HeroSection";
-import SectionsGrid from "@/components/ComputacaoGraficaSection";
-import Multimedia from "@/components/MultimediaSection";
 import AISection from "@/components/AISection";
+import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Pixel Forge",
@@ -41,8 +41,8 @@ export default function Home() {
       <div className="relative z-10">
         <Header />
         <HeroSection />
-        <SectionsGrid />
-        <Multimedia />
+        <ComputacaoGraficaSection />
+        <MultimediaSection />
         <AISection />
         <Footer />
       </div>

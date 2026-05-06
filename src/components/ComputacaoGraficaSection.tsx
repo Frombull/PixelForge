@@ -1,12 +1,12 @@
 import SectionGrid from "./SectionGrid";
-import { graphicsTools } from "@/data/sections";
+import { graphicsTools } from "@/data/modules";
 
-export default function SectionsGrid() {
+export default function ComputacaoGraficaSection() {
   return (
     <SectionGrid
       id="graphics"
       title="Computação Gráfica"
-      tools={graphicsTools}
+      modules={graphicsTools}
     />
   );
 }

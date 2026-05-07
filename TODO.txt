@@ -21,6 +21,7 @@
 
 === [ ON IT ] ===========================================================================================================
 
+[TODO] - Add image previews to modules
 [TODO] - Aliasing page
 [TODO] - OG Preview
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)

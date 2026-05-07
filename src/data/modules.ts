@@ -17,6 +17,7 @@ export const graphicsTools: ToolCard[] = [
   },
   {
     title: "Canvas 3D",
+    previewImage: "/images/module-previews/canvas-3d-preview.jpg",
     description: "Canvas 3D feito com three.js e WebGL",
     icon: "🎨",
     href: "/canvas-3d",
@@ -32,6 +33,7 @@ export const graphicsTools: ToolCard[] = [
   },
   {
     title: "Cubo espectro de cores RGB",
+    previewImage: "/images/module-previews/3d-cube.jpg",
     description:
       "Vizualize o espectro de cores RGB em um Cubo",
     icon: "🎲",

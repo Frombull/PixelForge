@@ -1,4 +1,4 @@
-import { ToolCard } from "@/components/SectionGrid";
+import { ToolCard } from "@/components/ModuleGrid";
 
 export const graphicsTools: ToolCard[] = [
   {
@@ -8,7 +8,7 @@ export const graphicsTools: ToolCard[] = [
     icon: "🎨",
     href: "/canvas",
     color: "purple",
-    features: [
+    tags: [
       "Transformações 2D",
       "Curvas de Bézier",
       "Sistema de cor",
@@ -21,7 +21,7 @@ export const graphicsTools: ToolCard[] = [
     icon: "🎨",
     href: "/canvas-3d",
     color: "purple",
-    features: [
+    tags: [
       "Transformações 3D",
       "z-fighting",
       "câmeras",
@@ -37,7 +37,7 @@ export const graphicsTools: ToolCard[] = [
     icon: "🎲",
     href: "/cube",
     color: "pink",
-    features: [
+    tags: [
       "Espectro de Cores",
       "RGB",
       "Câmera Ortogonal"
@@ -52,7 +52,7 @@ export const multimediaTools: ToolCard[] = [
     icon: "🖼️",
     href: "/image-fft",
     color: "blue",
-    features: ["FFT", "Filtros"],
+    tags: ["FFT", "Filtros"],
   },
   {
     title: "Aliasing",
@@ -60,7 +60,7 @@ export const multimediaTools: ToolCard[] = [
     icon: "✨",
     href: "/aliasing",
     color: "green",
-    features: ["Análise Visual"],
+    tags: ["Análise Visual"],
   },
   {
     title: "Compressão de Dados",
@@ -68,7 +68,7 @@ export const multimediaTools: ToolCard[] = [
     icon: "🗜️",
     href: "/compress",
     color: "orange",
-    features: ["JPEG", "WEBP", "FRACTAL", "DCT"],
+    tags: ["JPEG", "WEBP", "FRACTAL", "DCT"],
   },
   {
     title: "Segmentação de Imagens",
@@ -76,7 +76,7 @@ export const multimediaTools: ToolCard[] = [
     icon: "🎯",
     href: "/segmentation",
     color: "purple",
-    features: ["Seleção inteligente", "Export"],
+    tags: ["Seleção inteligente", "Export"],
   },
   {
     title: "Vetorial vs Matricial",
@@ -84,7 +84,7 @@ export const multimediaTools: ToolCard[] = [
     icon: "🎨",
     href: "/vector",
     color: "pink",
-    features: ["Comparação Visual", "Qualidade", "Vetor"],
+    tags: ["Comparação Visual", "Qualidade", "Vetor"],
   }
 ];
 
@@ -95,7 +95,7 @@ export const aiTools: ToolCard[] = [
     icon: "🧠",
     href: "/a-star",
     color: "blue",
-    features: ["Algoritmos de Busca", "A*", "BFS"],
+    tags: ["Algoritmos de Busca", "A*", "BFS"],
   },
   {
     title: "Boids* (WIP)",
@@ -103,6 +103,6 @@ export const aiTools: ToolCard[] = [
     icon: "🔺",
     href: "/boids",
     color: "blue",
-    features: ["-"],
+    tags: ["-"],
   }
 ];

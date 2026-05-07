@@ -8,7 +8,7 @@ export interface ToolCard {
   icon: string;
   href: string;
   color: string;
-  features: string[];
+  tags: string[];
 }
 
 interface ModuleGridProps {
@@ -22,8 +22,7 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
   return (
     <section
       id={id}
-      className={`relative isolate overflow-hidden py-24 px-6 sm:px-12 bg-transparent border-t border-neutral-900/70 ${className}`}
-    >
+      className={`relative isolate overflow-hidden py-16 px-6 sm:px-12 bg-transparent ${className}`}>
 
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
@@ -41,34 +40,26 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
             <Link
               key={index}
               href={tool.href}
-              className="group relative flex flex-col bg-neutral-900/40 border border-neutral-800 rounded-lg p-6 transition-colors duration-300 hover:bg-neutral-800/80 overflow-hidden"
+              className="group relative flex flex-col bg-neutral-900/40 border border-neutral-800 rounded-[1px] p-6 transition-colors duration-100 hover:bg-neutral-900/80 overflow-hidden"
             >
-              {/* Tag Header */}
-              <div className="flex items-start mb-4">
-                <div className="flex items-center gap-2 text-[12px] font-mono text-sky-400 uppercase tracking-widest">
-                  <span className="text-neutral-600">//</span>
-                  {title}
-                </div>
-              </div>
-
               {/* Title */}
-              <h3 className="text-[22px] font-bold text-white mb-2 tracking-wide">
+              <h3 className="text-[20px] font-bold text-white mb-2 tracking-wide font-mono">
                 {tool.title}
               </h3>
 
               {/* Description */}
-              <p className="text-neutral-400 font-light leading-relaxed text-xs sm:text-sm mb-6 flex-grow">
+              <p className="text-neutral-400 font-light leading-relaxed text-[14px] mb-6 flex-grow font-mono">
                 {tool.description}
               </p>
 
-              {/* Features (Pills) */}
-              <div className="flex flex-wrap gap-1.5 mt-auto">
-                {tool.features.map((feature) => (
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1 mt-auto">
+                {tool.tags.map((tag) => (
                   <span
-                    key={feature}
-                    className="border border-neutral-800 bg-neutral-900/50 text-neutral-400 px-2 py-1 rounded text-[10px] font-mono tracking-wide"
+                    key={tag}
+                    className="border border-neutral-900 bg-neutral-900/50 text-neutral-400 px-2 py-1 rounded-[1px] text-[10px] font-mono tracking-wide"
                   >
-                    {feature}
+                    {tag}
                   </span>
                 ))}
               </div>

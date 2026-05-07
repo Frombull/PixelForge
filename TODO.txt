@@ -24,6 +24,7 @@
 [TODO] - Aliasing page
 [TODO] - OG Preview
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)
+cube color #d04949
 
  
 === [ TODO ] ============================================================================================================

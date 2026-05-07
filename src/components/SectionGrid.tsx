@@ -22,9 +22,8 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
   return (
     <section
       id={id}
-      className={`relative isolate overflow-hidden py-24 px-6 sm:px-12 bg-black border-t border-neutral-900 ${className}`}
+      className={`relative isolate overflow-hidden py-24 px-6 sm:px-12 bg-transparent border-t border-neutral-900/70 ${className}`}
     >
-      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}

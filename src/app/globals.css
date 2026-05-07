@@ -18,6 +18,30 @@
   mix-blend-mode: soft-light;
 }
 
+.grid-surface {
+  position: relative;
+  background-color: #040404;
+  isolation: isolate;
+}
+
+.grid-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.grid-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Body customizations */
 body {
   font-family: var(--font-sans);

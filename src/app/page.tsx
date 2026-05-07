@@ -36,15 +36,15 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="relative isolate min-h-screen bg-[#13141c] text-white overflow-x-hidden">
-      <div className="app-noise absolute inset-0 z-0 pointer-events-none" />
-
       <div className="relative z-10">
         <Header />
         <HeroSection />
-        <ComputacaoGraficaSection />
-        <MultimediaSection />
-        <AISection />
-        <Footer />
+        <div className="grid-surface">
+          <ComputacaoGraficaSection />
+          <MultimediaSection />
+          <AISection />
+          <Footer />
+        </div>
       </div>
     </main>
   );

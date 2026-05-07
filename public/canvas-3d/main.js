@@ -116,12 +116,14 @@ class App {
 
         this.animationFrameId = null;
         this.isDestroyed = false;
+        this.isShiftSnapActive = false;
 
         this.handleWindowResize = () => {
             this.sceneManager.onResize();
             this.viewportGizmo?.update();
         };
         this.handleWindowKeyDown = (e) => this.onKeyDown(e);
+        this.handleWindowKeyUp = (e) => this.onKeyUp(e);
         this.handleCanvasWheel = () => {
             if (!this.sceneManager.isPerspective) {
                 const zoom = this.sceneManager.orthographicCamera?.zoom;
@@ -193,6 +195,7 @@ class App {
 
         window.addEventListener('resize', this.handleWindowResize);
         window.addEventListener('keydown', this.handleWindowKeyDown);
+        window.addEventListener('keyup', this.handleWindowKeyUp);
     }
 
     getGridColorHex() {
@@ -328,6 +331,7 @@ class App {
             mode: this.gizmoManager.currentMode,
             isOrthographic: !this.sceneManager.isPerspective,
             isCullingViewEnabled: this.sceneManager.showSecondViewport,
+            isShiftSnapActive: this.isShiftSnapActive,
             cameraPosition: {
                 x: cameraPosition?.x ?? 0,
                 y: cameraPosition?.y ?? 0,
@@ -347,10 +351,20 @@ class App {
     applyTransformSnapSettings() {
         if (!this.transformControls) return;
 
-        if (this.snapToGrid) {
+        if (this.isShiftSnapActive) {
+            this.transformControls.setTranslationSnap(0.5);
+        } else if (this.snapToGrid) {
             this.transformControls.setTranslationSnap(this.snapSize);
         } else {
             this.transformControls.setTranslationSnap(null);
+        }
+    }
+
+    onKeyUp(e) {
+        if (e.key === 'Shift') {
+            this.isShiftSnapActive = false;
+            this.applyTransformSnapSettings();
+            this.emitState();
         }
     }
 
@@ -950,6 +964,12 @@ class App {
     onKeyDown(e) {
         if (document.activeElement?.tagName === 'INPUT') return;
 
+        if (e.key === 'Shift') {
+            this.isShiftSnapActive = true;
+            this.applyTransformSnapSettings();
+            this.emitState();
+        }
+
         const key = e.key.toLowerCase();
         const code = e.code;
 
@@ -1014,6 +1034,7 @@ class App {
 
         window.removeEventListener('resize', this.handleWindowResize);
         window.removeEventListener('keydown', this.handleWindowKeyDown);
+        window.removeEventListener('keyup', this.handleWindowKeyUp);
 
         if (this.sceneManager?.renderer?.domElement) {
             this.sceneManager.renderer.domElement.removeEventListener('wheel', this.handleCanvasWheel);

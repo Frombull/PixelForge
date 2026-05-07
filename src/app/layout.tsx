@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+const jetbrainsMono = localFont({
+  src: [
+    { path: "../../public/fonts/JetBrainsMono[wght].ttf", weight: "100 800", style: "normal" },
+    { path: "../../public/fonts/JetBrainsMono-Italic[wght].ttf", weight: "100 800", style: "italic" },
+  ],
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
@@ -14,7 +18,7 @@ export const metadata: Metadata = {
   description:
     "Uma plataforma para aprender e experimentar conceitos de computação gráfica e multimídia e IA de maneira interativa.",
   icons: {
-    icon: "./images/anvil.svg",
+    icon: "./images/PixelForge_Logo_V2.png",
   },
 };
 

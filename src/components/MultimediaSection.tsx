@@ -1,12 +1,12 @@
-import SectionGrid from "./SectionGrid";
-import { multimediaTools } from "@/data/sections";
+import ModuleGrid from "./ModuleGrid";
+import { multimediaTools } from "@/data/modules";
 
-export default function Multimedia() {
+export default function MultimediaSection() {
   return (
-    <SectionGrid
+    <ModuleGrid
       id="multimidia"
       title="Multimídia"
-      tools={multimediaTools}
+      modules={multimediaTools}
     />
   );
 }

@@ -83,9 +83,9 @@ export default function Header() {
         <div className="relative flex items-center justify-between h-12 lg:h-14">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group shrink-0">
-            <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-lg lg:text-xl group-hover:bg-[#171717] transition-colors duration-100">
-              <img src="/images/anvil.svg" alt="logo" className="w-5 h-5 lg:w-6 lg:h-6 opacity-80" />
+          <Link href="/" className="flex items-center gap-1 group shrink-0">
+            <div className="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-lg lg:text-xl duration-100">
+              <img src="/images/PixelForge_Logo_V2.png" alt="logo" className="w-5 h-5 lg:w-8 lg:h-8" />
             </div>
             <div className="hidden sm:block">
               <div className="text-white font-bold font-mono text-lg lg:text-xl tracking-tight flex items-baseline gap-1.5">

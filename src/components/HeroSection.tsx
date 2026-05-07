@@ -83,22 +83,22 @@ export default function HeroSection() {
         <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto font-mono text-sm pointer-events-auto">
           <Link
             href="#graphics"
-            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-sky-400/50">
+            className="flex items-center justify-center gap-2 rounded-[1px] border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-neutral-600/50">
             Computação Gráfica
           </Link>
           <Link
             href="#multimidia"
-            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-fuchsia-400/50">
+            className="flex items-center justify-center gap-2 rounded-[1px] border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-neutral-600/50">
             Multimídia
           </Link>
           <Link
             href="#ia"
-            className="flex items-center justify-center gap-2 rounded border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-purple-400/50">
+            className="flex items-center justify-center gap-2 rounded-[1px] border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-neutral-600/50">
             Inteligência Computacional
           </Link>
           <Link
             href="/infos"
-            className="flex items-center justify-center gap-2 rounded bg-white px-8 py-3 font-semibold text-black transition-transform hover:scale-105">
+            className="flex items-center justify-center gap-2 rounded-[1px] bg-white/95 px-8 py-3 font-semibold text-black transition-transform hover:scale-102">
             Material Teórico
           </Link>
         </div>

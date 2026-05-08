@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { TypeAnimation } from "react-type-animation";
 import Link from "next/link";
 
 export interface ToolCard {
@@ -18,17 +20,50 @@ interface ModuleGridProps {
 }
 
 export default function ModuleGrid({ id, title, modules: tools, className = "" }: ModuleGridProps) {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect(); // Render animation exactly once
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id={id}
+      ref={sectionRef}
       className={`relative isolate overflow-hidden py-16 px-6 sm:px-12 bg-transparent ${className}`}>
 
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="mb-12 flex items-center gap-4">
           <span className="text-neutral-600 font-mono text-xl sm:text-2xl mt-1">$</span>
-          <h2 className="text-2xl sm:text-3xl font-mono text-white tracking-wide">
-            ls <span className="text-sky-400">~/modules</span>/{title.toLowerCase().replace(/\s+/g, "-")}
+          <h2 className="text-2xl sm:text-3xl font-mono text-white tracking-wide flex items-center whitespace-pre h-[36px] sm:h-[40px]">
+            <span>ls ~/modules/</span>
+            {isVisible && (
+              <span className="text-sky-400">
+                <TypeAnimation
+                  sequence={[title.toLowerCase().replace(/\s+/g, "-")]}
+                  wrapper="span"
+                  speed={50}
+                  cursor={false}
+                  repeat={0}
+                />
+              </span>
+            )}
           </h2>
           <div className="flex-1 h-[1px] bg-neutral-800 ml-4 hidden sm:block" />
         </div>

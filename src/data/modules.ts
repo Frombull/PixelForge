@@ -3,11 +3,10 @@ import { ToolCard } from "@/components/ModuleGrid";
 export const graphicsTools: ToolCard[] = [
   {
     title: "Canvas 2D",
+    previewImage: "/images/module-previews/canvas-2d-preview.jpg",
     description:
       "Desenhe e manipule formas geométricas com ferramentas interativas em 2D",
-    icon: "🎨",
     href: "/canvas",
-    color: "purple",
     tags: [
       "Transformações 2D",
       "Curvas de Bézier",
@@ -19,9 +18,7 @@ export const graphicsTools: ToolCard[] = [
     title: "Canvas 3D",
     previewImage: "/images/module-previews/canvas-3d-preview.jpg",
     description: "Canvas 3D feito com three.js e WebGL",
-    icon: "🎨",
     href: "/canvas-3d",
-    color: "purple",
     tags: [
       "Transformações 3D",
       "z-fighting",
@@ -36,9 +33,7 @@ export const graphicsTools: ToolCard[] = [
     previewImage: "/images/module-previews/3d-cube.jpg",
     description:
       "Vizualize o espectro de cores RGB em um Cubo",
-    icon: "🎲",
     href: "/cube",
-    color: "pink",
     tags: [
       "Espectro de Cores",
       "RGB",
@@ -50,42 +45,37 @@ export const graphicsTools: ToolCard[] = [
 export const multimediaTools: ToolCard[] = [
   {
     title: "Processamento de Imagem",
+    previewImage: "/images/module-previews/fft-preview.jpg",
     description: "Explore algoritmos de processamento e manipulação de imagens",
-    icon: "🖼️",
     href: "/image-fft",
-    color: "blue",
     tags: ["FFT", "Filtros"],
   },
   {
     title: "Aliasing",
+    previewImage: "/images/module-previews/aliasing-preview.jpg",
     description: "Entenda e experimente frequência de amostragem",
-    icon: "✨",
     href: "/aliasing",
-    color: "green",
     tags: ["Análise Visual"],
   },
   {
     title: "Compressão de Dados",
+    previewImage: "/images/module-previews/compression-preview.jpg",
     description: "Aprenda sobre algoritmos de compressão e codificação",
-    icon: "🗜️",
     href: "/compress",
-    color: "orange",
     tags: ["JPEG", "WEBP", "FRACTAL", "DCT"],
   },
   {
     title: "Segmentação de Imagens",
+    previewImage: "/images/module-previews/segmentation-preview.jpg",
     description: "Ferramenta interativa para segmentação inteligente e manual",
-    icon: "🎯",
     href: "/segmentation",
-    color: "purple",
     tags: ["Seleção inteligente", "Export"],
   },
   {
     title: "Vetorial vs Matricial",
+    previewImage: "/images/module-previews/vector-preview.jpg",
     description: "Compare a qualidade de imagens vetoriais e matriciais",
-    icon: "🎨",
     href: "/vector",
-    color: "pink",
     tags: ["Comparação Visual", "Qualidade", "Vetor"],
   }
 ];
@@ -94,17 +84,13 @@ export const aiTools: ToolCard[] = [
   {
     title: "Pathfinding (WIP)",
     description: "Work In Progress",
-    icon: "🧠",
     href: "/a-star",
-    color: "blue",
     tags: ["Algoritmos de Busca", "A*", "BFS"],
   },
   {
     title: "Boids* (WIP)",
     description: "Work In Progress",
-    icon: "🔺",
     href: "/boids",
-    color: "blue",
     tags: ["-"],
   }
 ];

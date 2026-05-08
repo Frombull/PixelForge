@@ -5,9 +5,7 @@ import Link from "next/link";
 export interface ToolCard {
   title: string;
   description: string;
-  icon: string;
   href: string;
-  color: string;
   tags: string[];
   previewImage?: string;
 }

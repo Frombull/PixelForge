@@ -18,19 +18,22 @@
 [DONE] - Mapa do sucesso 
 [DONE] - Remove fog
 [DONE] - FOV slider
+[DONE] - OG Preview
+[DONE] - Add image previews to modules
 
 === [ ON IT ] ===========================================================================================================
 
-[TODO] - Add image previews to modules
 [TODO] - Aliasing page
-[TODO] - OG Preview
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)
 cube color #d04949
 
  
 === [ TODO ] ============================================================================================================
 
-[TODO] - Deixar a UI toda mais pertinha, tá parecendo mta coisa de IA com cards separadas 1 pra cada e adicioanr setinha em cada input
+[TODO] - Usar o IRO color picker, redondo pra HSV
+Camera secundária:
+    [TODO] - Mostrar culling pela câmera secundária
+    [TODO] - Resize na tela da câmera secundária
 [TODO] - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
 [TODO] - Iluminação decente | Arrumar background color picker com skybox atual
 [TODO] - Z buffer, A buffer - Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
@@ -47,11 +50,7 @@ cube color #d04949
 [TODO] - Segurar shift pra dar snap
 [TODO] - Hints em forma de bolinha piscando quando entrar na página
     BG:
-[TODO] - Usar o IRO color picker, redondo pra HSV
 [TODO] - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d) (https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling)
-    Camera secundária:
-[TODO] - Mostrar culling pela câmera secundária
-[TODO] - Resize na tela da câmera secundária
 [TODO] - Ctrl-c / ctrl-v
 [TODO] - ctrl-z
 [TODO] - ctrl-x

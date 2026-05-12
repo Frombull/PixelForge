@@ -1,7 +1,5 @@
-import ComputacaoGraficaSection from "@/components/ComputacaoGraficaSection";
-import MultimediaSection from "@/components/MultimediaSection";
+import ModulesSection from "@/components/ModulesSection";
 import HeroSection from "@/components/HeroSection";
-import AISection from "@/components/AISection";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import type { Metadata } from "next";
@@ -40,9 +38,7 @@ export default function Home() {
         <Header />
         <HeroSection />
         <div className="grid-surface">
-          <ComputacaoGraficaSection />
-          <MultimediaSection />
-          <AISection />
+          <ModulesSection />
           <Footer />
         </div>
       </div>

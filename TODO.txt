@@ -24,6 +24,7 @@
 === [ ON IT ] ===========================================================================================================
 
 [TODO] - Aliasing page
+[TODO] - Refactor canvas-2d page
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)
 cube color #d04949
 

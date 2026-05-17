@@ -57,12 +57,14 @@ export default function ZoomControls({
           marginTop: 4,
           textAlign: "center",
           fontSize: 9,
-          color: COLORS.textDim,
+          color: COLORS.textSubtle,
           fontFamily: "'JetBrains Mono', monospace",
           letterSpacing: "0.04em",
           background: COLORS.panel,
           border: `1px solid ${COLORS.border}`,
-          padding: "2px 4px",
+          padding: "2px 0",
+          width: 28,
+          boxSizing: "border-box",
         }}
       >
         {(zoom * 50).toFixed(0)}%

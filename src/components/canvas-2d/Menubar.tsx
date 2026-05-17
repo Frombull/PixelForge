@@ -91,7 +91,7 @@ function MenuButton({ label, shortcut, onClick, disabled }: MenuAction) {
         background: "none",
         border: "none",
         color: disabled
-          ? COLORS.textDim
+          ? COLORS.textSubtle
           : hovered
           ? COLORS.textBright
           : COLORS.textMid,
@@ -110,7 +110,7 @@ function MenuButton({ label, shortcut, onClick, disabled }: MenuAction) {
     >
       {label}
       {shortcut && (
-        <span style={{ fontSize: 9, color: COLORS.textDim }}>{shortcut}</span>
+        <span style={{ fontSize: 9, color: COLORS.textSubtle }}>{shortcut}</span>
       )}
     </button>
   );

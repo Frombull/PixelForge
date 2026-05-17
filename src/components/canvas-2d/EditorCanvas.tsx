@@ -30,6 +30,7 @@ interface EditorCanvasProps {
   view: ViewState;
   settings: EditorSettings;
   polyPts: [number, number][] | null;
+  actionLog: string[];
 
   // Callbacks
   onShapesChange: (shapes: Shape[]) => void;
@@ -59,6 +60,7 @@ export default function EditorCanvas({
   view,
   settings,
   polyPts,
+  actionLog,
   onShapesChange,
   onSelectId,
   onViewChange,
@@ -668,17 +670,15 @@ export default function EditorCanvas({
             if (d.pivotIsVertex) {
               // Rotate around vertex pivot: recompute shape pivot position
               // The vertex local coords must remain pointing to the same world position.
-              // Find the vertex index from the original shape
               const vi = rotateActiveVertexRef.current;
               if (vi === null || vi < 0) return { ...s, rotation: newRot };
 
-              // Original world position of the pivot vertex (from original rotation)
-              const origShape = { ...s, rotation: d.origRot };
-              const origWorldPts = getWorldPoints(origShape);
-              const [pvx, pvy] = origWorldPts[vi]; // pivot vertex world pos (fixed)
+              // d.cx/d.cy is the fixed world position of the pivot vertex (captured at mousedown)
+              const pvx = d.cx;
+              const pvy = d.cy;
 
-              // With new rotation, where would the shape pivot end up?
-              // pivot_world = vertex_world - R_new * local_vertex
+              // With new rotation, where would the shape origin end up?
+              // shape_origin = pivot_world - R_new * local_scaled_vertex
               const [lx, ly] = s.points[vi];
               const cos = Math.cos(newRot);
               const sin = Math.sin(newRot);
@@ -818,11 +818,11 @@ export default function EditorCanvas({
             bottom: 12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#111114",
-            border: "1px solid #1e1e28",
+            background: "#2c2c2c",
+            border: "1px solid #3a3a3a",
             padding: "4px 14px",
             fontSize: 10,
-            color: "#4a4d58",
+            color: "#ffffff",
             pointerEvents: "none",
             letterSpacing: "0.08em",
             fontFamily: "'JetBrains Mono', monospace",
@@ -846,6 +846,39 @@ export default function EditorCanvas({
       >
         <SettingsMenu settings={settings} onChange={onSettingsChange} />
       </div>
+
+      {/* Action log — bottom left */}
+      {actionLog.length > 0 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 5,
+            left: 10,
+            pointerEvents: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+          }}
+        >
+          {actionLog.map((msg, i) => {
+            const opacity = 0.15 + (i / (actionLog.length - 1 || 1)) * 0.85;
+            return (
+              <span
+                key={i}
+                style={{
+                  fontSize: 10,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  letterSpacing: "0.1em",
+                  color: COLORS.textMid,
+                  opacity,
+                }}
+              >
+                {msg.toUpperCase()}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       <ZoomControls
         zoom={view.zoom}
@@ -880,7 +913,7 @@ function ActionButton({
       style={{
         background: hovered && !disabled ? COLORS.panelAlt : COLORS.panel,
         border: `1px solid ${COLORS.border}`,
-        color: disabled ? COLORS.textDim : hovered ? COLORS.textBright : COLORS.textMid,
+        color: disabled ? COLORS.textSubtle : hovered ? COLORS.textBright : COLORS.textMid,
         cursor: disabled ? "default" : "pointer",
         fontSize: 10,
         padding: "0 10px",
@@ -896,7 +929,7 @@ function ActionButton({
       }}
     >
       {label}
-      <span style={{ fontSize: 9, color: COLORS.textDim }}>{shortcut}</span>
+      <span style={{ fontSize: 9, color: COLORS.textSubtle }}>{shortcut}</span>
     </button>
   );
 }
@@ -978,15 +1011,15 @@ function drawDebug(
   const boxH = lines.length * lineH + 10 * 2;
 
   ctx.save();
-  ctx.fillStyle = "rgba(13,13,15,0.85)";
+  ctx.fillStyle = "rgba(30,30,30,0.9)";
   ctx.fillRect(padX, padY, boxW, boxH);
-  ctx.strokeStyle = "#1e1e28";
+  ctx.strokeStyle = "#3a3a3a";
   ctx.lineWidth = 1;
   ctx.strokeRect(padX, padY, boxW, boxH);
 
   ctx.font = `10px "JetBrains Mono", monospace`;
   lines.forEach((line, i) => {
-    ctx.fillStyle = line.startsWith("─") ? "#1e1e28" : i === 0 ? "#3d8fff" : "#7a7e8a";
+    ctx.fillStyle = line.startsWith("─") ? "#3a3a3a" : i === 0 ? "#aaaaaa" : "#7a7e8a";
     ctx.fillText(line, padX + 8, padY + lineH * i + 12);
   });
 

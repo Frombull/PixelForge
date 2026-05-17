@@ -14,22 +14,24 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
   return (
     <div
       style={{
-        width: 192,
+        width: 176,
         background: COLORS.panel,
         borderRight: `1px solid ${COLORS.border}`,
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
         flexShrink: 0,
+        userSelect: "none",
       }}
     >
-      {/* Header: back arrow + section label side by side */}
+      {/* Header */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           borderBottom: `1px solid ${COLORS.border}`,
-          height: 38,
+          height: 40,
+          flexShrink: 0,
         }}
       >
         <a
@@ -39,13 +41,13 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 38,
+            width: 40,
             height: "100%",
             flexShrink: 0,
             borderRight: `1px solid ${COLORS.border}`,
             color: COLORS.textDim,
             textDecoration: "none",
-            transition: "color 0.1s, background 0.1s",
+            transition: "color 0.15s, background 0.15s",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = COLORS.textBright;
@@ -56,26 +58,28 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
             e.currentTarget.style.background = "transparent";
           }}
         >
-          <ArrowLeft size={13} />
+          <ArrowLeft size={13} strokeWidth={1.8} />
         </a>
 
         <span
           style={{
             flex: 1,
             padding: "0 12px",
-            fontSize: 10,
-            fontWeight: 700,
-            color: COLORS.textDim,
-            letterSpacing: "0.16em",
+            fontSize: 9,
+            fontWeight: 600,
+            color: COLORS.textLabel,
+            letterSpacing: "0.18em",
             fontFamily: "'JetBrains Mono', monospace",
+            textTransform: "uppercase",
           }}
         >
-          FERRAMENTAS
+          Ferramentas
         </span>
       </div>
 
-      {/* Primary tools */}
-      <div style={{ padding: "6px 8px", display: "flex", flexDirection: "column", gap: 3 }}>
+      {/* Primary tools group */}
+      <GroupLabel label="Principais" />
+      <div style={{ padding: "4px 8px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
         {TOOLS.map((t) => (
           <ToolButton
             key={t.id}
@@ -88,8 +92,11 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
         ))}
       </div>
 
-      {/* Placeholder tools */}
-      <div style={{ padding: "0 8px", display: "flex", flexDirection: "column", gap: 3 }}>
+      <SidebarDivider />
+
+      {/* Placeholder tools group */}
+      <GroupLabel label="Em breve" />
+      <div style={{ padding: "4px 8px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
         {PLACEHOLDER_TOOLS.map((t) => (
           <ToolButton
             key={t.label}
@@ -110,6 +117,37 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+function GroupLabel({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        padding: "10px 12px 4px",
+        fontSize: 9,
+        fontWeight: 600,
+        color: COLORS.textLabel,
+        letterSpacing: "0.14em",
+        fontFamily: "'JetBrains Mono', monospace",
+        textTransform: "uppercase",
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
+function SidebarDivider() {
+  return (
+    <div
+      style={{
+        height: 1,
+        background: COLORS.border,
+        margin: "4px 0",
+        flexShrink: 0,
+      }}
+    />
+  );
+}
+
 interface ToolButtonProps {
   icon: string;
   shortcut: string;
@@ -125,64 +163,59 @@ function ToolButton({ icon, shortcut, label, active, disabled = false, onClick }
   const bg = active
     ? COLORS.accentDim
     : hovered && !disabled
-    ? COLORS.panelAlt
+    ? `${COLORS.panelAlt}`
     : "transparent";
 
-  const borderColor = active ? COLORS.accent : hovered && !disabled ? COLORS.border : COLORS.border;
-
   const textColor = disabled
-    ? COLORS.textDim
+    ? COLORS.textSubtle
     : active
     ? COLORS.accent
     : hovered
     ? COLORS.textBright
-    : COLORS.text;
+    : COLORS.textMid;
 
   return (
     <button
       onClick={disabled ? undefined : onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title={disabled ? `${label} (em breve)` : label}
       style={{
         width: "100%",
-        height: 36,
+        height: 32,
         background: bg,
-        border: `1px solid ${borderColor}`,
-        borderRadius: 1,
+        border: `1px solid ${active ? COLORS.accent + "55" : hovered && !disabled ? COLORS.border : "transparent"}`,
+        borderRadius: 3,
         color: textColor,
         cursor: disabled ? "not-allowed" : "pointer",
         display: "flex",
         alignItems: "center",
-        gap: 9,
-        padding: "0 10px",
-        opacity: disabled ? 0.35 : 1,
-        transition: "background 0.1s, color 0.12s, border-color 0.12s",
+        gap: 8,
+        padding: "0 8px",
+        opacity: disabled ? 0.3 : 1,
+        transition: "background 0.1s, color 0.1s, border-color 0.1s",
         textAlign: "left",
-        boxShadow: active
-          ? `inset 0 0 0 1px ${COLORS.accent}22`
-          : hovered && !disabled
-          ? "inset 0 1px 0 rgba(255,255,255,0.04)"
-          : "none",
       }}
     >
       <span
         style={{
-          fontSize: 16,
-          width: 18,
+          fontSize: 14,
+          width: 16,
           textAlign: "center",
           flexShrink: 0,
-          opacity: disabled ? 0.5 : 1,
+          lineHeight: 1,
         }}
       >
         {icon}
       </span>
       <span
         style={{
-          fontSize: 11,
-          fontWeight: 700,
+          fontSize: 10,
+          fontWeight: active ? 600 : 400,
           fontFamily: "'JetBrains Mono', monospace",
-          letterSpacing: "0.1em",
+          letterSpacing: "0.04em",
           flex: 1,
+          color: textColor,
         }}
       >
         {label}
@@ -191,33 +224,19 @@ function ToolButton({ icon, shortcut, label, active, disabled = false, onClick }
         <span
           style={{
             fontSize: 9,
-            color: active ? COLORS.accent : COLORS.textDim,
+            color: active ? COLORS.accent : COLORS.textSubtle,
             fontFamily: "'JetBrains Mono', monospace",
-            background: active ? `${COLORS.accent}18` : COLORS.panelAlt,
-            border: `1px solid ${active ? COLORS.accent + "44" : COLORS.border}`,
-            borderRadius: 3,
-            padding: "1px 4px",
+            background: active ? `${COLORS.accent}14` : `${COLORS.bg}cc`,
+            border: `1px solid ${active ? COLORS.accent + "33" : COLORS.border}`,
+            borderRadius: 2,
+            padding: "1px 5px",
             letterSpacing: 0,
+            lineHeight: "16px",
           }}
         >
           {shortcut}
         </span>
       )}
     </button>
-  );
-}
-
-function Separator() {
-  return (
-    <div
-      style={{
-        width: "calc(100% - 16px)",
-        marginLeft: 8,
-        height: 1,
-        background: COLORS.border,
-        margin: "4px 8px",
-        flexShrink: 0,
-      }}
-    />
   );
 }

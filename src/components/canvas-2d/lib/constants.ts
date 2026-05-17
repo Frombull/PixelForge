@@ -2,27 +2,29 @@ import type { Tool, EditorSettings } from "./types";
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 export const COLORS = {
-  bg:         "#0d0d0f",
-  panel:      "#111114",
-  panelAlt:   "#13131a",
-  border:     "#1e1e28",
-  borderAct:  "#3d8fff",
-  accent:     "#3d8fff",
-  accentDim:  "#162847",
-  accentHover:"#5aa3ff",
+  bg:         "#1e1e1e",
+  panel:      "#2c2c2c",
+  panelAlt:   "#363636",
+  border:     "#3a3a3a",
+  borderAct:  "#888888",
+  accent:     "#aaaaaa",
+  accentDim:  "#3a3a3a",
+  accentHover:"#cccccc",
   green:      "#4ade80",
   red:        "#f87171",
   yellow:     "#fbbf24",
   purple:     "#a78bfa",
-  text:       "#c9ccd1",
-  textDim:    "#4a4d58",
-  textMid:    "#7a7e8a",
-  textBright: "#e8eaf0",
+  text:       "#ffffff",
+  textDim:    "#ffffff",
+  textMid:    "#b0b0b0",
+  textBright: "#ffffff",
+  textLabel:  "#ffffff",
+  textSubtle: "#6a6a6a",
   axisX:      "#f87171",   // red  → X axis
   axisY:      "#4ade80",   // green → Y axis
-  grid:       "#16161c",
-  handle:     "#3d8fff",
-  selection:  "#3d8fff",
+  grid:       "#272727",
+  handle:     "#aaaaaa",
+  selection:  "#aaaaaa",
 } as const;
 
 // ─── Grid / Snap ──────────────────────────────────────────────────────────────

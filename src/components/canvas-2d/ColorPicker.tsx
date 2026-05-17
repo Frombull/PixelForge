@@ -261,7 +261,7 @@ export default function ColorPicker({ color, onChange, style }: ColorPickerProps
   };
   const labelStyle: React.CSSProperties = {
     fontSize: 8,
-    color: COLORS.textDim,
+    color: COLORS.textSubtle,
     letterSpacing: "0.1em",
     display: "block",
     marginBottom: 2,
@@ -304,7 +304,7 @@ export default function ColorPicker({ color, onChange, style }: ColorPickerProps
             flexShrink: 0,
           }}
         />
-        <span style={{ color: COLORS.textDim, fontSize: 9, flexShrink: 0 }}>#</span>
+        <span style={{ color: COLORS.textSubtle, fontSize: 9, flexShrink: 0 }}>#</span>
         <input
           type="text"
           maxLength={6}

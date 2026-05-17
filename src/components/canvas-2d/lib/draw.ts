@@ -128,13 +128,13 @@ export function drawShape(
   ctx.fillStyle = shape.fill + "66";
   ctx.fill();
   ctx.strokeStyle = shape.stroke;
-  ctx.lineWidth = 1.5 / zoom;
+  ctx.lineWidth = (shape.type === "polygon" ? 3 : 1.5) / zoom;
   ctx.stroke();
 
   // ── Vertex dots
   if (settings.showVertexDots && shape.type !== "circle") {
     pts.forEach(([x, y]) => {
-      ctx.fillStyle = selected ? COLORS.borderAct : COLORS.textDim;
+      ctx.fillStyle = selected ? COLORS.textBright : COLORS.textSubtle;
       ctx.beginPath();
       ctx.arc(x, y, 4 / zoom, 0, Math.PI * 2);
       ctx.fill();
@@ -379,7 +379,7 @@ export function drawPolygonPreview(
     ctx.beginPath();
     pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
     ctx.strokeStyle = fill;
-    ctx.lineWidth = 2.5 / zoom;
+    ctx.lineWidth = 3 / zoom;
     ctx.setLineDash([6 / zoom, 4 / zoom]);
     ctx.stroke();
     ctx.setLineDash([]);
@@ -392,7 +392,7 @@ export function drawPolygonPreview(
     ctx.moveTo(lx, ly);
     ctx.lineTo(snappedCursor[0], snappedCursor[1]);
     ctx.strokeStyle = fill;
-    ctx.lineWidth = 2.5 / zoom;
+    ctx.lineWidth = 3 / zoom;
     ctx.globalAlpha = 0.5;
     ctx.setLineDash([4 / zoom, 4 / zoom]);
     ctx.stroke();

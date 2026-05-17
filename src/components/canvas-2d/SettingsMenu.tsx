@@ -133,7 +133,7 @@ function ToggleRow({
         <div
           style={{
             fontSize: 8,
-            color: COLORS.textDim,
+            color: COLORS.textSubtle,
             fontFamily: "'JetBrains Mono', monospace",
             marginTop: 1,
           }}
@@ -160,7 +160,7 @@ function ToggleRow({
             left: value ? 14 : 2,
             width: 10,
             height: 10,
-            background: value ? COLORS.bg : COLORS.textDim,
+            background: value ? COLORS.bg : COLORS.textSubtle,
             transition: "left 0.15s",
           }}
         />

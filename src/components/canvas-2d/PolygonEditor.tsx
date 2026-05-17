@@ -43,14 +43,11 @@ export default function PolygonEditor() {
   // ── In-progress polygon ──────────────────────────────────────────────────────
   const [polyPts, setPolyPts] = useState<[number, number][] | null>(null);
 
-  // ── Status flash ─────────────────────────────────────────────────────────────
-  const [status, setStatus] = useState<string | null>(null);
-  const statusTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ── Action log (last 4 actions, newest last) ──────────────────────────────
+  const [actionLog, setActionLog] = useState<string[]>([]);
 
   const flash = useCallback((msg: string) => {
-    setStatus(msg);
-    if (statusTimer.current) clearTimeout(statusTimer.current);
-    statusTimer.current = setTimeout(() => setStatus(null), 1500);
+    setActionLog((prev) => [...prev.slice(-3), msg]);
   }, []);
 
   // ── Live ref for keybinding handlers ────────────────────────────────────────
@@ -231,6 +228,7 @@ export default function PolygonEditor() {
           view={view}
           settings={settings}
           polyPts={polyPts}
+          actionLog={actionLog}
           onShapesChange={setShapes}
           onSelectId={setSelectedId}
           onViewChange={setView}
@@ -258,29 +256,6 @@ export default function PolygonEditor() {
         />
       </div>
 
-      {/* ── Status flash */}
-      {status && (
-        <div
-          key={status + Date.now()}
-          style={{
-            position: "fixed",
-            top: 46,
-            right: 16,
-            background: COLORS.panel,
-            border: `1px solid ${COLORS.border}`,
-            padding: "3px 10px",
-            fontSize: 10,
-            color: COLORS.green,
-            letterSpacing: "0.12em",
-            fontFamily: "inherit",
-            pointerEvents: "none",
-            animation: "canvas2d-fadeout 1.5s forwards",
-            zIndex: 200,
-          }}
-        >
-          {status.toUpperCase()}
-        </div>
-      )}
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
@@ -290,11 +265,7 @@ export default function PolygonEditor() {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: ${COLORS.panel}; }
         ::-webkit-scrollbar-thumb { background: ${COLORS.border}; }
-        @keyframes canvas2d-fadeout {
-          0%   { opacity: 1; }
-          60%  { opacity: 1; }
-          100% { opacity: 0; }
-        }
+
       `}</style>
     </div>
   );

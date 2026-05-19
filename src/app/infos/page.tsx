@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 interface Concept {
   id: string;
-  icon: string;
   title: string;
   description: string;
   category: string;
@@ -15,7 +14,6 @@ interface Concept {
 const concepts: Concept[] = [
   {
     id: "bezier-curves",
-    icon: "✦",
     title: "Curvas de Bézier",
     description:
       "Curvas paramétricas definidas por pontos de controle, amplamente utilizadas em design gráfico, animação e modelagem 3D. Fundamentais para criar formas suaves e orgânicas.",
@@ -24,7 +22,6 @@ const concepts: Concept[] = [
   },
   {
     id: "animations",
-    icon: "◈",
     title: "Animações",
     description:
       "Sequências temporais que criam movimento através da interpolação entre estados, fundamentais em jogos, interfaces e mídia digital. Essenciais para dar vida e fluidez às experiências visuais interativas.",
@@ -174,10 +171,6 @@ export default function InfosPage() {
                           onClick={() => handleConceptClick(concept.id)}
                           className="bg-[#1a1b26] p-0 relative cursor-pointer block transition-colors group border border-[#2a2d3e] rounded-md overflow-hidden hover:bg-[#171823] hover:border-[#3a3d52]">
                    
-                  <div className="w-full h-24 bg-[#13141c] border-b border-[#2a2d3e] flex items-center justify-center overflow-hidden">
-                    <span className="text-[32px]">{concept.icon}</span>
-                  </div>
-
                   <div className="p-[18px] px-5 pb-5 pt-2">
                     <div className={`text-[9px] tracking-widest uppercase mb-2.5 pb-2 inline-flex items-center gap-1.5 ${isCG ? 'text-[#7dcfff]' : 'text-[#bb9af7]'}`}>
                       {concept.category}

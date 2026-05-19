@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 
 interface Concept {
   id: string;
@@ -17,7 +15,7 @@ interface Concept {
 const concepts: Concept[] = [
   {
     id: "bezier-curves",
-    icon: "",
+    icon: "✦",
     title: "Curvas de Bézier",
     description:
       "Curvas paramétricas definidas por pontos de controle, amplamente utilizadas em design gráfico, animação e modelagem 3D. Fundamentais para criar formas suaves e orgânicas.",
@@ -26,7 +24,7 @@ const concepts: Concept[] = [
   },
   {
     id: "geometric-transformations",
-    icon: "",
+    icon: "⬡",
     title: "Transformações Geométricas",
     description:
       "Operações matemáticas para translação, rotação, escala e cisalhamento de objetos em espaços 2D e 3D usando matrizes.",
@@ -35,7 +33,7 @@ const concepts: Concept[] = [
   },
   {
     id: "animations",
-    icon: "",
+    icon: "◈",
     title: "Animações",
     description:
       "Sequências temporais que criam movimento através da interpolação entre estados, fundamentais em jogos, interfaces e mídia digital. Essenciais para dar vida e fluidez às experiências visuais interativas.",
@@ -44,7 +42,7 @@ const concepts: Concept[] = [
   },
   {
     id: "ray-tracing",
-    icon: "",
+    icon: "◎",
     title: "Ray Tracing",
     description:
       "Técnica de renderização que simula o comportamento físico da luz, criando reflexos, refrações e sombras realistas em tempo real.",
@@ -53,7 +51,7 @@ const concepts: Concept[] = [
   },
   {
     id: "video-compression",
-    icon: "",
+    icon: "▣",
     title: "Compressão de Vídeo",
     description:
       "Algoritmos e codecs para reduzir o tamanho de arquivos de vídeo mantendo qualidade visual, incluindo H.264, H.265 e AV1.",
@@ -62,7 +60,7 @@ const concepts: Concept[] = [
   },
   {
     id: "color-spaces",
-    icon: "",
+    icon: "◉",
     title: "Espaços de Cor",
     description:
       "Modelos matemáticos para representar cores digitalmente, incluindo RGB, HSV, CMYK e Lab, cada um otimizado para diferentes aplicações.",
@@ -71,7 +69,7 @@ const concepts: Concept[] = [
   },
   {
     id: "image-segmentation",
-    icon: "",
+    icon: "⬙",
     title: "Segmentação de Imagens",
     description:
       "Técnicas para separar e identificar regiões de interesse em imagens, incluindo flood fill, watershed e algoritmos baseados em cor.",
@@ -80,7 +78,7 @@ const concepts: Concept[] = [
   },
   {
     id: "vector-raster",
-    icon: "",
+    icon: "◫",
     title: "Vetorial vs Matricial",
     description:
       "Diferenças fundamentais entre imagens vetoriais (SVG) e matriciais (JPG/PNG), incluindo escalabilidade, qualidade e aplicações.",
@@ -89,7 +87,7 @@ const concepts: Concept[] = [
   },
   {
     id: "audio",
-    icon: "",
+    icon: "◐",
     title: "Processamento Digital de Áudio",
     description:
       "Fundamentos do áudio digital: digitalização, codecs, formatos de arquivo e aplicações modernas em streaming, jogos e comunicação.",
@@ -133,15 +131,9 @@ export default function InfosPage() {
   };
 
   return (
-    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-hidden">
-      <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
-
-      <div className="relative z-10 flex min-h-screen flex-col">
-      {/* Header */}
-      <Header />
-
+    <div className="flex flex-col flex-1">
       {/* Page Hero + Search */}
-      <div className="pt-[110px] px-8 pb-12 max-w-[1100px] w-full mx-auto">
+      <div className="pt-10 pb-10">
         <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2 font-mono">
           <span className="text-[#7dcfff]">Material teórico</span><br />
         </h1>
@@ -197,7 +189,7 @@ export default function InfosPage() {
       <div className="relative isolate overflow-hidden bg-[#0f1017] border-t border-[#2a2d3e] border-b pb-16 flex-1">
         <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
-        <div className="relative z-10 py-[60px] px-8 max-w-[1100px] mx-auto">
+        <div className="relative z-10 py-[60px]">
           {categories
             .filter(
               (c) =>
@@ -239,6 +231,7 @@ export default function InfosPage() {
                       return (
                         <div
                           key={index}
+                          data-concept-id={concept.id}
                           onClick={() => handleConceptClick(concept.id)}
                           className="bg-[#1a1b26] p-0 relative cursor-pointer block hover:bg-[#16171f] transition-colors group border border-[#2a2d3e] rounded-[2px] overflow-hidden">
                   
@@ -273,9 +266,6 @@ export default function InfosPage() {
               );
             })}
         </div>
-      </div>
-
-      <Footer />
       </div>
     </div>
   );

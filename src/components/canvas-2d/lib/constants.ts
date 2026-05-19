@@ -75,4 +75,4 @@ export const PREVIEW_ID = "__preview__";
 export const POLYGON_STROKE = "#404052";
 export const ROTATION_HANDLE_OFFSET = 24; // px above bounding box top in world units
 export const HANDLE_SIZE = 4;             // half-size of scale handles in px (screen space)
-export const CLOSE_POLY_THRESHOLD = 12;  // world units to snap-close a polygon
+export const CLOSE_POLY_THRESHOLD = 12;   // world units to snap-close a polygon

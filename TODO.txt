@@ -23,6 +23,7 @@
 
 === [ ON IT ] ===========================================================================================================
 
+[TODO] - Deixar os cards de /infos/ como os cards da landing page
 [TODO] - Aliasing page
 [TODO] - Refactor canvas-2d page
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)

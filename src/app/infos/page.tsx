@@ -68,65 +68,67 @@ export default function InfosPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 gap-10">
       {/* Page Hero + Search */}
-      <div className="pt-10 pb-10">
-        <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight mb-2 leading-[1.2] mt-2 font-mono">
-          <span className="text-[#7dcfff]">Material teórico</span><br />
-        </h1>
+      <div className="pt-12 pb-6">
+        <div className="flex flex-col gap-6">
+          <h1 className="text-[28px] font-bold text-[#c0caf5] tracking-tight leading-[1.2] mt-2 font-mono">
+            <span className="text-[#7dcfff]">Material teórico</span><br />
+          </h1>
 
-        <div className="flex items-center gap-3 max-w-[560px]">
-          <div className="flex-1 flex items-center gap-2.5 bg-[#1a1b26] border border-[#2a2d3e] rounded-md px-3.5 focus-within:border-[#3a3d52] focus-within:ring-[3px] focus-within:ring-[#7aa2f7]/10 transition-all">
-            <span className="text-[#414868] text-xs shrink-0">⌕</span>
-            <input
-              type="text"
-              placeholder="buscar material..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent border-none outline-none font-mono text-[12px] text-[#c0caf5] w-full py-2.5 placeholder:text-[#414868]"
-            />
-            <span className="text-[9px] text-[#414868] border border-[#2a2d3e] px-1.5 py-0.5 rounded-[3px] tracking-widest shrink-0">
-              ⌘K
-            </span>
+          <div className="flex items-center gap-3 w-full max-w-[560px]">
+            <div className="flex-1 flex items-center gap-2.5 bg-[#1a1b26] border border-[#2a2d3e] rounded-md px-3.5 focus-within:border-[#3a3d52] focus-within:ring-[3px] focus-within:ring-[#7aa2f7]/10 transition-all">
+              <span className="text-[#414868] text-xs shrink-0">⌕</span>
+              <input
+                type="text"
+                placeholder="buscar material..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent border-none outline-none font-mono text-[12px] text-[#c0caf5] w-full py-2.5 placeholder:text-[#414868]"
+              />
+              <span className="text-[9px] text-[#414868] border border-[#2a2d3e] px-1.5 py-0.5 rounded-[3px] tracking-widest shrink-0">
+                ⌘K
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div className="flex gap-1.5 mt-4 flex-wrap">
-          {categories.map((category) => {
-            const isCG = category === "Computação Gráfica";
-            const isMM = category === "Multimídia";
-            const isActive = activeCategory === category;
-            
-            let pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border border-[#2a2d3e] text-[#414868] cursor-pointer transition-all hover:text-[#a9b1d6] hover:border-[#3a3d52]";
-            
-            if (isActive) {
-              if (isCG) {
-                pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#7dcfff] border-[#7dcfff]/40 bg-[#7dcfff]/5";
-              } else if (isMM) {
-                pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#bb9af7] border-[#bb9af7]/40 bg-[#bb9af7]/5";
-              } else {
-                pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#c0caf5] border-[#3a3d52] bg-[#2a2d3e]/30";
+          <div className="flex gap-1.5 flex-wrap">
+            {categories.map((category) => {
+              const isCG = category === "Computação Gráfica";
+              const isMM = category === "Multimídia";
+              const isActive = activeCategory === category;
+              
+              let pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border border-[#2a2d3e] text-[#414868] cursor-pointer transition-all hover:text-[#a9b1d6] hover:border-[#3a3d52]";
+              
+              if (isActive) {
+                if (isCG) {
+                  pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#7dcfff] border-[#7dcfff]/40 bg-[#7dcfff]/5";
+                } else if (isMM) {
+                  pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#bb9af7] border-[#bb9af7]/40 bg-[#bb9af7]/5";
+                } else {
+                  pillClass = "text-[9px] tracking-[1.5px] uppercase px-3 py-1 rounded-[3px] border cursor-pointer transition-all text-[#c0caf5] border-[#3a3d52] bg-[#2a2d3e]/30";
+                }
               }
-            }
 
-            return (
-              <div
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`${pillClass} font-mono`}
-              >
-                {category}
-              </div>
-            );
-          })}
+              return (
+                <div
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`${pillClass} font-mono`}
+                >
+                  {category}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* Main Content (CG Section Style) */}
-      <div className="relative isolate overflow-hidden bg-[#0f1017] border-t border-[#2a2d3e] border-b pb-16 flex-1">
+      <div className="relative isolate overflow-hidden bg-[#13141c] border-t border-[#2a2d3e] border-b pb-16 flex-1">
         <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
-        <div className="relative z-10 py-[60px]">
+        <div className="relative z-10 py-14">
           {categories
             .filter(
               (c) =>
@@ -170,8 +172,8 @@ export default function InfosPage() {
                           key={index}
                           data-concept-id={concept.id}
                           onClick={() => handleConceptClick(concept.id)}
-                          className="bg-[#1a1b26] p-0 relative cursor-pointer block hover:bg-[#16171f] transition-colors group border border-[#2a2d3e] rounded-[2px] overflow-hidden">
-                  
+                          className="bg-[#1a1b26] p-0 relative cursor-pointer block transition-colors group border border-[#2a2d3e] rounded-md overflow-hidden hover:bg-[#171823] hover:border-[#3a3d52]">
+                   
                   <div className="w-full h-24 bg-[#13141c] border-b border-[#2a2d3e] flex items-center justify-center overflow-hidden">
                     <span className="text-[32px]">{concept.icon}</span>
                   </div>
@@ -189,7 +191,7 @@ export default function InfosPage() {
                     
                     <div className="mt-3.5 flex flex-wrap gap-1.5">
                       {concept.links.map((link, i) => (
-                        <span key={i} className="text-[9px] text-[#414868] border border-[#2a2d3e] px-1.5 py-0.5 rounded-[3px] tracking-wide">
+                        <span key={i} className="text-[9px] text-[#9aa5ce] border border-[#2f3244] bg-[#14161f] px-1.5 py-0.5 rounded-[3px] tracking-wide">
                           {link.toLowerCase()}
                         </span>
                       ))}

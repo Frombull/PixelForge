@@ -4,7 +4,7 @@ import InfosSidebar from "@/components/InfosSidebar";
 
 export default function InfosLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6]">
+    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-hidden">
       <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Header />
@@ -22,9 +22,9 @@ export default function InfosLayout({ children }: { children: React.ReactNode })
           {/* Divider */}
           <div className="hidden lg:block w-px bg-[#2a2d3e] shrink-0 self-stretch" />
 
-          {/* Main content — centered within remaining space */}
+          {/* Main content — centered independently from sidebar */}
           <div className="flex-1 min-w-0 flex flex-col items-center px-6 lg:px-10">
-            <div className="w-full max-w-3xl">
+            <div className="w-full max-w-6xl lg:-translate-x-[110px]">
               {children}
             </div>
           </div>

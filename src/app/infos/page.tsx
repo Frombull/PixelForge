@@ -23,15 +23,6 @@ const concepts: Concept[] = [
     links: ["Teoria", "Demo Interativa", "Aplicações"],
   },
   {
-    id: "geometric-transformations",
-    icon: "⬡",
-    title: "Transformações Geométricas",
-    description:
-      "Operações matemáticas para translação, rotação, escala e cisalhamento de objetos em espaços 2D e 3D usando matrizes.",
-    category: "Computação Gráfica",
-    links: ["Visualizador interativo"],
-  },
-  {
     id: "animations",
     icon: "◈",
     title: "Animações",
@@ -40,63 +31,9 @@ const concepts: Concept[] = [
     category: "Computação Gráfica",
     links: ["Teoria", "História", "Aplicações"],
   },
-  {
-    id: "ray-tracing",
-    icon: "◎",
-    title: "Ray Tracing",
-    description:
-      "Técnica de renderização que simula o comportamento físico da luz, criando reflexos, refrações e sombras realistas em tempo real.",
-    category: "Multimídia",
-    links: ["Algoritmo", "Exemplos", "Performance"],
-  },
-  {
-    id: "video-compression",
-    icon: "▣",
-    title: "Compressão de Vídeo",
-    description:
-      "Algoritmos e codecs para reduzir o tamanho de arquivos de vídeo mantendo qualidade visual, incluindo H.264, H.265 e AV1.",
-    category: "Multimídia",
-    links: ["Codecs", "Comparativo", "Implementação"],
-  },
-  {
-    id: "color-spaces",
-    icon: "◉",
-    title: "Espaços de Cor",
-    description:
-      "Modelos matemáticos para representar cores digitalmente, incluindo RGB, HSV, CMYK e Lab, cada um otimizado para diferentes aplicações.",
-    category: "Computação Gráfica",
-    links: ["Modelos", "Conversor", "Aplicações"],
-  },
-  {
-    id: "image-segmentation",
-    icon: "⬙",
-    title: "Segmentação de Imagens",
-    description:
-      "Técnicas para separar e identificar regiões de interesse em imagens, incluindo flood fill, watershed e algoritmos baseados em cor.",
-    category: "Multimídia",
-    links: ["Watershed", "Color-Based"],
-  },
-  {
-    id: "vector-raster",
-    icon: "◫",
-    title: "Vetorial vs Matricial",
-    description:
-      "Diferenças fundamentais entre imagens vetoriais (SVG) e matriciais (JPG/PNG), incluindo escalabilidade, qualidade e aplicações.",
-    category: "Multimídia",
-    links: ["Comparação", "Zoom Interativo", "Aplicações"],
-  },
-  {
-    id: "audio",
-    icon: "◐",
-    title: "Processamento Digital de Áudio",
-    description:
-      "Fundamentos do áudio digital: digitalização, codecs, formatos de arquivo e aplicações modernas em streaming, jogos e comunicação.",
-    category: "Multimídia",
-    links: ["Digitalização", "Codecs", "Aplicações"],
-  },
 ];
 
-const categories = ["Todos", "Computação Gráfica", "Multimídia"];
+const categories = ["Todos", "Computação Gráfica"];
 
 export default function InfosPage() {
   const router = useRouter();

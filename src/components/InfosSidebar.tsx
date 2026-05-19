@@ -13,20 +13,13 @@ interface ConceptItem {
 
 const concepts: ConceptItem[] = [
   { id: "bezier-curves", icon: "◫", title: "Curvas de Bézier", category: "Computação Gráfica" },
-  { id: "geometric-transformations", icon: "◫", title: "Transformações Geométricas", category: "Computação Gráfica" },
   { id: "animations", icon: "◫", title: "Animações", category: "Computação Gráfica" },
-  { id: "color-spaces", icon: "◫", title: "Espaços de Cor", category: "Computação Gráfica" },
-  { id: "ray-tracing", icon: "◫", title: "Ray Tracing", category: "Multimídia" },
-  { id: "video-compression", icon: "◫", title: "Compressão de Vídeo", category: "Multimídia" },
-  { id: "image-segmentation", icon: "◫", title: "Segmentação de Imagens", category: "Multimídia" },
-  { id: "vector-raster", icon: "◫", title: "Vetorial vs Matricial", category: "Multimídia" },
-  { id: "audio", icon: "◫", title: "Áudio Digital", category: "Multimídia" },
 ];
 
 const grouped = [
   { label: "Computação Gráfica", key: "CG", items: concepts.filter((c) => c.category === "Computação Gráfica") },
   { label: "Multimídia", key: "MM", items: concepts.filter((c) => c.category === "Multimídia") },
-];
+].filter((g) => g.items.length > 0);
 
 export default function InfosSidebar() {
   const pathname = usePathname();

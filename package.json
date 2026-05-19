@@ -18,6 +18,10 @@
   "dependencies": {
     "@fortawesome/react-fontawesome": "^3.3.0",
     "@jaames/iro": "^5.5.2",
+    "@mdx-js/loader": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "@next/mdx": "^16.2.6",
+    "@types/mdx": "^2.0.13",
     "katex": "^0.16.45",
     "lucide-react": "^1.7.0",
     "mafs": "^0.21.0",

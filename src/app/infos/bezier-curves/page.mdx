@@ -1,0 +1,53 @@
+export const metadata = {
+  title: "Curvas de Bézier — PixelForge",
+  description:
+    "Introdução teórica às curvas de Bézier, suas equações e aplicações em computação gráfica.",
+};
+
+# Curvas de Bézier
+
+As **curvas de Bézier** são curvas paramétricas definidas por um conjunto de
+*pontos de controle*. Foram popularizadas por Pierre Bézier nos anos 1960 para
+o desenho de carrocerias na Renault, e hoje aparecem em praticamente todo
+software de design vetorial, animação e fontes tipográficas.
+
+> Uma curva de Bézier de grau *n* é completamente determinada por *n + 1*
+> pontos de controle.
+
+## Forma paramétrica
+
+Uma curva de Bézier cúbica (a mais comum) é definida por:
+
+```
+B(t) = (1 − t)³·P₀ + 3(1 − t)²·t·P₁ + 3(1 − t)·t²·P₂ + t³·P₃,   t ∈ [0, 1]
+```
+
+Os pontos `P₀` e `P₃` são as extremidades da curva. `P₁` e `P₂` são *pontos de
+controle* que determinam a tangência e a curvatura — eles **atraem** a curva
+sem pertencer a ela.
+
+## Propriedades importantes
+
+- A curva sempre fica contida no *casco convexo* dos pontos de controle.
+- A tangente em `P₀` aponta para `P₁`; a tangente em `P₃` aponta para `P₂`.
+- Subdivisão recursiva (algoritmo de De Casteljau) permite avaliar a curva
+  sem calcular polinômios diretamente.
+
+## Vídeo recomendado
+
+O canal *Freya Holmér* tem uma das melhores explicações visuais disponíveis:
+
+<YouTube id="aVwxzDHniEw" title="The Beauty of Bézier Curves" />
+
+## Onde aparecem na prática
+
+1. Editores vetoriais (Illustrator, Figma, Inkscape)
+2. Definição de glyphs em fontes TrueType e OpenType
+3. Curvas de animação (easing functions no CSS)
+4. Trajetórias suaves em jogos e robótica
+
+## Próximos passos
+
+Confira também [Animações](/infos/animations) — as funções de *easing* usadas
+em CSS e engines modernas são, em essência, curvas de Bézier. Ou volte ao
+[índice de material teórico](/infos).

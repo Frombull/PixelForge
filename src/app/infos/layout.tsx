@@ -4,7 +4,7 @@ import InfosSidebar from "@/components/InfosSidebar";
 
 export default function InfosLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-hidden">
+    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-clip">
       <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Header />

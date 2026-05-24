@@ -168,7 +168,8 @@ function EditorInner() {
     () =>
       nodes.map((n) => {
         const v = simResult.nodeValues.get(n.id) ?? false;
-        return n.data.value === v ? n : { ...n, data: { ...n.data, value: v } };
+        // Use `=== true/false` explícito para evitar `undefined === false` ser sempre falso
+        return (n.data.value ?? false) === v ? n : { ...n, data: { ...n.data, value: v } };
       }),
     [nodes, simResult]
   );
@@ -189,17 +190,11 @@ function EditorInner() {
     [edges, simResult, running]
   );
 
-  // Play loop
+  // Play loop — 100 ms por ciclo de simulação
   useEffect(() => {
     if (!running) return;
-    let raf = 0;
-    let last = performance.now();
-    const loop = (t: number) => {
-      if (t - last >= 100) { setTick((k) => k + 1); last = t; }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
+    const id = setInterval(() => setTick((k) => k + 1), 100);
+    return () => clearInterval(id);
   }, [running]);
 
   const handleStep = useCallback(() => setTick((k) => k + 1), []);

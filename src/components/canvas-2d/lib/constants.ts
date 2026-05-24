@@ -37,6 +37,7 @@ export const TOOLS: { id: Tool; icon: string; shortcut: string; label: string }[
   { id: "POLYGON",   icon: "⬡", shortcut: "P", label: "Criar Polígono"   },
   { id: "TRANSLATE", icon: "⤢", shortcut: "T", label: "Translate" },
   { id: "ROTATE",    icon: "↻", shortcut: "R", label: "Rotacionar" },
+  { id: "SCALE",     icon: "⇲", shortcut: "S", label: "Escala" },
 ];
 
 export const TOOL_KEY_MAP: Record<string, Tool> = {
@@ -44,6 +45,7 @@ export const TOOL_KEY_MAP: Record<string, Tool> = {
   p: "POLYGON",
   t: "TRANSLATE",
   r: "ROTATE",
+  s: "SCALE",
 };
 
 // ─── Placeholder buttons ──────────────────────────────────────────────────────

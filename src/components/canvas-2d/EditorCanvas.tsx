@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import type { Shape, ViewState, EditorSettings, DragState, Tool } from "./lib/types";
-import { drawGrid, drawAxes, drawShape, drawPolygonPreview, drawTranslateGizmo, drawRotateGizmo, GIZMO_AXIS_LEN, GIZMO_HIT_RADIUS, ROTATE_GIZMO_RADIUS } from "./lib/draw";
+import { drawGrid, drawAxes, drawShape, drawPolygonPreview, drawTranslateGizmo, drawRotateGizmo, drawScaleGizmo, GIZMO_AXIS_LEN, GIZMO_HIT_RADIUS, ROTATE_GIZMO_RADIUS, SCALE_GIZMO_AXIS_LEN, SCALE_GIZMO_HIT_RADIUS } from "./lib/draw";
 
 const VERTEX_HIT_RADIUS = 10; // screen px
 import {
@@ -90,6 +90,9 @@ export default function EditorCanvas({
   // ROTATE tool state
   const rotateActiveVertexRef = useRef<number | null>(null); // vertex used as pivot (-1 = shape center)
   const rotateMouseSSRef = useRef<[number, number] | null>(null); // screen-space mouse during drag
+  // SCALE tool state
+  const scaleActiveVertexRef = useRef<number | null>(null); // vertex used as scale pivot (null = shape center)
+  const scaleHoveredAxisRef = useRef<"x" | "y" | "xy" | null>(null);
   const [gizmoCursor, setGizmoCursor] = useState<"grab" | "default">("default");
   const [tick, setTick] = useState(0);
 
@@ -135,12 +138,15 @@ export default function EditorCanvas({
       drawPolygonPreview(ctx, polyPts ?? [], fillColor, view.zoom, mouseWorldRef.current, snap);
     }
 
-    // Vertex highlights for TRANSLATE / ROTATE tools (world space, before restore)
-    if (tool === "TRANSLATE" || tool === "ROTATE") {
+    // Vertex highlights for TRANSLATE / ROTATE / SCALE tools (world space, before restore)
+    if (tool === "TRANSLATE" || tool === "ROTATE" || tool === "SCALE") {
       const sel = shapes.find((s) => s.id === selectedId);
       if (sel && sel.type !== "circle") {
         const worldPts = getWorldPoints(sel);
-        const activeVi = tool === "ROTATE" ? rotateActiveVertexRef.current : activeVertexRef.current;
+        const activeVi =
+          tool === "ROTATE" ? rotateActiveVertexRef.current :
+          tool === "SCALE"  ? scaleActiveVertexRef.current  :
+          activeVertexRef.current;
         worldPts.forEach(([vx, vy], i) => {
           const isHovered  = hoveredVertexRef.current === i;
           const isActive   = activeVi === i;
@@ -149,7 +155,7 @@ export default function EditorCanvas({
           ctx.beginPath();
           ctx.arc(vx, vy, r, 0, Math.PI * 2);
           ctx.fillStyle = isActive
-            ? COLORS.purple
+            ? COLORS.yellow
             : isHovered
             ? COLORS.textBright
             : COLORS.textMid;
@@ -192,6 +198,19 @@ export default function EditorCanvas({
           sel.rotation,
           shiftRef.current,
         );
+      }
+    }
+
+    // Scale gizmo is drawn in screen space (after restore)
+    if (tool === "SCALE") {
+      const sel = shapes.find((s) => s.id === selectedId);
+      if (sel) {
+        let originWorld: [number, number] = [sel.x, sel.y];
+        const vi = scaleActiveVertexRef.current;
+        if (vi !== null && vi >= 0 && sel.type !== "circle") {
+          originWorld = getWorldPoints(sel)[vi];
+        }
+        drawScaleGizmo(ctx, originWorld, view, scaleHoveredAxisRef.current, sel);
       }
     }
 
@@ -522,6 +541,76 @@ export default function EditorCanvas({
         onSelectId(other ? other.id : null);
         return;
       }
+
+      // ── SCALE tool ─────────────────────────────────────────────────────────
+      if (tool === "SCALE") {
+        const sel = shapes.find((s) => s.id === live.current.selectedId);
+        if (!sel) {
+          // Select a shape first
+          let hit: Shape | null = null;
+          for (let i = shapes.length - 1; i >= 0; i--) {
+            if (shapes[i].id === PREVIEW_ID) continue;
+            if (hitTest(shapes[i], wx, wy)) { hit = shapes[i]; break; }
+          }
+          if (hit) onSelectId(hit.id);
+          return;
+        }
+
+        // ── Vertex hit-test (priority): sets scale pivot vertex
+        if (sel.type !== "circle") {
+          const worldPts = getWorldPoints(sel);
+          const threshold = VERTEX_HIT_RADIUS / view.zoom;
+          for (let i = 0; i < worldPts.length; i++) {
+            const [vx, vy] = worldPts[i];
+            if (Math.hypot(wx - vx, wy - vy) <= threshold) {
+              scaleActiveVertexRef.current = i;
+              draw();
+              return;
+            }
+          }
+        }
+
+        // ── Gizmo handle hit
+        const axis = scaleHoveredAxisRef.current;
+        if (axis) {
+          // Determine pivot world position
+          const vi = scaleActiveVertexRef.current;
+          let pivotWorld: [number, number] = [sel.x, sel.y];
+          if (vi !== null && vi >= 0 && sel.type !== "circle") {
+            pivotWorld = getWorldPoints(sel)[vi];
+          }
+          dragRef.current = {
+            type: "scale-tool",
+            id: sel.id,
+            axis,
+            startX: wx,
+            startY: wy,
+            origScaleX: sel.scaleX,
+            origScaleY: sel.scaleY,
+            pivotWorld,
+          };
+          return;
+        }
+
+        // ── Click on fill: reset vertex pivot to center
+        if (hitTest(sel, wx, wy)) {
+          if (scaleActiveVertexRef.current !== null) {
+            scaleActiveVertexRef.current = null;
+            draw();
+          }
+          return;
+        }
+
+        // ── Click outside: select another shape or deselect
+        scaleActiveVertexRef.current = null;
+        let scaleOther: Shape | null = null;
+        for (let i = shapes.length - 1; i >= 0; i--) {
+          if (shapes[i].id === PREVIEW_ID || shapes[i].id === sel.id) continue;
+          if (hitTest(shapes[i], wx, wy)) { scaleOther = shapes[i]; break; }
+        }
+        onSelectId(scaleOther ? scaleOther.id : null);
+        return;
+      }
     },
     [onSelectId, onCommit, onToolChange, onPolyPtsChange, onShapesChange]
   );
@@ -571,6 +660,82 @@ export default function EditorCanvas({
               hoveredVertexRef.current = newHov;
               draw();
             }
+          }
+        }
+      }
+
+      // Scale gizmo hover detection (screen space)
+      if (tool === "SCALE" && !dragRef.current) {
+        const sel = shapes.find((s) => s.id === live.current.selectedId);
+        if (sel) {
+          // Determine gizmo origin in screen space
+          const vi = scaleActiveVertexRef.current;
+          const originWorld: [number, number] =
+            vi !== null && vi >= 0 && sel.type !== "circle"
+              ? getWorldPoints(sel)[vi]
+              : [sel.x, sel.y];
+          const gsx = originWorld[0] * view.zoom + view.offset.x;
+          const gsy = originWorld[1] * view.zoom + view.offset.y;
+          const len  = SCALE_GIZMO_AXIS_LEN;
+          const bsq  = 10; // end box half-size (must match draw.ts)
+          const sq   = 18; // center square size (half = 9)
+          const hr   = SCALE_GIZMO_HIT_RADIUS;
+
+          let axis: "x" | "y" | "xy" | null = null;
+          // XY square (center, priority)
+          if (Math.abs(cx - gsx) <= sq / 2 && Math.abs(cy - gsy) <= sq / 2) {
+            axis = "xy";
+          }
+          // X handle (end box at +len)
+          else if (
+            Math.abs(cx - (gsx + len)) <= bsq + hr / 2 &&
+            Math.abs(cy - gsy) <= bsq + hr / 2
+          ) {
+            axis = "x";
+          }
+          // X arm (stem)
+          else if (
+            cx >= gsx + sq / 2 && cx <= gsx + len - bsq &&
+            Math.abs(cy - gsy) <= hr
+          ) {
+            axis = "x";
+          }
+          // Y handle (end box at -len)
+          else if (
+            Math.abs(cy - (gsy - len)) <= bsq + hr / 2 &&
+            Math.abs(cx - gsx) <= bsq + hr / 2
+          ) {
+            axis = "y";
+          }
+          // Y arm (stem)
+          else if (
+            cy <= gsy - sq / 2 && cy >= gsy - len + bsq &&
+            Math.abs(cx - gsx) <= hr
+          ) {
+            axis = "y";
+          }
+
+          if (axis !== scaleHoveredAxisRef.current) {
+            scaleHoveredAxisRef.current = axis;
+            setGizmoCursor(axis ? "grab" : "default");
+            draw();
+          }
+
+          // Vertex hover detection
+          if (sel.type !== "circle") {
+            const threshold = VERTEX_HIT_RADIUS / view.zoom;
+            const worldPts = getWorldPoints(sel);
+            const hit = worldPts.findIndex(([vx, vy]) => Math.hypot(wx - vx, wy - vy) <= threshold);
+            const newHov = hit === -1 ? null : hit;
+            if (newHov !== hoveredVertexRef.current) {
+              hoveredVertexRef.current = newHov;
+              draw();
+            }
+          }
+        } else {
+          if (scaleHoveredAxisRef.current !== null) {
+            scaleHoveredAxisRef.current = null;
+            draw();
           }
         }
       }
@@ -706,6 +871,51 @@ export default function EditorCanvas({
         );
       }
 
+      if (d.type === "scale-tool") {
+        // Compute delta from drag start in world space
+        const deltaX = wx - d.startX;
+        const deltaY = wy - d.startY;
+
+        // Sensitivity: each world unit of drag = proportional scale change
+        // We use the shape's bounding extent as a normalization factor
+        onShapesChange(
+          shapes.map((s) => {
+            if (s.id !== d.id) return s;
+
+            // Reference size for sensitivity (avoid /0)
+            const refSize = 48; // world units ≈ 2 grid cells — feels natural
+
+            let newScaleX = d.origScaleX;
+            let newScaleY = d.origScaleY;
+
+            if (d.axis === "x" || d.axis === "xy") {
+              newScaleX = Math.max(0.01, d.origScaleX + deltaX / refSize);
+            }
+            if (d.axis === "y" || d.axis === "xy") {
+              // Y is inverted on screen (drag up = positive)
+              newScaleY = Math.max(0.01, d.origScaleY - deltaY / refSize);
+            }
+
+            // When pivot is a vertex: keep that vertex world-position fixed while scaling
+            const vi = scaleActiveVertexRef.current;
+            if (vi !== null && vi >= 0 && s.type !== "circle") {
+              // d.pivotWorld = world position of that vertex captured at drag start
+              const [pvx, pvy] = d.pivotWorld;
+              const [lx, ly] = s.points[vi];
+              const cos = Math.cos(s.rotation);
+              const sin = Math.sin(s.rotation);
+              // Recompute shape origin so the pivot vertex stays at pvx, pvy
+              const newOriginX = pvx - (lx * newScaleX * cos - ly * newScaleY * sin);
+              const newOriginY = pvy - (lx * newScaleX * sin + ly * newScaleY * cos);
+              return { ...s, scaleX: newScaleX, scaleY: newScaleY, x: newOriginX, y: newOriginY };
+            }
+
+            return { ...s, scaleX: newScaleX, scaleY: newScaleY };
+          })
+        );
+        draw();
+      }
+
       if (d.type === "translate") {
         onShapesChange(
           shapes.map((s) => {
@@ -747,9 +957,10 @@ export default function EditorCanvas({
   // ── Mouse leave ─────────────────────────────────────────────────────────────
   const handleMouseLeave = useCallback(() => {
     let needDraw = false;
-    if (mouseWorldRef.current !== null)    { mouseWorldRef.current = null;    needDraw = true; }
-    if (hoveredVertexRef.current !== null) { hoveredVertexRef.current = null;  needDraw = true; }
-    if (rotateMouseSSRef.current !== null) { rotateMouseSSRef.current = null;  needDraw = true; }
+    if (mouseWorldRef.current !== null)     { mouseWorldRef.current = null;      needDraw = true; }
+    if (hoveredVertexRef.current !== null)  { hoveredVertexRef.current = null;   needDraw = true; }
+    if (rotateMouseSSRef.current !== null)  { rotateMouseSSRef.current = null;   needDraw = true; }
+    if (scaleHoveredAxisRef.current !== null) { scaleHoveredAxisRef.current = null; needDraw = true; }
     if (needDraw) draw();
   }, [draw]);
 
@@ -762,7 +973,7 @@ export default function EditorCanvas({
 
     const { shapes } = live.current;
 
-    if (d.type === "move" || d.type === "rotate" || d.type === "scale" || d.type === "translate" || d.type === "vertex" || d.type === "rotate-tool") {
+    if (d.type === "move" || d.type === "rotate" || d.type === "scale" || d.type === "translate" || d.type === "vertex" || d.type === "rotate-tool" || d.type === "scale-tool") {
       onCommit(shapes);
     }
     if (d.type === "rotate-tool") {
@@ -772,6 +983,7 @@ export default function EditorCanvas({
 
   const cursor =
     tool === "TRANSLATE" ? gizmoCursor    :
+    tool === "SCALE"     ? gizmoCursor    :
     tool === "ROTATE"    ? "crosshair"    :
     tool === "SELECT"    ? "default"      : "crosshair";
 

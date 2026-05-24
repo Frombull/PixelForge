@@ -1,4 +1,4 @@
-export type Tool = "SELECT" | "POLYGON" | "TRANSLATE" | "ROTATE";
+export type Tool = "SELECT" | "POLYGON" | "TRANSLATE" | "ROTATE" | "SCALE";
 
 export type ShapeType = "polygon" | "rect" | "circle";
 
@@ -46,4 +46,5 @@ export type DragState =
   | { type: "translate"; id: string; axis: "x" | "y" | "xy"; startX: number; startY: number; origX: number; origY: number }
   | { type: "vertex"; id: string; vertexIndex: number; startX: number; startY: number; origPoint: [number, number]; axis: "x" | "y" | "xy" }
   | { type: "rotate-tool"; id: string; cx: number; cy: number; startAngle: number; origRot: number; pivotIsVertex: boolean }
+  | { type: "scale-tool"; id: string; axis: "x" | "y" | "xy"; startX: number; startY: number; origScaleX: number; origScaleY: number; pivotWorld: [number, number] }
   | { type: "pan"; startX: number; startY: number; ox: number; oy: number };

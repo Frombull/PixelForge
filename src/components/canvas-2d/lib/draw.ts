@@ -347,6 +347,86 @@ export function drawRotateGizmo(
   ctx.restore();
 }
 
+// ─── Scale gizmo ──────────────────────────────────────────────────────────────
+
+export const SCALE_GIZMO_AXIS_LEN  = 140; // screen px (axis arms)
+export const SCALE_GIZMO_HIT_RADIUS = 14; // screen px for handle hit test
+
+/**
+ * Draw the SCALE gizmo in screen space.
+ *
+ * Arms:
+ *   - Red  (right)  → X-only scale
+ *   - Green (up)    → Y-only scale
+ *   - White square at origin → XY uniform scale
+ *
+ * @param origin       World-space position of the gizmo pivot (shape center OR active vertex)
+ * @param hoveredAxis  Which handle is currently under the cursor
+ * @param shape        The current shape (used for scale label)
+ */
+export function drawScaleGizmo(
+  ctx: CanvasRenderingContext2D,
+  origin: [number, number],
+  view: ViewState,
+  hoveredAxis: "x" | "y" | "xy" | null,
+  shape: Shape,
+): void {
+  const sx = origin[0] * view.zoom + view.offset.x;
+  const sy = origin[1] * view.zoom + view.offset.y;
+
+  const len  = SCALE_GIZMO_AXIS_LEN;
+  const sq   = 18; // XY square half-size for arm offset (half)
+  const bsq  = 10; // end box half-size
+
+  const colorX  = hoveredAxis === "x"  || hoveredAxis === "xy" ? "#ff6b6b" : COLORS.axisX;
+  const colorY  = hoveredAxis === "y"  || hoveredAxis === "xy" ? "#6bff8e" : COLORS.axisY;
+  const colorXY = hoveredAxis === "xy" ? "#ffffff" : COLORS.textMid;
+
+  ctx.save();
+  ctx.lineWidth = 2;
+
+  // ── X arm (right) with end box
+  ctx.strokeStyle = colorX;
+  ctx.fillStyle   = colorX;
+  ctx.beginPath();
+  ctx.moveTo(sx + sq / 2, sy);
+  ctx.lineTo(sx + len - bsq, sy);
+  ctx.stroke();
+  // End box
+  ctx.fillRect(sx + len - bsq, sy - bsq, bsq * 2, bsq * 2);
+
+  // ── Y arm (up) with end box
+  ctx.strokeStyle = colorY;
+  ctx.fillStyle   = colorY;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - sq / 2);
+  ctx.lineTo(sx, sy - len + bsq);
+  ctx.stroke();
+  // End box
+  ctx.fillRect(sx - bsq, sy - len - bsq, bsq * 2, bsq * 2);
+
+  // ── XY square at origin
+  ctx.fillStyle   = colorXY;
+  ctx.strokeStyle = COLORS.bg;
+  ctx.lineWidth   = 2;
+  ctx.fillRect(sx - sq / 2, sy - sq / 2, sq, sq);
+  ctx.strokeRect(sx - sq / 2, sy - sq / 2, sq, sq);
+
+  // ── Scale label
+  const fmt = (v: number) => v.toFixed(3);
+  const label = `${fmt(shape.scaleX)}, ${fmt(shape.scaleY)}`;
+  ctx.font = `10px "JetBrains Mono", monospace`;
+  const tw = ctx.measureText(label).width;
+  const lx = sx + sq / 2 + 6;
+  const ly = sy - sq / 2 - 6;
+  ctx.fillStyle = "rgba(13,13,15,0.8)";
+  ctx.fillRect(lx - 2, ly - 11, tw + 6, 14);
+  ctx.fillStyle = COLORS.textBright;
+  ctx.fillText(label, lx + 1, ly);
+
+  ctx.restore();
+}
+
 // ─── In-progress polygon preview ──────────────────────────────────────────────
 
 export function drawPolygonPreview(

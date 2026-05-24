@@ -889,11 +889,14 @@ export default function EditorCanvas({
             let newScaleY = d.origScaleY;
 
             if (d.axis === "x" || d.axis === "xy") {
-              newScaleX = Math.max(0.01, d.origScaleX + deltaX / refSize);
+              const raw = d.origScaleX + deltaX / refSize;
+              // Skip the dead-zone around 0 so it snaps cleanly through negative
+              newScaleX = Math.abs(raw) < 0.05 ? (raw < 0 ? -0.05 : 0.05) : raw;
             }
             if (d.axis === "y" || d.axis === "xy") {
               // Y is inverted on screen (drag up = positive)
-              newScaleY = Math.max(0.01, d.origScaleY - deltaY / refSize);
+              const raw = d.origScaleY - deltaY / refSize;
+              newScaleY = Math.abs(raw) < 0.05 ? (raw < 0 ? -0.05 : 0.05) : raw;
             }
 
             // When pivot is a vertex: keep that vertex world-position fixed while scaling

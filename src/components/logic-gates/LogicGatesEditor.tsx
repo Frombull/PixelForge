@@ -21,6 +21,7 @@ import {
   type OnConnect,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import "./logic-gates.css";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GateNode from "./GateNode";
@@ -246,19 +247,6 @@ function EditorInner() {
         </div>
       </div>
 
-      <style>{`
-        .react-flow__edges, .react-flow__edges svg {
-          width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: visible;
-        }
-        .react-flow__controls button {
-          background: #2c2c2c; border-bottom: 1px solid #3a3a3a; color: #b0b0b0; fill: #b0b0b0;
-        }
-        .react-flow__controls button:hover { background: #363636; color: #fff; fill: #fff; }
-        .react-flow__node.selected > div,
-        .react-flow__node.selected > button { box-shadow: 0 0 0 1px #888 !important; }
-        .react-flow__handle { cursor: crosshair; }
-        .react-flow__connection-path { stroke: #aaa; }
-      `}</style>
     </div>
   );
 }

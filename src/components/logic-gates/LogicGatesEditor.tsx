@@ -25,7 +25,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import "./logic-gates.css";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GateNode from "./GateNode";
 import Sidebar from "./Sidebar";
 import { simulate, type GateNode as GNode } from "./simulator";
@@ -114,36 +114,93 @@ function buildInitialGraph(): { nodes: GNode[]; edges: Edge[] } {
   };
 }
 
-// ─── Toolbar button ───────────────────────────────────────────────────────────
+// ─── Shared colors ────────────────────────────────────────────────────────────
 
-function TBtn({ children, onClick, active, danger, disabled, title }: {
-  children: React.ReactNode;
+const C = {
+  panel:      "#2c2c2c",
+  panelAlt:   "#363636",
+  border:     "#3a3a3a",
+  borderAct:  "#888888",
+  textMid:    "#b0b0b0",
+  textBright: "#ffffff",
+  textSubtle: "#6a6a6a",
+} as const;
+
+// ─── Action button (estilo canvas-2d) ─────────────────────────────────────────
+
+function ActionButton({
+  label,
+  shortcut,
+  onClick,
+  disabled,
+  active,
+  danger,
+}: {
+  label: string;
+  shortcut?: string;
   onClick: () => void;
+  disabled?: boolean;
   active?: boolean;
   danger?: boolean;
-  disabled?: boolean;
-  title?: string;
 }) {
-  const [hovered, setHovered] = useState(false);
-  let border = "#3a3a3a", color = "#b0b0b0", bg = "transparent";
-  if (active)                    { border = "#aaa";    color = "#fff";    bg = "#363636"; }
-  else if (hovered && !disabled) { border = danger ? "#f87171" : "#666"; color = danger ? "#f87171" : "#fff"; bg = "#363636"; }
+  const [hovered, setHovered] = React.useState(false);
+
+  const bg    = active   ? C.panelAlt
+              : (hovered && !disabled) ? C.panelAlt
+              : C.panel;
+  const color = disabled ? C.textSubtle
+              : danger && hovered ? "#f87171"
+              : active  ? C.textBright
+              : hovered ? C.textBright
+              : C.textMid;
+  const borderColor = active   ? C.borderAct
+                    : danger && hovered ? "#f87171"
+                    : C.border;
+
   return (
     <button
-      type="button" onClick={onClick} disabled={disabled} title={title}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      className="font-mono text-[10px] tracking-[0.08em] uppercase px-3 h-6 rounded-xs transition-colors duration-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-      style={{ border: `1px solid ${border}`, color, background: bg }}
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: bg,
+        border: `1px solid ${borderColor}`,
+        color,
+        cursor: disabled ? "default" : "pointer",
+        fontSize: 10,
+        padding: "0 10px",
+        height: 28,
+        letterSpacing: "0.08em",
+        display: "flex",
+        alignItems: "center",
+        gap: 5,
+        fontFamily: "'JetBrains Mono', monospace",
+        opacity: disabled ? 0.4 : 1,
+        transition: "color 0.1s, background 0.1s, border-color 0.1s",
+        whiteSpace: "nowrap",
+      }}
     >
-      {children}
+      {label}
+      {shortcut && (
+        <span style={{ fontSize: 9, color: C.textSubtle }}>{shortcut}</span>
+      )}
     </button>
   );
 }
 
+// ─── Stat pill ────────────────────────────────────────────────────────────────
+
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <span className="font-mono text-[9px] tracking-[0.08em] text-[#6a6a6a]">
-      {label} <span className="text-[#aaa]">{value}</span>
+    <span
+      style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 9,
+        letterSpacing: "0.08em",
+        color: C.textSubtle,
+      }}
+    >
+      {label} <span style={{ color: "#aaa" }}>{value}</span>
     </span>
   );
 }
@@ -191,25 +248,20 @@ function ActionLog({ log }: { log: string[] }) {
 function EditorInner() {
   const initial = useMemo(buildInitialGraph, []);
 
-  // Estado bruto dos nodes/edges (controlado manualmente, sem useNodesState)
   const [nodes, setNodes] = useState<GNode[]>(initial.nodes as GNode[]);
   const [edges, setEdges] = useState<Edge[]>(initial.edges);
-
   const [running, setRunning] = useState(false);
   const [tick, setTick] = useState(0);
 
-  // ── Histórico ────────────────────────────────────────────────────────────────
   const [history, setHistory] = useState<History>(() =>
     makeHistory({ nodes: initial.nodes as GNode[], edges: initial.edges })
   );
 
-  // ── Action log (últimas 4 ações) ──────────────────────────────────────────
   const [actionLog, setActionLog] = useState<string[]>([]);
   const flash = useCallback((msg: string) => {
     setActionLog((prev) => [...prev.slice(-3), msg]);
   }, []);
 
-  // Live ref para atalhos de teclado (evita stale closure)
   const live = useRef({ nodes, edges, history });
   live.current = { nodes, edges, history };
 
@@ -217,7 +269,7 @@ function EditorInner() {
   const isDragging = useRef(false);
   const { screenToFlowPosition } = useReactFlow();
 
-  // ── Commit: aplica snapshot e salva no histórico ──────────────────────────────
+  // ── Commit ────────────────────────────────────────────────────────────────────
   const commit = useCallback((newNodes: GNode[], newEdges: Edge[], label?: string) => {
     setNodes(newNodes);
     setEdges(newEdges);
@@ -225,7 +277,7 @@ function EditorInner() {
     if (label) flash(label);
   }, [flash]);
 
-  // ── Undo ─────────────────────────────────────────────────────────────────────
+  // ── Undo / Redo ───────────────────────────────────────────────────────────────
   const undo = useCallback(() => {
     const result = undoSnapshot(live.current.history);
     if (!result) return;
@@ -235,7 +287,6 @@ function EditorInner() {
     flash("undo");
   }, [flash]);
 
-  // ── Redo ─────────────────────────────────────────────────────────────────────
   const redo = useCallback(() => {
     const result = redoSnapshot(live.current.history);
     if (!result) return;
@@ -248,7 +299,7 @@ function EditorInner() {
   const canUndo = history.index > 0;
   const canRedo = history.index < history.stack.length - 1;
 
-  // ── Atalhos de teclado (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) ─────────────────────
+  // ── Atalhos de teclado ────────────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
@@ -261,16 +312,13 @@ function EditorInner() {
   }, [undo, redo]);
 
   // ── onNodesChange ─────────────────────────────────────────────────────────────
-  // Lê nodes/edges do live.current (fora de updaters) para operar atomicamente.
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     const next = applyNodeChanges(changes, live.current.nodes) as GNode[];
-
     const hasRemove   = changes.some((c) => c.type === "remove");
     const nowDragging = changes.some((c) => c.type === "position" && (c as { dragging?: boolean }).dragging === true);
     const dragEnded   = changes.some((c) => c.type === "position" && (c as { dragging?: boolean }).dragging === false);
 
     if (hasRemove) {
-      // Filtra edges órfãos no mesmo snapshot — um único undo desfaz tudo.
       const nodeIds    = new Set(next.map((n) => n.id));
       const cleanEdges = live.current.edges.filter(
         (e) => nodeIds.has(e.source) && nodeIds.has(e.target)
@@ -293,25 +341,19 @@ function EditorInner() {
   }, [flash]);
 
   // ── onEdgesChange ─────────────────────────────────────────────────────────────
-  // Só salva snapshot em remoções manuais de fio (não as disparadas por delete de nó,
-  // que já foram tratadas atomicamente em onNodesChange acima).
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     const next = applyEdgeChanges(changes, live.current.edges);
     setEdges(next);
-
     const removals = changes.filter((c) => c.type === "remove");
     if (removals.length === 0) return;
-
-    // Se todos os fios removidos já sumiram do live (nó deletado tratou antes), ignora.
     const currentEdgeIds = new Set(live.current.edges.map((e) => e.id));
     const isManualDelete = removals.some((c) => currentEdgeIds.has(c.id));
     if (!isManualDelete) return;
-
     setHistory((h) => pushSnapshot(h, { nodes: live.current.nodes, edges: next }));
     flash(removals.length === 1 ? "fio removido" : `${removals.length} fios removidos`);
   }, [flash]);
 
-  // ── Connect: adiciona fio e salva snapshot ────────────────────────────────────
+  // ── Connect ───────────────────────────────────────────────────────────────────
   const onConnect: OnConnect = useCallback(
     (params: Connection) => {
       setEdges((eds) => {
@@ -324,7 +366,7 @@ function EditorInner() {
     [flash],
   );
 
-  // ── Adicionar nó ─────────────────────────────────────────────────────────────
+  // ── Adicionar nó ──────────────────────────────────────────────────────────────
   const addNode = useCallback(
     (kind: GateKind, position?: { x: number; y: number }) => {
       const pos = position ?? { x: 200 + Math.random() * 180, y: 160 + Math.random() * 160 };
@@ -347,6 +389,13 @@ function EditorInner() {
     if (!kind || !GATE_CATALOG.find((g) => g.kind === kind)) return;
     addNode(kind, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
   }, [addNode, screenToFlowPosition]);
+
+  // ── Botão direito para pan (bloqueia context menu) ────────────────────────────
+  // O ReactFlow usa panOnDrag={[1, 2]} para aceitar MB do meio e MB direito.
+  // O context menu do browser é bloqueado via onContextMenu no wrapper.
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+  }, []);
 
   // ── Simulação ─────────────────────────────────────────────────────────────────
   const simResult = useMemo(() => simulate(nodes, edges), [nodes, edges, tick]);
@@ -372,7 +421,7 @@ function EditorInner() {
   }, [running]);
 
   // ── Controles ─────────────────────────────────────────────────────────────────
-  const handleStep = useCallback(() => setTick((k) => k + 1), []);
+  const handleStep  = useCallback(() => setTick((k) => k + 1), []);
 
   const handleReset = useCallback(() => {
     setRunning(false);
@@ -400,76 +449,86 @@ function EditorInner() {
     <div className="flex h-screen overflow-hidden bg-[#1e1e1e] font-mono text-white">
       <Sidebar onAdd={addNode} />
 
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Toolbar */}
-        <div className="flex items-center gap-3 h-10 px-4 bg-[#2c2c2c] border-b border-[#3a3a3a] shrink-0">
-          <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[#aaa] mr-1">
-            Editor de Portas Lógicas
-          </span>
-          <div className="h-4 w-px bg-[#3a3a3a]" />
+      {/* Canvas — ocupa todo o restante, sem toolbar */}
+      <div
+        ref={wrapperRef}
+        className="flex-1 relative bg-[#161616] min-h-0"
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+        onContextMenu={handleContextMenu}
+      >
+        <ReactFlow
+          nodes={decoratedNodes}
+          edges={styledEdges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+          proOptions={{ hideAttribution: true }}
+          defaultEdgeOptions={{ type: "wire" }}
+          connectionLineStyle={{ stroke: "#aaa", strokeWidth: 1.5, strokeDasharray: "4 3" }}
+          deleteKeyCode={["Backspace", "Delete"]}
+          // MB do meio (1) e MB direito (2) arrastam a câmera
+          panOnDrag={[1, 2]}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#333" />
+          <MiniMap
+            pannable zoomable
+            nodeColor={(n) => {
+              const k = (n.data as GateNodeData)?.kind;
+              if (k === "INPUT")  return "#4ade80";
+              if (k === "OUTPUT") return "#f87171";
+              return "#555";
+            }}
+            maskColor="rgba(22,22,22,0.75)"
+            style={{ background: "#1e1e1e", border: "1px solid #3a3a3a", borderRadius: 2 }}
+          />
+          <Controls
+            showInteractive={false}
+            style={{ background: "#2c2c2c", border: "1px solid #3a3a3a", borderRadius: 2 }}
+          />
+        </ReactFlow>
 
-          {/* Undo / Redo */}
-          <div className="flex items-center gap-1">
-            <TBtn onClick={undo} disabled={!canUndo} title="Desfazer (Ctrl+Z)">↩ undo</TBtn>
-            <TBtn onClick={redo} disabled={!canRedo} title="Refazer (Ctrl+Y)">↪ redo</TBtn>
+        {/* ── Botões de ação — topo esquerdo (estilo canvas-2d) ── */}
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            zIndex: 50,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          {/* Linha 1: histórico + simulação */}
+          <div style={{ display: "flex", gap: 2 }}>
+            <ActionButton label="UNDO"  shortcut="^Z"  onClick={undo}                    disabled={!canUndo} />
+            <ActionButton label="REDO"  shortcut="^Y"  onClick={redo}                    disabled={!canRedo} />
+            <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
+            <ActionButton
+              label={running ? "❚❚ PAUSE" : "▶ PLAY"}
+              onClick={() => setRunning((r) => !r)}
+              active={running}
+            />
+            <ActionButton label="⏭ STEP"  onClick={handleStep}  disabled={running} />
+            <ActionButton label="↺ RESET" onClick={handleReset} />
+            <ActionButton label="✕ LIMPAR" onClick={handleClear} danger />
           </div>
-          <div className="h-4 w-px bg-[#3a3a3a]" />
 
-          {/* Simulação */}
-          <div className="flex items-center gap-1.5">
-            <TBtn active={running} onClick={() => setRunning((r) => !r)} title="Play / Pause">
-              {running ? "❚❚ pause" : "▶ play"}
-            </TBtn>
-            <TBtn onClick={handleStep} disabled={running} title="Avaliar um ciclo">⏭ step</TBtn>
-            <TBtn onClick={handleReset} title="Zerar todos os INPUTs">↺ reset</TBtn>
-            <TBtn danger onClick={handleClear} title="Remover tudo">✕ limpar</TBtn>
-          </div>
-
-          <div className="ml-auto flex items-center gap-3">
-            <Stat label="gates"  value={counts.gates} />
-            <Stat label="in"     value={counts.inputs} />
+          {/* Linha 2: stats */}
+          <div style={{ display: "flex", gap: 10, paddingLeft: 2 }}>
+            <Stat label="gates"  value={counts.gates}   />
+            <Stat label="in"     value={counts.inputs}  />
             <Stat label="out"    value={counts.outputs} />
-            <Stat label="wires"  value={counts.wires} />
+            <Stat label="wires"  value={counts.wires}   />
           </div>
         </div>
 
-        {/* Canvas */}
-        <div ref={wrapperRef} className="flex-1 relative bg-[#161616] min-h-0" onDragOver={onDragOver} onDrop={onDrop}>
-          <ReactFlow
-            nodes={decoratedNodes}
-            edges={styledEdges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            proOptions={{ hideAttribution: true }}
-            defaultEdgeOptions={{ type: "wire" }}
-            connectionLineStyle={{ stroke: "#aaa", strokeWidth: 1.5, strokeDasharray: "4 3" }}
-            deleteKeyCode={["Backspace", "Delete"]}
-          >
-            <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#333" />
-            <MiniMap
-              pannable zoomable
-              nodeColor={(n) => {
-                const k = (n.data as GateNodeData)?.kind;
-                if (k === "INPUT")  return "#4ade80";
-                if (k === "OUTPUT") return "#f87171";
-                return "#555";
-              }}
-              maskColor="rgba(22,22,22,0.75)"
-              style={{ background: "#1e1e1e", border: "1px solid #3a3a3a", borderRadius: 2 }}
-            />
-            <Controls
-              showInteractive={false}
-              style={{ background: "#2c2c2c", border: "1px solid #3a3a3a", borderRadius: 2 }}
-            />
-          </ReactFlow>
-
-          {/* Action log — bottom left */}
-          <ActionLog log={actionLog} />
-        </div>
+        {/* Action log — canto inferior esquerdo */}
+        <ActionLog log={actionLog} />
       </div>
     </div>
   );

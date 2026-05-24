@@ -20,6 +20,8 @@
 [DONE] - FOV slider
 [DONE] - OG Preview
 [DONE] - Add image previews to modules
+[DONE] - Hold shift to snap
+[DONE] - Smoke tests
 
 === [ ON IT ] ===========================================================================================================
 
@@ -43,13 +45,11 @@ Camera secundária:
 [TODO] - Load custom preset scene. 
 [TODO] - Toggle of EXTREME aliasing for example
 [TODO] - Tema claro por padrão? Mais facil na sala de aula
-[TODO] - Refatorar o material teorico visualmente e... materialmente
 [TODO] - Diferentes pontos de fuga?
 [TODO] - Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo, talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
 [TODO] - Carregar uma cena de um arquivo
 [TODO] - Carregar uma cena com query params
 [TODO] - Adicionar propriedade de hidden em objetos, toggle
-[TODO] - Segurar shift pra dar snap
 [TODO] - Hints em forma de bolinha piscando quando entrar na página
     BG:
 [TODO] - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d) (https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling)

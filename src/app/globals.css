@@ -61,9 +61,8 @@ html {
   outline-offset: 2px;
 }
 
-/* Imagens responsivas por padrão */
+/* Imagens responsivas por padrão — SVG excluído intencionalmente (quebra ReactFlow) */
 img,
-svg,
 canvas,
 video {
   max-width: 100%;

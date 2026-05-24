@@ -142,6 +142,18 @@ export default function Inspector({
                   onChange={(v) => onUpdateShape("scaleY", v)}
                 />
               </FieldRow>
+              <FieldRow>
+                <NumField
+                  label="Sh X"
+                  value={Number(selectedShape.shearX ?? 0).toFixed(3)}
+                  onChange={(v) => onUpdateShape("shearX", v)}
+                />
+                <NumField
+                  label="Sh Y"
+                  value={Number(selectedShape.shearY ?? 0).toFixed(3)}
+                  onChange={(v) => onUpdateShape("shearY", v)}
+                />
+              </FieldRow>
             </Section>
 
             <PanelDivider />

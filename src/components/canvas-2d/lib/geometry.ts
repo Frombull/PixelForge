@@ -43,14 +43,18 @@ export function snapPoint(
 // ─── World-space points ───────────────────────────────────────────────────────
 
 export function getWorldPoints(shape: Shape): [number, number][] {
-  const { x, y, rotation = 0, scaleX = 1, scaleY = 1 } = shape;
+  const { x, y, rotation = 0, scaleX = 1, scaleY = 1, shearX = 0, shearY = 0 } = shape;
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
 
   return shape.points.map(([lx, ly]) => {
-    const sx = lx * scaleX;
-    const sy = ly * scaleY;
-    return [x + sx * cos - sy * sin, y + sx * sin + sy * cos];
+    // Apply scale + shear in local space, then rotate
+    // Transform matrix (column-major, pre-rotation):
+    //   | scaleX  shearX |
+    //   | shearY  scaleY |
+    const tx = lx * scaleX + ly * shearX;
+    const ty = lx * shearY + ly * scaleY;
+    return [x + tx * cos - ty * sin, y + tx * sin + ty * cos];
   });
 }
 

@@ -2,7 +2,8 @@
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
 import type { Shape, ViewState, EditorSettings, DragState, Tool } from "./lib/types";
-import { drawGrid, drawAxes, drawShape, drawPolygonPreview, drawTranslateGizmo, drawRotateGizmo, drawScaleGizmo, GIZMO_AXIS_LEN, GIZMO_HIT_RADIUS, ROTATE_GIZMO_RADIUS, SCALE_GIZMO_AXIS_LEN, SCALE_GIZMO_HIT_RADIUS } from "./lib/draw";
+import { drawGrid, drawAxes, drawShape, drawPolygonPreview, drawTranslateGizmo, drawRotateGizmo, drawScaleGizmo, drawShearGizmo, GIZMO_AXIS_LEN, GIZMO_HIT_RADIUS, ROTATE_GIZMO_RADIUS, SCALE_GIZMO_AXIS_LEN, SCALE_GIZMO_HIT_RADIUS, SHEAR_HANDLE_HALF, SHEAR_HANDLE_HIT, SHEAR_HANDLE_OFFSET } from "./lib/draw";
+import { getBounds } from "./lib/geometry";
 
 const VERTEX_HIT_RADIUS = 10; // screen px
 import {
@@ -93,6 +94,8 @@ export default function EditorCanvas({
   // SCALE tool state
   const scaleActiveVertexRef = useRef<number | null>(null); // vertex used as scale pivot (null = shape center)
   const scaleHoveredAxisRef = useRef<"x" | "y" | "xy" | null>(null);
+  // SHEAR tool state
+  const shearHoveredAxisRef = useRef<"x" | "y" | null>(null);
   const [gizmoCursor, setGizmoCursor] = useState<"grab" | "default">("default");
   const [tick, setTick] = useState(0);
 
@@ -211,6 +214,14 @@ export default function EditorCanvas({
           originWorld = getWorldPoints(sel)[vi];
         }
         drawScaleGizmo(ctx, originWorld, view, scaleHoveredAxisRef.current, sel);
+      }
+    }
+
+    // Shear gizmo is drawn in screen space (after restore)
+    if (tool === "SHEAR") {
+      const sel = shapes.find((s) => s.id === selectedId);
+      if (sel) {
+        drawShearGizmo(ctx, sel, view, shearHoveredAxisRef.current);
       }
     }
 
@@ -611,6 +622,48 @@ export default function EditorCanvas({
         onSelectId(scaleOther ? scaleOther.id : null);
         return;
       }
+
+      // ── SHEAR tool ─────────────────────────────────────────────────────────
+      if (tool === "SHEAR") {
+        const sel = shapes.find((s) => s.id === live.current.selectedId);
+        if (!sel) {
+          // Select a shape first
+          let hit: Shape | null = null;
+          for (let i = shapes.length - 1; i >= 0; i--) {
+            if (shapes[i].id === PREVIEW_ID) continue;
+            if (hitTest(shapes[i], wx, wy)) { hit = shapes[i]; break; }
+          }
+          if (hit) onSelectId(hit.id);
+          return;
+        }
+
+        // Gizmo handle hit → start drag
+        const axis = shearHoveredAxisRef.current;
+        if (axis) {
+          dragRef.current = {
+            type: "shear-tool",
+            id: sel.id,
+            axis,
+            startX: wx,
+            startY: wy,
+            origShearX: sel.shearX ?? 0,
+            origShearY: sel.shearY ?? 0,
+          };
+          return;
+        }
+
+        // Click on fill — do nothing special (just keep selection)
+        if (hitTest(sel, wx, wy)) return;
+
+        // Click outside → try to select another shape
+        let shearOther: Shape | null = null;
+        for (let i = shapes.length - 1; i >= 0; i--) {
+          if (shapes[i].id === PREVIEW_ID || shapes[i].id === sel.id) continue;
+          if (hitTest(shapes[i], wx, wy)) { shearOther = shapes[i]; break; }
+        }
+        onSelectId(shearOther ? shearOther.id : null);
+        return;
+      }
     },
     [onSelectId, onCommit, onToolChange, onPolyPtsChange, onShapesChange]
   );
@@ -795,6 +848,59 @@ export default function EditorCanvas({
         }
       }
 
+      // Shear gizmo hover detection (screen space)
+      if (tool === "SHEAR" && !dragRef.current) {
+        const sel = shapes.find((s) => s.id === live.current.selectedId);
+        if (sel) {
+          const b = getBounds(sel);
+          const toSX = (wxx: number) => wxx * view.zoom + view.offset.x;
+          const toSY = (wyy: number) => wyy * view.zoom + view.offset.y;
+
+          const bLeft   = toSX(b.x);
+          const bRight  = toSX(b.x + b.w);
+          const bTop    = toSY(b.y);
+          const bBottom = toSY(b.y + b.h);
+          const bMidX   = (bLeft + bRight)  / 2;
+          const bMidY   = (bTop  + bBottom) / 2;
+
+          const shearX  = sel.shearX ?? 0;
+          const shearY  = sel.shearY ?? 0;
+          const off     = SHEAR_HANDLE_OFFSET;
+          const hl      = SHEAR_HANDLE_HALF;
+          const hit     = SHEAR_HANDLE_HIT;
+
+          // ShearX handle centre
+          const shiftX  = shearX * (bBottom - bTop) * 0.5;
+          const hxCX    = bMidX + shiftX;
+          const hxCY    = bTop - off;
+          // ShearY handle centre
+          const shiftY  = shearY * (bRight - bLeft) * 0.5;
+          const hyCX    = bRight + off;
+          const hyCY    = bMidY + shiftY;
+
+          let axis: "x" | "y" | null = null;
+          // Hit test shearX bar (horizontal strip)
+          if (Math.abs(cy - hxCY) <= hit && cx >= hxCX - hl - hit && cx <= hxCX + hl + hit) {
+            axis = "x";
+          }
+          // Hit test shearY bar (vertical strip)
+          else if (Math.abs(cx - hyCX) <= hit && cy >= hyCY - hl - hit && cy <= hyCY + hl + hit) {
+            axis = "y";
+          }
+
+          if (axis !== shearHoveredAxisRef.current) {
+            shearHoveredAxisRef.current = axis;
+            setGizmoCursor(axis ? "grab" : "default");
+            draw();
+          }
+        } else {
+          if (shearHoveredAxisRef.current !== null) {
+            shearHoveredAxisRef.current = null;
+            draw();
+          }
+        }
+      }
+
       if (!dragRef.current) return;
       const d = dragRef.current;
 
@@ -919,6 +1025,27 @@ export default function EditorCanvas({
         draw();
       }
 
+      if (d.type === "shear-tool") {
+        const deltaX = wx - d.startX;
+        const deltaY = wy - d.startY;
+        // Sensitivity: world units / reference size
+        // We normalise by a fixed reference so the gesture feels consistent regardless of zoom
+        const refSize = 96; // world units — 4 grid cells ≈ comfortable drag range
+        onShapesChange(
+          shapes.map((s) => {
+            if (s.id !== d.id) return s;
+            if (d.axis === "x") {
+              // Drag horizontally → shearX (positive = top edge shifts right)
+              return { ...s, shearX: d.origShearX + deltaX / refSize };
+            } else {
+              // Drag vertically → shearY (positive = right edge shifts down, screen Y inverted)
+              return { ...s, shearY: d.origShearY + deltaY / refSize };
+            }
+          })
+        );
+        draw();
+      }
+
       if (d.type === "translate") {
         onShapesChange(
           shapes.map((s) => {
@@ -964,6 +1091,7 @@ export default function EditorCanvas({
     if (hoveredVertexRef.current !== null)  { hoveredVertexRef.current = null;   needDraw = true; }
     if (rotateMouseSSRef.current !== null)  { rotateMouseSSRef.current = null;   needDraw = true; }
     if (scaleHoveredAxisRef.current !== null) { scaleHoveredAxisRef.current = null; needDraw = true; }
+    if (shearHoveredAxisRef.current !== null) { shearHoveredAxisRef.current = null; needDraw = true; }
     if (needDraw) draw();
   }, [draw]);
 
@@ -976,7 +1104,7 @@ export default function EditorCanvas({
 
     const { shapes } = live.current;
 
-    if (d.type === "move" || d.type === "rotate" || d.type === "scale" || d.type === "translate" || d.type === "vertex" || d.type === "rotate-tool" || d.type === "scale-tool") {
+    if (d.type === "move" || d.type === "rotate" || d.type === "scale" || d.type === "translate" || d.type === "vertex" || d.type === "rotate-tool" || d.type === "scale-tool" || d.type === "shear-tool") {
       onCommit(shapes);
     }
     if (d.type === "rotate-tool") {
@@ -987,6 +1115,7 @@ export default function EditorCanvas({
   const cursor =
     tool === "TRANSLATE" ? gizmoCursor    :
     tool === "SCALE"     ? gizmoCursor    :
+    tool === "SHEAR"     ? gizmoCursor    :
     tool === "ROTATE"    ? "crosshair"    :
     tool === "SELECT"    ? "default"      : "crosshair";
 
@@ -1178,12 +1307,16 @@ function finalizePolygon(
     rotation: 0,
     scaleX: 1,
     scaleY: 1,
+    shearX: 0,
+    shearY: 0,
     originalPoints: localPts.map(([x, y]) => [x, y]),
     originalX: cx,
     originalY: cy,
     originalRotation: 0,
     originalScaleX: 1,
     originalScaleY: 1,
+    originalShearX: 0,
+    originalShearY: 0,
   };
 
   onCommit([...shapes.filter((s) => s.id !== PREVIEW_ID), shape]);

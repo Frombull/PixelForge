@@ -427,6 +427,139 @@ export function drawScaleGizmo(
   ctx.restore();
 }
 
+// ─── Shear gizmo ─────────────────────────────────────────────────────────────
+
+export const SHEAR_HANDLE_HALF   = 28;  // half-length of the handle bar (screen px)
+export const SHEAR_HANDLE_HIT    = 14;  // hit-test radius around handle bar (screen px)
+export const SHEAR_HANDLE_OFFSET = 18;  // distance above/right of the bbox edge (screen px)
+
+/**
+ * Draw the SHEAR gizmo in screen space.
+ *
+ * Two sliding handles on the bounding-box edges:
+ *   - Cyan bar on the TOP edge  → shearX  (drag left/right)
+ *   - Orange bar on the RIGHT edge → shearY (drag up/down)
+ *
+ * The bar shifts horizontally/vertically proportionally to the current shear value
+ * so you can see how far the shape is already skewed.
+ */
+export function drawShearGizmo(
+  ctx: CanvasRenderingContext2D,
+  shape: Shape,
+  view: ViewState,
+  hoveredAxis: "x" | "y" | null,
+): void {
+  const b = getBounds(shape);
+
+  // Convert bbox corners to screen space
+  const toSX = (wx: number) => wx * view.zoom + view.offset.x;
+  const toSY = (wy: number) => wy * view.zoom + view.offset.y;
+
+  const bLeft   = toSX(b.x);
+  const bRight  = toSX(b.x + b.w);
+  const bTop    = toSY(b.y);
+  const bBottom = toSY(b.y + b.h);
+  const bMidX   = (bLeft + bRight)  / 2;
+  const bMidY   = (bTop  + bBottom) / 2;
+
+  const shearX = shape.shearX ?? 0;
+  const shearY = shape.shearY ?? 0;
+  const off    = SHEAR_HANDLE_OFFSET;
+  const hl     = SHEAR_HANDLE_HALF;
+
+  // ShearX handle: sits above the top edge, shifts horizontally with shearX
+  // The visual offset in screen px is proportional to shearX * half-bbox-height
+  const shiftX   = shearX * (bBottom - bTop) * 0.5; // screen px shift
+  const hxCX     = bMidX + shiftX;
+  const hxCY     = bTop - off;
+  const colorX   = hoveredAxis === "x" ? "#22d3ee" : "rgba(34,211,238,0.6)";
+
+  // ShearY handle: sits right of the right edge, shifts vertically with shearY
+  const shiftY   = shearY * (bRight - bLeft) * 0.5;
+  const hyCX     = bRight + off;
+  const hyCY     = bMidY + shiftY;
+  const colorY   = hoveredAxis === "y" ? "#fb923c" : "rgba(251,146,60,0.6)";
+
+  ctx.save();
+
+  // ── Bbox reference dashes
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255,255,255,0.12)";
+  ctx.strokeRect(bLeft, bTop, bRight - bLeft, bBottom - bTop);
+  ctx.setLineDash([]);
+
+  // ── ShearX handle bar (horizontal, above top edge)
+  // Dashed guide line from top-mid to handle centre
+  ctx.beginPath();
+  ctx.moveTo(bMidX, bTop);
+  ctx.lineTo(hxCX, hxCY);
+  ctx.strokeStyle = hoveredAxis === "x" ? "rgba(34,211,238,0.5)" : "rgba(34,211,238,0.2)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bar
+  ctx.beginPath();
+  ctx.moveTo(hxCX - hl, hxCY);
+  ctx.lineTo(hxCX + hl, hxCY);
+  ctx.strokeStyle = colorX;
+  ctx.lineWidth = hoveredAxis === "x" ? 3 : 2;
+  ctx.stroke();
+
+  // Centre dot
+  ctx.beginPath();
+  ctx.arc(hxCX, hxCY, hoveredAxis === "x" ? 5 : 4, 0, Math.PI * 2);
+  ctx.fillStyle = colorX;
+  ctx.fill();
+
+  // ── ShearY handle bar (vertical, right of right edge)
+  ctx.beginPath();
+  ctx.moveTo(bRight, bMidY);
+  ctx.lineTo(hyCX, hyCY);
+  ctx.strokeStyle = hoveredAxis === "y" ? "rgba(251,146,60,0.5)" : "rgba(251,146,60,0.2)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.beginPath();
+  ctx.moveTo(hyCX, hyCY - hl);
+  ctx.lineTo(hyCX, hyCY + hl);
+  ctx.strokeStyle = colorY;
+  ctx.lineWidth = hoveredAxis === "y" ? 3 : 2;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(hyCX, hyCY, hoveredAxis === "y" ? 5 : 4, 0, Math.PI * 2);
+  ctx.fillStyle = colorY;
+  ctx.fill();
+
+  // ── Labels
+  ctx.font = `10px "JetBrains Mono", monospace`;
+
+  const fmtShear = (v: number) => (v >= 0 ? "+" : "") + v.toFixed(3);
+  const labelX = `shX ${fmtShear(shearX)}`;
+  const labelY = `shY ${fmtShear(shearY)}`;
+
+  // ShearX label (above handle)
+  const twX = ctx.measureText(labelX).width;
+  ctx.fillStyle = "rgba(13,13,15,0.82)";
+  ctx.fillRect(hxCX - twX / 2 - 3, hxCY - 24, twX + 6, 14);
+  ctx.fillStyle = hoveredAxis === "x" ? "#22d3ee" : "rgba(34,211,238,0.7)";
+  ctx.fillText(labelX, hxCX - twX / 2, hxCY - 13);
+
+  // ShearY label (right of handle)
+  const twY = ctx.measureText(labelY).width;
+  ctx.fillStyle = "rgba(13,13,15,0.82)";
+  ctx.fillRect(hyCX + 10, hyCY - 8, twY + 6, 14);
+  ctx.fillStyle = hoveredAxis === "y" ? "#fb923c" : "rgba(251,146,60,0.7)";
+  ctx.fillText(labelY, hyCX + 13, hyCY + 3);
+
+  ctx.restore();
+}
+
 // ─── In-progress polygon preview ──────────────────────────────────────────────
 
 export function drawPolygonPreview(

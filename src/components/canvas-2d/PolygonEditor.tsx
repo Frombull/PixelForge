@@ -135,6 +135,8 @@ export default function PolygonEditor() {
           rotation: s.originalRotation ?? 0,
           scaleX:   s.originalScaleX   ?? 1,
           scaleY:   s.originalScaleY   ?? 1,
+          shearX:   s.originalShearX   ?? 0,
+          shearY:   s.originalShearY   ?? 0,
           ...(s.originalRadius !== undefined ? { radius: s.originalRadius } : {}),
         };
       })

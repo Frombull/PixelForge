@@ -38,6 +38,7 @@ export const TOOLS: { id: Tool; icon: string; shortcut: string; label: string }[
   { id: "TRANSLATE", icon: "⤢", shortcut: "T", label: "Translate" },
   { id: "ROTATE",    icon: "↻", shortcut: "R", label: "Rotacionar" },
   { id: "SCALE",     icon: "⇲", shortcut: "S", label: "Escala" },
+  { id: "SHEAR",     icon: "⧖", shortcut: "H", label: "Cisalhamento" },
 ];
 
 export const TOOL_KEY_MAP: Record<string, Tool> = {
@@ -46,6 +47,7 @@ export const TOOL_KEY_MAP: Record<string, Tool> = {
   t: "TRANSLATE",
   r: "ROTATE",
   s: "SCALE",
+  h: "SHEAR",
 };
 
 // ─── Placeholder buttons ──────────────────────────────────────────────────────

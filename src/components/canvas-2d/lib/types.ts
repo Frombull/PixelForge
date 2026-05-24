@@ -1,4 +1,4 @@
-export type Tool = "SELECT" | "POLYGON" | "TRANSLATE" | "ROTATE" | "SCALE";
+export type Tool = "SELECT" | "POLYGON" | "TRANSLATE" | "ROTATE" | "SCALE" | "SHEAR";
 
 export type ShapeType = "polygon" | "rect" | "circle";
 
@@ -16,6 +16,9 @@ export interface Shape {
   rotation: number;
   scaleX: number;
   scaleY: number;
+  /** Shear (skew) factors — applied before rotation in the transform matrix */
+  shearX: number;
+  shearY: number;
   /** Snapshot of the shape at creation time — used by "Reset" in Inspector */
   originalPoints?: [number, number][];
   originalX?: number;
@@ -23,6 +26,8 @@ export interface Shape {
   originalRotation?: number;
   originalScaleX?: number;
   originalScaleY?: number;
+  originalShearX?: number;
+  originalShearY?: number;
   originalRadius?: number;
 }
 
@@ -47,4 +52,5 @@ export type DragState =
   | { type: "vertex"; id: string; vertexIndex: number; startX: number; startY: number; origPoint: [number, number]; axis: "x" | "y" | "xy" }
   | { type: "rotate-tool"; id: string; cx: number; cy: number; startAngle: number; origRot: number; pivotIsVertex: boolean }
   | { type: "scale-tool"; id: string; axis: "x" | "y" | "xy"; startX: number; startY: number; origScaleX: number; origScaleY: number; pivotWorld: [number, number] }
+  | { type: "shear-tool"; id: string; axis: "x" | "y"; startX: number; startY: number; origShearX: number; origShearY: number }
   | { type: "pan"; startX: number; startY: number; ox: number; oy: number };

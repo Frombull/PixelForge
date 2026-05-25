@@ -8,6 +8,7 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  SelectionMode,
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
@@ -27,9 +28,17 @@ import "./logic-gates.css";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import GateNode from "./GateNode";
+import PropertiesSidebar from "./PropertiesSidebar";
 import Sidebar from "./Sidebar";
-import { simulate, type GateNode as GNode } from "./simulator";
-import { GATE_CATALOG, type GateKind, type GateNodeData } from "./types";
+import {
+  buildCustomFromCanvas,
+  loadCustomGates,
+  saveCustomGates,
+  type CustomGateDef,
+} from "./customGates";
+import { CustomGatesProvider } from "./customGatesContext";
+import { nodeIsActive, outKey, simulate, type GateNode as GNode } from "./simulator";
+import { GATE_CATALOG, getDescriptor, type GateKind, type GateNodeData } from "./types";
 
 // ─── Wire edge ────────────────────────────────────────────────────────────────
 
@@ -84,6 +93,10 @@ function redoSnapshot(history: History): { history: History; snapshot: Snapshot 
 
 const nodeTypes: NodeTypes = { gate: GateNode };
 const edgeTypes: EdgeTypes = { wire: WireEdge };
+
+const GRID = 24;
+const snap = (v: number) => Math.round(v / GRID) * GRID;
+const snapPos = (p: { x: number; y: number }) => ({ x: snap(p.x), y: snap(p.y) });
 
 let idCounter = 1;
 const nextId = () => `n${idCounter++}`;
@@ -252,6 +265,12 @@ function EditorInner() {
   const [edges, setEdges] = useState<Edge[]>(initial.edges);
   const [running, setRunning] = useState(false);
   const [tick, setTick] = useState(0);
+  const [customs, setCustoms] = useState<CustomGateDef[]>([]);
+
+  // Carrega customs do localStorage no mount (client-side only).
+  useEffect(() => {
+    setCustoms(loadCustomGates());
+  }, []);
 
   const [history, setHistory] = useState<History>(() =>
     makeHistory({ nodes: initial.nodes as GNode[], edges: initial.edges })
@@ -267,6 +286,8 @@ function EditorInner() {
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
+  const clipboard = useRef<{ nodes: GNode[]; edges: Edge[] } | null>(null);
+  const pasteCount = useRef(0);
   const { screenToFlowPosition } = useReactFlow();
 
   // ── Commit ────────────────────────────────────────────────────────────────────
@@ -299,17 +320,83 @@ function EditorInner() {
   const canUndo = history.index > 0;
   const canRedo = history.index < history.stack.length - 1;
 
+  // ── Copy / Paste ──────────────────────────────────────────────────────────────
+  const copySelection = useCallback(() => {
+    const selectedNodes = live.current.nodes.filter((n) => n.selected);
+    if (selectedNodes.length === 0) return;
+    const selectedIds = new Set(selectedNodes.map((n) => n.id));
+    const internalEdges = live.current.edges.filter(
+      (e) => selectedIds.has(e.source) && selectedIds.has(e.target),
+    );
+    clipboard.current = {
+      nodes: selectedNodes.map((n) => ({
+        ...n,
+        data: { ...n.data },
+      })),
+      edges: internalEdges.map((e) => ({ ...e })),
+    };
+    pasteCount.current = 0;
+    flash(selectedNodes.length === 1 ? "copiado" : `${selectedNodes.length} copiados`);
+  }, [flash]);
+
+  const pasteClipboard = useCallback(() => {
+    const clip = clipboard.current;
+    if (!clip || clip.nodes.length === 0) return;
+    pasteCount.current += 1;
+    const offset = GRID * 2 * pasteCount.current;
+
+    const idMap = new Map<string, string>();
+    const newNodes: GNode[] = clip.nodes.map((n) => {
+      const newId = nextId();
+      idMap.set(n.id, newId);
+      return {
+        ...n,
+        id: newId,
+        position: snapPos({ x: n.position.x + offset, y: n.position.y + offset }),
+        selected: true,
+        data: { ...n.data, value: undefined },
+      };
+    });
+
+    const newEdges: Edge[] = clip.edges.map((e) => ({
+      ...e,
+      id: `e${idCounter++}`,
+      source: idMap.get(e.source) ?? e.source,
+      target: idMap.get(e.target) ?? e.target,
+      selected: true,
+    }));
+
+    const deselectedExisting: GNode[] = live.current.nodes.map((n) =>
+      n.selected ? { ...n, selected: false } : n,
+    );
+    const deselectedExistingEdges: Edge[] = live.current.edges.map((e) =>
+      e.selected ? { ...e, selected: false } : e,
+    );
+
+    const mergedNodes = [...deselectedExisting, ...newNodes];
+    const mergedEdges = [...deselectedExistingEdges, ...newEdges];
+    commit(mergedNodes, mergedEdges, newNodes.length === 1 ? "colado" : `${newNodes.length} colados`);
+  }, [commit]);
+
   // ── Atalhos de teclado ────────────────────────────────────────────────────────
   useEffect(() => {
+    const isTypingTarget = (el: EventTarget | null): boolean => {
+      if (!(el instanceof HTMLElement)) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+    };
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
       if (!ctrl) return;
-      if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
-      if (e.key === "y" || (e.key === "z" && e.shiftKey)) { e.preventDefault(); redo(); }
+      if (isTypingTarget(e.target)) return;
+      if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
+      if (e.key === "y" || (e.key === "z" && e.shiftKey)) { e.preventDefault(); redo(); return; }
+      if (e.key === "c" || e.key === "C") { e.preventDefault(); copySelection(); return; }
+      if (e.key === "v" || e.key === "V") { e.preventDefault(); pasteClipboard(); return; }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [undo, redo]);
+  }, [undo, redo, copySelection, pasteClipboard]);
 
   // ── onNodesChange ─────────────────────────────────────────────────────────────
   const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -369,7 +456,8 @@ function EditorInner() {
   // ── Adicionar nó ──────────────────────────────────────────────────────────────
   const addNode = useCallback(
     (kind: GateKind, position?: { x: number; y: number }) => {
-      const pos = position ?? { x: 200 + Math.random() * 180, y: 160 + Math.random() * 160 };
+      const raw = position ?? { x: 200 + Math.random() * 180, y: 160 + Math.random() * 160 };
+      const pos = snapPos(raw);
       const newNode: GNode = { id: nextId(), type: "gate", position: pos, data: { kind, state: false } };
       setNodes((nds) => {
         const next = [...nds, newNode] as GNode[];
@@ -398,14 +486,25 @@ function EditorInner() {
   }, []);
 
   // ── Simulação ─────────────────────────────────────────────────────────────────
-  const simResult = useMemo(() => simulate(nodes, edges), [nodes, edges, tick]);
+  const simResult = useMemo(
+    () => simulate(nodes, edges, customs),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [nodes, edges, customs, tick],
+  );
 
   const decoratedNodes = useMemo(() =>
     nodes.map((n) => {
-      const v = simResult.nodeValues.get(n.id) ?? false;
+      const desc = getDescriptor(n.data.kind, customs);
+      const outCount = desc.outputs;
+      let v: boolean;
+      if (n.data.kind === "OUTPUT") {
+        v = simResult.nodeValues.get(outKey(n.id, "out-0")) ?? false;
+      } else {
+        v = nodeIsActive(n.id, outCount, simResult.nodeValues);
+      }
       return (n.data.value ?? false) === v ? n : { ...n, data: { ...n.data, value: v } };
     }),
-  [nodes, simResult]);
+  [nodes, simResult, customs]);
 
   const styledEdges = useMemo<Edge[]>(() =>
     edges.map((e) => {
@@ -421,8 +520,6 @@ function EditorInner() {
   }, [running]);
 
   // ── Controles ─────────────────────────────────────────────────────────────────
-  const handleStep  = useCallback(() => setTick((k) => k + 1), []);
-
   const handleReset = useCallback(() => {
     setRunning(false);
     setNodes((nds) => nds.map((n) => n.data.kind === "INPUT" ? { ...n, data: { ...n.data, state: false } } : n));
@@ -435,6 +532,61 @@ function EditorInner() {
     commit([], [], "limpar");
   }, [commit]);
 
+  // ── Salvar canvas como custom gate ────────────────────────────────────────────
+  const handleSaveAsGate = useCallback(() => {
+    const inCount = nodes.filter((n) => n.data.kind === "INPUT").length;
+    const outCount = nodes.filter((n) => n.data.kind === "OUTPUT").length;
+    if (inCount === 0 && outCount === 0) {
+      flash("nada pra salvar");
+      return;
+    }
+    const name = window.prompt(
+      `Nome da nova porta (${inCount} in / ${outCount} out):`,
+    );
+    if (!name || !name.trim()) return;
+    const def = buildCustomFromCanvas(name, nodes, edges);
+    setCustoms((prev) => {
+      const next = [...prev, def];
+      saveCustomGates(next);
+      return next;
+    });
+    flash(`salvo: ${def.name}`);
+  }, [nodes, edges, flash]);
+
+  const handleDeleteCustom = useCallback(
+    (id: string) => {
+      setCustoms((prev) => {
+        const next = prev.filter((c) => c.id !== id);
+        saveCustomGates(next);
+        return next;
+      });
+      flash("custom removido");
+    },
+    [flash],
+  );
+
+  const handleRenameNode = useCallback(
+    (nodeId: string, name: string) => {
+      const trimmed = name.trim();
+      const nextNodes = live.current.nodes.map((n) => {
+        if (n.id !== nodeId) return n;
+        const data = { ...n.data };
+        if (trimmed) data.name = trimmed;
+        else delete data.name;
+        return { ...n, data };
+      });
+      commit(nextNodes, live.current.edges, trimmed ? "renomear" : "remover nome");
+    },
+    [commit],
+  );
+
+  // ── Seleção ───────────────────────────────────────────────────────────────────
+  const selectedNodes = useMemo(() => nodes.filter((n) => n.selected), [nodes]);
+  const selectedNode =
+    selectedNodes.length === 1
+      ? decoratedNodes.find((n) => n.id === selectedNodes[0].id) ?? selectedNodes[0]
+      : null;
+
   const counts = useMemo(() => {
     let gates = 0, inputs = 0, outputs = 0;
     for (const n of nodes) {
@@ -446,8 +598,9 @@ function EditorInner() {
   }, [nodes, edges]);
 
   return (
+    <CustomGatesProvider value={customs}>
     <div className="flex h-screen overflow-hidden bg-[#1e1e1e] font-mono text-white">
-      <Sidebar onAdd={addNode} />
+      <Sidebar onAdd={addNode} customs={customs} onDeleteCustom={handleDeleteCustom} />
 
       {/* Canvas — ocupa todo o restante, sem toolbar */}
       <div
@@ -470,10 +623,14 @@ function EditorInner() {
           defaultEdgeOptions={{ type: "wire" }}
           connectionLineStyle={{ stroke: "#aaa", strokeWidth: 1.5, strokeDasharray: "4 3" }}
           deleteKeyCode={["Backspace", "Delete"]}
-          // MB do meio (1) e MB direito (2) arrastam a câmera
+          // MB do meio (1) e MB direito (2) arrastam a câmera; MB esquerdo (0) faz box selection
           panOnDrag={[1, 2]}
+          selectionOnDrag
+          selectionMode={SelectionMode.Partial}
+          snapToGrid
+          snapGrid={[GRID, GRID]}
         >
-          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="#333" />
+          <Background variant={BackgroundVariant.Dots} gap={GRID} size={1} color="#333" />
           <MiniMap
             pannable zoomable
             nodeColor={(n) => {
@@ -513,9 +670,10 @@ function EditorInner() {
               onClick={() => setRunning((r) => !r)}
               active={running}
             />
-            <ActionButton label="⏭ STEP"  onClick={handleStep}  disabled={running} />
             <ActionButton label="↺ RESET" onClick={handleReset} />
             <ActionButton label="✕ LIMPAR" onClick={handleClear} danger />
+            <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
+            <ActionButton label="⎘ SAVE GATE" onClick={handleSaveAsGate} />
           </div>
 
           {/* Linha 2: stats */}
@@ -530,7 +688,15 @@ function EditorInner() {
         {/* Action log — canto inferior esquerdo */}
         <ActionLog log={actionLog} />
       </div>
+
+      <PropertiesSidebar
+        node={selectedNode}
+        selectionCount={selectedNodes.length}
+        customs={customs}
+        onRename={handleRenameNode}
+      />
     </div>
+    </CustomGatesProvider>
   );
 }
 

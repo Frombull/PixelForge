@@ -3,19 +3,36 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
+import type { CustomGateDef } from "./customGates";
+import { customIdFromKind, isCustomKind } from "./customGates";
+import { useCustomGates } from "./customGatesContext";
 import { getDescriptor, type GateNodeData } from "./types";
 
 function cls(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-// Tailwind v4: important modifier is `class!` (not `!class`)
 const HANDLE =
   "w-2.5! h-2.5! bg-[#2c2c2c]! border! border-[#555]! hover:border-[#aaa]! transition-colors!";
 
+const CUSTOM_COLOR = "#22d3ee";
+
+// Label exibida abaixo de INPUT/OUTPUT.
+function NameLabel({ name, color }: { name: string; color: string }) {
+  return (
+    <span
+      className="absolute left-0 right-0 -bottom-4 text-center font-mono text-[9px] font-semibold tracking-[0.12em] uppercase select-none pointer-events-none"
+      style={{ color }}
+    >
+      {name}
+    </span>
+  );
+}
+
 export default function GateNode({ id, data, selected }: NodeProps) {
   const d = data as GateNodeData;
-  const desc = getDescriptor(d.kind);
+  const customs = useCustomGates();
+  const desc = getDescriptor(d.kind, customs);
   const on = !!d.value;
   const { setNodes } = useReactFlow();
 
@@ -49,6 +66,7 @@ export default function GateNode({ id, data, selected }: NodeProps) {
           {d.state ? "1" : "0"}
         </button>
         <Handle type="source" position={Position.Right} id="out-0" className={HANDLE} />
+        {d.name && <NameLabel name={d.name} color="#4ade80" />}
       </div>
     );
   }
@@ -70,11 +88,23 @@ export default function GateNode({ id, data, selected }: NodeProps) {
         >
           {on ? "1" : "0"}
         </div>
+        {d.name && <NameLabel name={d.name} color="#f87171" />}
       </div>
     );
   }
 
-  // ── Logic gates ─────────────────
+  // ── Logic gates (built-in e custom) ───────────────────────────────────────
+  const isCustom = !!desc.custom;
+  let inputNames: string[] = [];
+  let outputNames: string[] = [];
+  if (isCustom) {
+    const def: CustomGateDef | undefined = customs.find(
+      (c) => c.id === customIdFromKind(d.kind),
+    );
+    inputNames = def?.inputNames ?? [];
+    outputNames = def?.outputNames ?? [];
+  }
+
   const inputHandles = Array.from({ length: desc.inputs }, (_, i) => {
     const top = desc.inputs === 1 ? 50 : (i + 1) * (100 / (desc.inputs + 1));
     return (
@@ -89,24 +119,85 @@ export default function GateNode({ id, data, selected }: NodeProps) {
     );
   });
 
+  const outputHandles = Array.from({ length: desc.outputs }, (_, i) => {
+    const top = desc.outputs === 1 ? 50 : (i + 1) * (100 / (desc.outputs + 1));
+    return (
+      <Handle
+        key={`out-${i}`}
+        type="source"
+        position={Position.Right}
+        id={`out-${i}`}
+        style={{ top: `${top}%` }}
+        className={HANDLE}
+      />
+    );
+  });
+
+  // Labels dos pinos só pra custom (built-ins não precisam).
+  const pinLabels = isCustom ? (
+    <>
+      {inputNames.map((name, i) => {
+        const top = inputNames.length === 1 ? 50 : (i + 1) * (100 / (inputNames.length + 1));
+        return (
+          <span
+            key={`il-${i}`}
+            className="absolute font-mono text-[8px] font-semibold tracking-wider uppercase select-none pointer-events-none"
+            style={{ top: `${top}%`, left: 6, transform: "translateY(-50%)", color: "#8a8a8a" }}
+          >
+            {name}
+          </span>
+        );
+      })}
+      {outputNames.map((name, i) => {
+        const top = outputNames.length === 1 ? 50 : (i + 1) * (100 / (outputNames.length + 1));
+        return (
+          <span
+            key={`ol-${i}`}
+            className="absolute font-mono text-[8px] font-semibold tracking-wider uppercase select-none pointer-events-none"
+            style={{ top: `${top}%`, right: 6, transform: "translateY(-50%)", color: "#8a8a8a" }}
+          >
+            {name}
+          </span>
+        );
+      })}
+    </>
+  ) : null;
+
+  const pinCount = Math.max(desc.inputs, desc.outputs, 1);
+  const minHeight = Math.max(48, pinCount * 20);
+  const minWidth = isCustom ? 96 : 72;
+
+  const borderColor = on
+    ? "#4ade80"
+    : selected
+    ? "#888"
+    : isCustom
+    ? CUSTOM_COLOR
+    : "#3a3a3a";
+  const labelColor = on ? "#4ade80" : isCustom ? CUSTOM_COLOR : "#b0b0b0";
+
   return (
     <div
-      className={cls(
-        "relative flex items-center justify-center px-4 py-3 min-w-18 min-h-12",
-        "bg-[#1e1e1e] rounded-xs border transition-colors duration-150",
-        on ? "border-[#4ade80]" : selected ? "border-[#888]" : "border-[#3a3a3a]"
-      )}
+      className="relative flex items-center justify-center px-5 py-3 bg-[#1e1e1e] rounded-xs border transition-colors duration-150"
+      style={{ borderColor, minHeight, minWidth }}
     >
       {inputHandles}
+      {pinLabels}
       <span
-        className={cls(
-          "font-mono text-[11px] font-semibold tracking-widest uppercase select-none",
-          on ? "text-[#4ade80]" : "text-[#b0b0b0]"
-        )}
+        className="font-mono text-[11px] font-semibold tracking-widest uppercase select-none"
+        style={{ color: labelColor }}
       >
         {desc.label}
       </span>
-      <Handle type="source" position={Position.Right} id="out-0" className={HANDLE} />
+      {outputHandles}
+      {d.name && (
+        <span
+          className="absolute left-0 right-0 -bottom-4 text-center font-mono text-[9px] font-semibold tracking-[0.12em] uppercase select-none pointer-events-none"
+          style={{ color: isCustom ? CUSTOM_COLOR : "#b0b0b0" }}
+        >
+          {d.name}
+        </span>
+      )}
     </div>
   );
 }

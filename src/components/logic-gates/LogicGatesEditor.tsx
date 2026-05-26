@@ -32,6 +32,7 @@ import WireEdge from "./WireEdge";
 import { WireCommitContext, type WireCommit } from "./wireEditContext";
 import {
   buildCustomFromCanvas,
+  customKind,
   loadCustomGates,
   saveCustomGates,
   type CustomGateDef,
@@ -845,7 +846,41 @@ function EditorInner() {
     }
 
     // Pane (vazio)
+    const flowPos = snapPos(screenToFlowPosition({ x: menu.x, y: menu.y }));
+    const addAt = (kind: GateKind) => addNode(kind, flowPos);
+
+    const gateList = GATE_CATALOG.filter(
+      (g) => g.kind !== "INPUT" && g.kind !== "OUTPUT",
+    );
+
+    const gatesSubmenu: ContextMenuEntry[] = gateList.map((g) => ({
+      label: g.label,
+      onClick: () => addAt(g.kind),
+    }));
+
+    if (customs.length > 0) {
+      gatesSubmenu.push("separator");
+      for (const c of customs) {
+        gatesSubmenu.push({
+          label: c.name,
+          accent: "#22d3ee",
+          onClick: () => addAt(customKind(c.id)),
+        });
+      }
+    }
+
+    const hasTable = live.current.nodes.some((n) => n.type === TRUTH_TABLE_TYPE);
+
     return [
+      { label: "Adicionar input", onClick: () => addAt("INPUT") },
+      { label: "Adicionar output", onClick: () => addAt("OUTPUT") },
+      { label: "Adicionar porta", submenu: gatesSubmenu },
+      {
+        label: "Tabela da verdade",
+        onClick: addTruthTable,
+        disabled: hasTable,
+      },
+      "separator",
       {
         label: "Colar",
         shortcut: "Ctrl+V",
@@ -854,7 +889,7 @@ function EditorInner() {
       },
     ];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [menu, copySelection, duplicateSelection, pasteClipboard, deleteNodesByIds, toggleInputState, requestRename, screenToFlowPosition]);
+  }, [menu, copySelection, duplicateSelection, pasteClipboard, deleteNodesByIds, toggleInputState, requestRename, screenToFlowPosition, addNode, addTruthTable, customs]);
 
   const counts = useMemo(() => {
     let gates = 0, inputs = 0, outputs = 0;

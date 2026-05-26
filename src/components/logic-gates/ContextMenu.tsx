@@ -107,7 +107,7 @@ function MenuItems({
           return (
             <div
               key={`sep-${i}`}
-              style={{ height: 1, background: "#3a3a3a", margin: "4px 2px" }}
+              style={{ height: 1, background: "#3a3a3a", margin: "3px 2px" }}
             />
           );
         }
@@ -217,24 +217,37 @@ function MenuItem({
         alignItems: "center",
         justifyContent: "space-between",
         width: "100%",
-        height: 26,
-        padding: "0 10px",
+        height: 25,
+        padding: "0 8px 0 4px",
         background: bg,
         border: "none",
         color,
         cursor: item.disabled ? "default" : "pointer",
-        fontSize: 10,
-        letterSpacing: "0.08em",
+        fontSize: 12,
+        letterSpacing: "0.05em",
         textTransform: "uppercase",
         textAlign: "left",
         transition: "color 0.08s, background 0.08s",
+        gap: 6,
       }}
     >
-      <span>{item.label}</span>
+      {/* Reservado pra ícone futuro */}
+      <span
+        aria-hidden
+        className="ctx-menu-icon"
+        style={{
+          width: 14,
+          flexShrink: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      />
+      <span style={{ flex: 1 }}>{item.label}</span>
       {hasSubmenu ? (
-        <span style={{ color: "#6a6a6a", marginLeft: 16 }}>▸</span>
+        <span style={{ color: "#6a6a6a", flexShrink: 0 }}>▸</span>
       ) : item.shortcut ? (
-        <span style={{ color: "#6a6a6a", marginLeft: 16 }}>{item.shortcut}</span>
+        <span style={{ color: "#6a6a6a", flexShrink: 0 }}>{item.shortcut}</span>
       ) : null}
     </button>
   );

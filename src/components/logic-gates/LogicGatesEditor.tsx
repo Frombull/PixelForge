@@ -826,7 +826,7 @@ function EditorInner() {
       ];
       if (node?.data.kind === "INPUT") {
         items.push("separator", {
-          label: node.data.state ? "Desligar (→ 0)" : "Ligar (→ 1)",
+          label: node.data.state ? "Desligar" : "Ligar",
           onClick: () => toggleInputState(menu.nodeId!),
         });
       }

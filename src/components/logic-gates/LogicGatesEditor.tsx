@@ -323,7 +323,10 @@ function EditorInner() {
 
   // ── Copy / Paste ──────────────────────────────────────────────────────────────
   const copySelection = useCallback(() => {
-    const selectedNodes = live.current.nodes.filter((n) => n.selected);
+    // Singleton: nunca copiamos a tabela da verdade.
+    const selectedNodes = live.current.nodes.filter(
+      (n) => n.selected && n.type !== TRUTH_TABLE_TYPE,
+    );
     if (selectedNodes.length === 0) return;
     const selectedIds = new Set(selectedNodes.map((n) => n.id));
     const internalEdges = live.current.edges.filter(
@@ -622,8 +625,17 @@ function EditorInner() {
     flash(`salvo: ${def.name}`);
   }, [nodes, edges, flash]);
 
-  // ── Inserir Truth Table ───────────────────────────────────────────────────────
+  // ── Inserir Truth Table (singleton — só pode existir uma) ─────────────────────
+  const hasTruthTable = useMemo(
+    () => nodes.some((n) => n.type === TRUTH_TABLE_TYPE),
+    [nodes],
+  );
+
   const addTruthTable = useCallback(() => {
+    if (live.current.nodes.some((n) => n.type === TRUTH_TABLE_TYPE)) {
+      flash("tabela já existe");
+      return;
+    }
     const pos = snapPos({ x: 640, y: 80 + Math.random() * 80 });
     const newNode: GNode = {
       id: nextId(),
@@ -634,7 +646,7 @@ function EditorInner() {
     setNodes((nds) => {
       const next = [...nds, newNode] as GNode[];
       setHistory((h) => pushSnapshot(h, { nodes: next, edges: live.current.edges }));
-      flash("+ truth table");
+      flash("+ tabela da verdade");
       return next;
     });
   }, [flash]);
@@ -707,7 +719,10 @@ function EditorInner() {
   );
 
   const duplicateSelection = useCallback(() => {
-    const sel = live.current.nodes.filter((n) => n.selected);
+    // Singleton: nunca duplicamos a tabela da verdade.
+    const sel = live.current.nodes.filter(
+      (n) => n.selected && n.type !== TRUTH_TABLE_TYPE,
+    );
     if (sel.length === 0) return;
     const selectedIds = new Set(sel.map((n) => n.id));
     const internalEdges = live.current.edges.filter(
@@ -802,7 +817,7 @@ function EditorInner() {
           onClick: duplicateSelection,
         },
         {
-          label: "Colar aqui",
+          label: "Colar",
           shortcut: "Ctrl+V",
           onClick: pasteHere,
           disabled: !hasClipboard,
@@ -832,7 +847,7 @@ function EditorInner() {
     // Pane (vazio)
     return [
       {
-        label: "Colar aqui",
+        label: "Colar",
         shortcut: "Ctrl+V",
         onClick: pasteHere,
         disabled: !hasClipboard,
@@ -935,7 +950,11 @@ function EditorInner() {
             <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
             <ActionButton label="⎘ SAVE GATE" onClick={handleSaveAsGate} />
             <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
-            <ActionButton label="⊞ TRUTH TABLE" onClick={addTruthTable} />
+            <ActionButton
+              label="⊞ TABELA"
+              onClick={addTruthTable}
+              disabled={hasTruthTable}
+            />
           </div>
 
           {/* Linha 2: stats */}

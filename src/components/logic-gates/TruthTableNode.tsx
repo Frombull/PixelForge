@@ -5,11 +5,11 @@ import { TRUTH_TABLE_MAX_INPUTS, type TruthTableData } from "./truthTable";
 import { useTruthTable } from "./truthTableContext";
 
 const COL = {
-  accent: "#a78bfa",
+  accent: "#b0b0b0",
   border: "#3a3a3a",
   bg: "#1e1e1e",
   bgAlt: "#252525",
-  rowHi: "rgba(167, 139, 250, 0.18)",
+  rowHi: "rgba(255, 255, 255, 0.06)",
   textDim: "#6a6a6a",
   textMid: "#8a8a8a",
   text: "#b0b0b0",
@@ -116,7 +116,7 @@ function Body({
           {data.outputs.map((p) => (
             <th
               key={`oh-${p.id}`}
-              style={{ ...headerCellStyle, color: COL.accent }}
+              style={{ ...headerCellStyle, color: COL.on }}
             >
               {p.label}
             </th>
@@ -177,7 +177,7 @@ function Body({
 
 export default function TruthTableNode({ selected }: NodeProps) {
   const { data, currentRow } = useTruthTable();
-  const borderColor = selected ? "#888" : COL.accent;
+  const borderColor = selected ? "#888" : COL.border;
 
   return (
     <div
@@ -187,10 +187,7 @@ export default function TruthTableNode({ selected }: NodeProps) {
         borderRadius: 2,
         color: COL.text,
         overflow: "hidden",
-        boxShadow: selected
-          ? "0 0 0 1px rgba(136,136,136,0.4)"
-          : "0 0 14px rgba(167,139,250,0.08)",
-        transition: "border-color 0.12s, box-shadow 0.12s",
+        transition: "border-color 0.12s",
       }}
     >
       <div
@@ -205,7 +202,7 @@ export default function TruthTableNode({ selected }: NodeProps) {
           background: COL.bgAlt,
         }}
       >
-        Truth Table
+        Tabela da verdade
       </div>
       <Body data={data} currentRow={currentRow} />
     </div>

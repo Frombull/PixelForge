@@ -16,13 +16,14 @@ const HANDLE =
   "w-2.5! h-2.5! bg-[#2c2c2c]! border! border-[#555]! hover:border-[#aaa]! transition-colors!";
 
 const CUSTOM_COLOR = "#22d3ee";
+const NAME_COLOR = "#b0b0b0";
 
 // Label exibida abaixo de INPUT/OUTPUT.
-function NameLabel({ name, color }: { name: string; color: string }) {
+function NameLabel({ name }: { name: string }) {
   return (
     <span
       className="absolute left-0 right-0 -bottom-4 text-center font-mono text-[9px] font-semibold tracking-[0.12em] uppercase select-none pointer-events-none"
-      style={{ color }}
+      style={{ color: NAME_COLOR }}
     >
       {name}
     </span>
@@ -66,7 +67,7 @@ export default function GateNode({ id, data, selected }: NodeProps) {
           {d.state ? "1" : "0"}
         </button>
         <Handle type="source" position={Position.Right} id="out-0" className={HANDLE} />
-        {d.name && <NameLabel name={d.name} color="#4ade80" />}
+        {d.name && <NameLabel name={d.name} />}
       </div>
     );
   }
@@ -88,7 +89,7 @@ export default function GateNode({ id, data, selected }: NodeProps) {
         >
           {on ? "1" : "0"}
         </div>
-        {d.name && <NameLabel name={d.name} color="#f87171" />}
+        {d.name && <NameLabel name={d.name} />}
       </div>
     );
   }
@@ -193,7 +194,7 @@ export default function GateNode({ id, data, selected }: NodeProps) {
       {d.name && (
         <span
           className="absolute left-0 right-0 -bottom-4 text-center font-mono text-[9px] font-semibold tracking-[0.12em] uppercase select-none pointer-events-none"
-          style={{ color: isCustom ? CUSTOM_COLOR : "#b0b0b0" }}
+          style={{ color: NAME_COLOR }}
         >
           {d.name}
         </span>

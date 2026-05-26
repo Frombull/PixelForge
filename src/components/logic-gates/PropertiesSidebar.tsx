@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CustomGateDef } from "./customGates";
 import { customIdFromKind, isCustomKind } from "./customGates";
 import { getDescriptor, type GateNodeData } from "./types";
@@ -11,6 +11,8 @@ interface Props {
   selectionCount: number;
   customs: CustomGateDef[];
   onRename: (id: string, name: string) => void;
+  // Quando muda, foca + seleciona o input de nome.
+  focusRenameSignal?: number;
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -37,13 +39,24 @@ export default function PropertiesSidebar({
   selectionCount,
   customs,
   onRename,
+  focusRenameSignal,
 }: Props) {
   const [draftName, setDraftName] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Sincroniza o input com o nó selecionado.
   useEffect(() => {
     setDraftName(node?.data.name ?? "");
   }, [node?.id, node?.data.name]);
+
+  // Foca o input quando o sinal externo chama "Renomear".
+  useEffect(() => {
+    if (focusRenameSignal === undefined) return;
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    el.select();
+  }, [focusRenameSignal]);
 
   const commitName = () => {
     if (!node) return;
@@ -112,6 +125,7 @@ export default function PropertiesSidebar({
               Nome
             </span>
             <input
+              ref={inputRef}
               type="text"
               value={draftName}
               onChange={(e) => setDraftName(e.target.value)}

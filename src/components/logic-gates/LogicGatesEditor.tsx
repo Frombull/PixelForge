@@ -27,6 +27,7 @@ import "@xyflow/react/dist/style.css";
 import "./logic-gates.css";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ContextMenu, { type ContextMenuEntry } from "./ContextMenu";
 import GateNode from "./GateNode";
 import PropertiesSidebar from "./PropertiesSidebar";
 import Sidebar from "./Sidebar";
@@ -290,6 +291,16 @@ function EditorInner() {
   const pasteCount = useRef(0);
   const { screenToFlowPosition } = useReactFlow();
 
+  const [menu, setMenu] = useState<{
+    x: number;
+    y: number;
+    nodeId: string | null;
+  } | null>(null);
+  const [renameTick, setRenameTick] = useState(0);
+  // Ref pra acessar duplicateSelection dentro do handler de atalhos
+  // sem ter que reordenar declarações.
+  const duplicateRef = useRef<() => void>(() => {});
+
   // ── Commit ────────────────────────────────────────────────────────────────────
   const commit = useCallback((newNodes: GNode[], newEdges: Edge[], label?: string) => {
     setNodes(newNodes);
@@ -386,16 +397,27 @@ function EditorInner() {
       return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
     };
     const handler = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return;
+      // F2 → renomeia nó selecionado
+      if (e.key === "F2") {
+        const sel = live.current.nodes.filter((n) => n.selected);
+        if (sel.length === 1) {
+          e.preventDefault();
+          setRenameTick((t) => t + 1);
+        }
+        return;
+      }
       const ctrl = e.ctrlKey || e.metaKey;
       if (!ctrl) return;
-      if (isTypingTarget(e.target)) return;
       if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); return; }
       if (e.key === "y" || (e.key === "z" && e.shiftKey)) { e.preventDefault(); redo(); return; }
       if (e.key === "c" || e.key === "C") { e.preventDefault(); copySelection(); return; }
       if (e.key === "v" || e.key === "V") { e.preventDefault(); pasteClipboard(); return; }
+      if (e.key === "d" || e.key === "D") { e.preventDefault(); duplicateRef.current(); return; }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [undo, redo, copySelection, pasteClipboard]);
 
   // ── onNodesChange ─────────────────────────────────────────────────────────────
@@ -587,6 +609,172 @@ function EditorInner() {
       ? decoratedNodes.find((n) => n.id === selectedNodes[0].id) ?? selectedNodes[0]
       : null;
 
+  // ── Ações reutilizadas pelo menu ──────────────────────────────────────────────
+  const selectOnly = useCallback((nodeId: string) => {
+    setNodes((nds) =>
+      nds.map((n) => (n.selected === (n.id === nodeId) ? n : { ...n, selected: n.id === nodeId })),
+    );
+    setEdges((eds) => eds.map((e) => (e.selected ? { ...e, selected: false } : e)));
+  }, []);
+
+  const deleteNodesByIds = useCallback(
+    (ids: string[]) => {
+      if (ids.length === 0) return;
+      const idSet = new Set(ids);
+      const nextNodes = live.current.nodes.filter((n) => !idSet.has(n.id));
+      const nextEdges = live.current.edges.filter(
+        (e) => !idSet.has(e.source) && !idSet.has(e.target),
+      );
+      commit(nextNodes, nextEdges, ids.length === 1 ? "nó removido" : `${ids.length} nós removidos`);
+    },
+    [commit],
+  );
+
+  const toggleInputState = useCallback(
+    (nodeId: string) => {
+      const nextNodes = live.current.nodes.map((n) =>
+        n.id === nodeId && n.data.kind === "INPUT"
+          ? { ...n, data: { ...n.data, state: !n.data.state } }
+          : n,
+      );
+      setNodes(nextNodes);
+    },
+    [],
+  );
+
+  const duplicateSelection = useCallback(() => {
+    const sel = live.current.nodes.filter((n) => n.selected);
+    if (sel.length === 0) return;
+    const selectedIds = new Set(sel.map((n) => n.id));
+    const internalEdges = live.current.edges.filter(
+      (e) => selectedIds.has(e.source) && selectedIds.has(e.target),
+    );
+    const offset = GRID * 2;
+    const idMap = new Map<string, string>();
+    const cloned: GNode[] = sel.map((n) => {
+      const newId = nextId();
+      idMap.set(n.id, newId);
+      return {
+        ...n,
+        id: newId,
+        position: snapPos({ x: n.position.x + offset, y: n.position.y + offset }),
+        selected: true,
+        data: { ...n.data, value: undefined },
+      };
+    });
+    const newEdges: Edge[] = internalEdges.map((e) => ({
+      ...e,
+      id: `e${idCounter++}`,
+      source: idMap.get(e.source) ?? e.source,
+      target: idMap.get(e.target) ?? e.target,
+      selected: true,
+    }));
+    const baseNodes = live.current.nodes.map((n) =>
+      n.selected ? { ...n, selected: false } : n,
+    );
+    const baseEdges = live.current.edges.map((e) =>
+      e.selected ? { ...e, selected: false } : e,
+    );
+    commit(
+      [...baseNodes, ...cloned],
+      [...baseEdges, ...newEdges],
+      cloned.length === 1 ? "duplicado" : `${cloned.length} duplicados`,
+    );
+  }, [commit]);
+
+  const requestRename = useCallback((nodeId: string) => {
+    selectOnly(nodeId);
+    setRenameTick((t) => t + 1);
+  }, [selectOnly]);
+
+  // Mantém o ref do atalho Ctrl+D apontando pra função atual.
+  useEffect(() => {
+    duplicateRef.current = duplicateSelection;
+  }, [duplicateSelection]);
+
+  // ── Context menu ──────────────────────────────────────────────────────────────
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  const handleNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: GNode) => {
+      event.preventDefault();
+      const isAlreadySelected = node.selected;
+      if (!isAlreadySelected) selectOnly(node.id);
+      setMenu({ x: event.clientX, y: event.clientY, nodeId: node.id });
+    },
+    [selectOnly],
+  );
+
+  const handlePaneContextMenu = useCallback((event: React.MouseEvent | MouseEvent) => {
+    event.preventDefault();
+    setMenu({ x: (event as MouseEvent).clientX, y: (event as MouseEvent).clientY, nodeId: null });
+  }, []);
+
+  const menuItems: ContextMenuEntry[] = useMemo(() => {
+    if (!menu) return [];
+    const hasClipboard = !!clipboard.current && clipboard.current.nodes.length > 0;
+
+    if (menu.nodeId) {
+      const node = live.current.nodes.find((n) => n.id === menu.nodeId);
+      const selCount = live.current.nodes.filter((n) => n.selected).length;
+      const targetCount = Math.max(selCount, 1);
+      const items: ContextMenuEntry[] = [
+        {
+          label: "Renomear",
+          shortcut: "F2",
+          onClick: () => requestRename(menu.nodeId!),
+        },
+        "separator",
+        {
+          label: targetCount > 1 ? `Copiar (${targetCount})` : "Copiar",
+          shortcut: "Ctrl+C",
+          onClick: copySelection,
+        },
+        {
+          label: targetCount > 1 ? `Duplicar (${targetCount})` : "Duplicar",
+          shortcut: "Ctrl+D",
+          onClick: duplicateSelection,
+        },
+        {
+          label: "Colar",
+          shortcut: "Ctrl+V",
+          onClick: pasteClipboard,
+          disabled: !hasClipboard,
+        },
+      ];
+      if (node?.data.kind === "INPUT") {
+        items.push("separator", {
+          label: node.data.state ? "Desligar (→ 0)" : "Ligar (→ 1)",
+          onClick: () => toggleInputState(menu.nodeId!),
+        });
+      }
+      items.push(
+        "separator",
+        {
+          label: targetCount > 1 ? `Deletar (${targetCount})` : "Deletar",
+          shortcut: "Del",
+          onClick: () => {
+            const ids = live.current.nodes.filter((n) => n.selected).map((n) => n.id);
+            deleteNodesByIds(ids.length > 0 ? ids : [menu.nodeId!]);
+          },
+          danger: true,
+        },
+      );
+      return items;
+    }
+
+    // Pane (vazio)
+    return [
+      {
+        label: "Colar",
+        shortcut: "Ctrl+V",
+        onClick: pasteClipboard,
+        disabled: !hasClipboard,
+      },
+    ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menu, copySelection, duplicateSelection, pasteClipboard, deleteNodesByIds, toggleInputState, requestRename]);
+
   const counts = useMemo(() => {
     let gates = 0, inputs = 0, outputs = 0;
     for (const n of nodes) {
@@ -616,6 +804,8 @@ function EditorInner() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeContextMenu={handleNodeContextMenu}
+          onPaneContextMenu={handlePaneContextMenu}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView
@@ -623,8 +813,8 @@ function EditorInner() {
           defaultEdgeOptions={{ type: "wire" }}
           connectionLineStyle={{ stroke: "#aaa", strokeWidth: 1.5, strokeDasharray: "4 3" }}
           deleteKeyCode={["Backspace", "Delete"]}
-          // MB do meio (1) e MB direito (2) arrastam a câmera; MB esquerdo (0) faz box selection
-          panOnDrag={[1, 2]}
+          // MB do meio (1) arrasta a câmera; MB direito (2) abre context menu
+          panOnDrag={[1]}
           selectionOnDrag
           selectionMode={SelectionMode.Partial}
           snapToGrid
@@ -694,7 +884,17 @@ function EditorInner() {
         selectionCount={selectedNodes.length}
         customs={customs}
         onRename={handleRenameNode}
+        focusRenameSignal={renameTick}
       />
+
+      {menu && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          items={menuItems}
+          onClose={closeMenu}
+        />
+      )}
     </div>
     </CustomGatesProvider>
   );

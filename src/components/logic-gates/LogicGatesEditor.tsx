@@ -3,7 +3,6 @@
 import {
   Background,
   BackgroundVariant,
-  BaseEdge,
   Controls,
   MiniMap,
   ReactFlow,
@@ -12,12 +11,10 @@ import {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  getSmoothStepPath,
   useReactFlow,
   type Connection,
   type Edge,
   type EdgeChange,
-  type EdgeProps,
   type EdgeTypes,
   type NodeChange,
   type NodeTypes,
@@ -31,6 +28,8 @@ import ContextMenu, { type ContextMenuEntry } from "./ContextMenu";
 import GateNode from "./GateNode";
 import PropertiesSidebar from "./PropertiesSidebar";
 import Sidebar from "./Sidebar";
+import WireEdge from "./WireEdge";
+import { WireCommitContext, type WireCommit } from "./wireEditContext";
 import {
   buildCustomFromCanvas,
   loadCustomGates,
@@ -40,21 +39,6 @@ import {
 import { CustomGatesProvider } from "./customGatesContext";
 import { nodeIsActive, outKey, simulate, type GateNode as GNode } from "./simulator";
 import { GATE_CATALOG, getDescriptor, type GateKind, type GateNodeData } from "./types";
-
-// ─── Wire edge ────────────────────────────────────────────────────────────────
-
-function WireEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style, markerEnd, selected }: EdgeProps) {
-  const [path] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, borderRadius: 8 });
-  const s = style as React.CSSProperties & { stroke?: string; strokeWidth?: number };
-  return (
-    <BaseEdge
-      id={id}
-      path={path}
-      markerEnd={markerEnd}
-      style={{ stroke: selected ? "#ccc" : (s?.stroke ?? "#888"), strokeWidth: s?.strokeWidth ?? 1.5, fill: "none" }}
-    />
-  );
-}
 
 // ─── Histórico (Undo / Redo) ──────────────────────────────────────────────────
 
@@ -140,7 +124,7 @@ const C = {
   textSubtle: "#6a6a6a",
 } as const;
 
-// ─── Action button (estilo canvas-2d) ─────────────────────────────────────────
+// ─── Action button ─────────────────────────────────────────
 
 function ActionButton({
   label,
@@ -487,6 +471,17 @@ function EditorInner() {
     [flash],
   );
 
+  // ── Commit de fim de drag de fio (segmento do meio) ───────────────────────────
+  const wireCommit: WireCommit = useCallback(
+    (label) => {
+      setHistory((h) =>
+        pushSnapshot(h, { nodes: live.current.nodes, edges: live.current.edges }),
+      );
+      if (label) flash(label);
+    },
+    [flash],
+  );
+
   // ── Adicionar nó ──────────────────────────────────────────────────────────────
   const addNode = useCallback(
     (kind: GateKind, position?: { x: number; y: number }) => {
@@ -801,6 +796,7 @@ function EditorInner() {
 
   return (
     <CustomGatesProvider value={customs}>
+    <WireCommitContext.Provider value={wireCommit}>
     <div className="flex h-screen overflow-hidden bg-[#1e1e1e] font-mono text-white">
       <Sidebar onAdd={addNode} customs={customs} onDeleteCustom={handleDeleteCustom} />
 
@@ -911,6 +907,7 @@ function EditorInner() {
         />
       )}
     </div>
+    </WireCommitContext.Provider>
     </CustomGatesProvider>
   );
 }

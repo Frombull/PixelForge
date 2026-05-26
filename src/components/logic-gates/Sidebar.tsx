@@ -141,7 +141,10 @@ export default function Sidebar({ onAdd, customs, onDeleteCustom }: Props) {
   const gates = GATE_CATALOG.filter((g) => g.kind !== "INPUT" && g.kind !== "OUTPUT");
 
   return (
-    <aside className="w-44 shrink-0 flex flex-col bg-[#2c2c2c] border-r border-[#3a3a3a] select-none">
+    <aside
+      onContextMenu={(e) => e.preventDefault()}
+      className="w-44 shrink-0 flex flex-col bg-[#2c2c2c] border-r border-[#3a3a3a] select-none"
+    >
       {/* Header */}
       <div className="flex items-center h-10 border-b border-[#3a3a3a] shrink-0">
         <a

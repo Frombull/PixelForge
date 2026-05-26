@@ -78,7 +78,10 @@ export default function PropertiesSidebar({
   // ── Sem seleção ────────────────────────────────────────────────────────────
   if (!node && selectionCount === 0) {
     return (
-      <aside className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none">
+      <aside
+      onContextMenu={(e) => e.preventDefault()}
+      className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none"
+    >
         {header}
         <div className="flex-1 flex items-center justify-center px-4">
           <span className="text-[9px] font-mono text-[#6a6a6a] italic text-center leading-5">
@@ -92,7 +95,10 @@ export default function PropertiesSidebar({
   // ── Multiseleção ────────────────────────────────────────────────────────────
   if (!node && selectionCount > 1) {
     return (
-      <aside className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none">
+      <aside
+      onContextMenu={(e) => e.preventDefault()}
+      className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none"
+    >
         {header}
         <div className="flex-1 flex items-center justify-center px-4">
           <span className="text-[9px] font-mono text-[#6a6a6a] italic text-center leading-5">
@@ -114,7 +120,10 @@ export default function PropertiesSidebar({
     : undefined;
 
   return (
-    <aside className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none">
+    <aside
+      onContextMenu={(e) => e.preventDefault()}
+      className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none"
+    >
       {header}
 
       <div className="flex-1 overflow-y-auto">

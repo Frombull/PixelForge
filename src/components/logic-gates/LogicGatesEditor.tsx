@@ -350,11 +350,23 @@ function EditorInner() {
     flash(selectedNodes.length === 1 ? "copiado" : `${selectedNodes.length} copiados`);
   }, [flash]);
 
-  const pasteClipboard = useCallback(() => {
+  const pasteClipboard = useCallback((target?: { x: number; y: number }) => {
     const clip = clipboard.current;
     if (!clip || clip.nodes.length === 0) return;
-    pasteCount.current += 1;
-    const offset = GRID * 2 * pasteCount.current;
+
+    // Se um alvo foi passado (ex: context menu), ancoramos o canto superior
+    // esquerdo do bounding box no alvo. Senão, offset incremental.
+    let delta: { x: number; y: number };
+    if (target) {
+      const minX = Math.min(...clip.nodes.map((n) => n.position.x));
+      const minY = Math.min(...clip.nodes.map((n) => n.position.y));
+      delta = { x: target.x - minX, y: target.y - minY };
+      pasteCount.current = 0;
+    } else {
+      pasteCount.current += 1;
+      const offset = GRID * 2 * pasteCount.current;
+      delta = { x: offset, y: offset };
+    }
 
     const idMap = new Map<string, string>();
     const newNodes: GNode[] = clip.nodes.map((n) => {
@@ -363,7 +375,7 @@ function EditorInner() {
       return {
         ...n,
         id: newId,
-        position: snapPos({ x: n.position.x + offset, y: n.position.y + offset }),
+        position: snapPos({ x: n.position.x + delta.x, y: n.position.y + delta.y }),
         selected: true,
         data: { ...n.data, value: undefined },
       };
@@ -713,6 +725,8 @@ function EditorInner() {
   const menuItems: ContextMenuEntry[] = useMemo(() => {
     if (!menu) return [];
     const hasClipboard = !!clipboard.current && clipboard.current.nodes.length > 0;
+    const pasteHere = () =>
+      pasteClipboard(snapPos(screenToFlowPosition({ x: menu.x, y: menu.y })));
 
     if (menu.nodeId) {
       const node = live.current.nodes.find((n) => n.id === menu.nodeId);
@@ -736,9 +750,9 @@ function EditorInner() {
           onClick: duplicateSelection,
         },
         {
-          label: "Colar",
+          label: "Colar aqui",
           shortcut: "Ctrl+V",
-          onClick: pasteClipboard,
+          onClick: pasteHere,
           disabled: !hasClipboard,
         },
       ];
@@ -766,14 +780,14 @@ function EditorInner() {
     // Pane (vazio)
     return [
       {
-        label: "Colar",
+        label: "Colar aqui",
         shortcut: "Ctrl+V",
-        onClick: pasteClipboard,
+        onClick: pasteHere,
         disabled: !hasClipboard,
       },
     ];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [menu, copySelection, duplicateSelection, pasteClipboard, deleteNodesByIds, toggleInputState, requestRename]);
+  }, [menu, copySelection, duplicateSelection, pasteClipboard, deleteNodesByIds, toggleInputState, requestRename, screenToFlowPosition]);
 
   const counts = useMemo(() => {
     let gates = 0, inputs = 0, outputs = 0;
@@ -813,8 +827,9 @@ function EditorInner() {
           defaultEdgeOptions={{ type: "wire" }}
           connectionLineStyle={{ stroke: "#aaa", strokeWidth: 1.5, strokeDasharray: "4 3" }}
           deleteKeyCode={["Backspace", "Delete"]}
-          // MB do meio (1) arrasta a câmera; MB direito (2) abre context menu
-          panOnDrag={[1]}
+          // MB do meio (1) e MB direito (2) arrastam a câmera; click direito
+          // sem drag dispara onPaneContextMenu / onNodeContextMenu.
+          panOnDrag={[1, 2]}
           selectionOnDrag
           selectionMode={SelectionMode.Partial}
           snapToGrid

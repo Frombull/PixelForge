@@ -227,8 +227,8 @@ function ActionLog({ log }: { log: string[] }) {
     <div
       style={{
         position: "absolute",
-        bottom: 8,
-        left: 12,
+        bottom: 12,
+        left: 64,
         pointerEvents: "none",
         display: "flex",
         flexDirection: "column",

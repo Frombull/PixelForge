@@ -113,6 +113,32 @@ export default function PropertiesSidebar({
 
   if (!node) return null;
   const d = node.data as GateNodeData;
+
+  // Truth Table — painel mínimo (sem rename / pinos).
+  if (node.type === "truthtable") {
+    return (
+      <aside
+        onContextMenu={(e) => e.preventDefault()}
+        className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none"
+      >
+        {header}
+        <div className="flex-1 overflow-y-auto">
+          <SectionLabel label="Identidade" />
+          <div className="px-3 pb-2 flex flex-col gap-1.5">
+            <Field label="Tipo" value="Truth Table" />
+            <Field label="ID" value={node.id} />
+          </div>
+          <div className="h-px bg-[#3a3a3a] my-1" />
+          <SectionLabel label="Posição" />
+          <div className="px-3 pb-2 flex flex-col gap-1.5">
+            <Field label="X" value={Math.round(node.position.x)} />
+            <Field label="Y" value={Math.round(node.position.y)} />
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   const desc = getDescriptor(d.kind, customs);
   const isCustom = isCustomKind(d.kind);
   const def = isCustom

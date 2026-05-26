@@ -38,7 +38,13 @@ import {
 } from "./customGates";
 import { CustomGatesProvider } from "./customGatesContext";
 import { nodeIsActive, outKey, simulate, type GateNode as GNode } from "./simulator";
+import TruthTableNode from "./TruthTableNode";
+import { buildTruthTable, currentRowIndex } from "./truthTable";
+import { TruthTableProvider } from "./truthTableContext";
 import { GATE_CATALOG, getDescriptor, type GateKind, type GateNodeData } from "./types";
+
+const TRUTH_TABLE_KIND = "TRUTHTABLE";
+const TRUTH_TABLE_TYPE = "truthtable";
 
 // ─── Histórico (Undo / Redo) ──────────────────────────────────────────────────
 
@@ -76,7 +82,7 @@ function redoSnapshot(history: History): { history: History; snapshot: Snapshot 
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const nodeTypes: NodeTypes = { gate: GateNode };
+const nodeTypes: NodeTypes = { gate: GateNode, truthtable: TruthTableNode };
 const edgeTypes: EdgeTypes = { wire: WireEdge };
 
 const GRID = 24;
@@ -515,14 +521,43 @@ function EditorInner() {
   }, []);
 
   // ── Simulação ─────────────────────────────────────────────────────────────────
+  const gateNodes = useMemo(
+    () => nodes.filter((n) => n.type !== TRUTH_TABLE_TYPE) as GNode[],
+    [nodes],
+  );
+
   const simResult = useMemo(
-    () => simulate(nodes, edges, customs),
+    () => simulate(gateNodes, edges, customs),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [nodes, edges, customs, tick],
+    [gateNodes, edges, customs, tick],
+  );
+
+  // Chave estrutural: muda só quando topologia / kind / nome de pin muda.
+  // Evita rebuild da tabela quando o user só toggla um INPUT.
+  const structuralKey = useMemo(() => {
+    const nk = gateNodes
+      .map((n) => `${n.id}:${n.data.kind}:${n.data.name ?? ""}`)
+      .join("|");
+    const ek = edges
+      .map((e) => `${e.id}:${e.source}>${e.target}:${e.sourceHandle ?? ""}/${e.targetHandle ?? ""}`)
+      .join("|");
+    return `${nk}#${ek}`;
+  }, [gateNodes, edges]);
+
+  const truthTableData = useMemo(
+    () => buildTruthTable(gateNodes, edges, customs),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [structuralKey, customs],
+  );
+
+  const truthTableRow = useMemo(
+    () => currentRowIndex(truthTableData, gateNodes),
+    [truthTableData, gateNodes],
   );
 
   const decoratedNodes = useMemo(() =>
     nodes.map((n) => {
+      if (n.type === TRUTH_TABLE_TYPE) return n;
       const desc = getDescriptor(n.data.kind, customs);
       const outCount = desc.outputs;
       let v: boolean;
@@ -563,8 +598,13 @@ function EditorInner() {
 
   // ── Salvar canvas como custom gate ────────────────────────────────────────────
   const handleSaveAsGate = useCallback(() => {
-    const inCount = nodes.filter((n) => n.data.kind === "INPUT").length;
-    const outCount = nodes.filter((n) => n.data.kind === "OUTPUT").length;
+    const gateOnly = nodes.filter((n) => n.type !== TRUTH_TABLE_TYPE) as GNode[];
+    const gateIds = new Set(gateOnly.map((n) => n.id));
+    const gateEdges = edges.filter(
+      (e) => gateIds.has(e.source) && gateIds.has(e.target),
+    );
+    const inCount = gateOnly.filter((n) => n.data.kind === "INPUT").length;
+    const outCount = gateOnly.filter((n) => n.data.kind === "OUTPUT").length;
     if (inCount === 0 && outCount === 0) {
       flash("nada pra salvar");
       return;
@@ -573,7 +613,7 @@ function EditorInner() {
       `Nome da nova porta (${inCount} in / ${outCount} out):`,
     );
     if (!name || !name.trim()) return;
-    const def = buildCustomFromCanvas(name, nodes, edges);
+    const def = buildCustomFromCanvas(name, gateOnly, gateEdges);
     setCustoms((prev) => {
       const next = [...prev, def];
       saveCustomGates(next);
@@ -581,6 +621,23 @@ function EditorInner() {
     });
     flash(`salvo: ${def.name}`);
   }, [nodes, edges, flash]);
+
+  // ── Inserir Truth Table ───────────────────────────────────────────────────────
+  const addTruthTable = useCallback(() => {
+    const pos = snapPos({ x: 640, y: 80 + Math.random() * 80 });
+    const newNode: GNode = {
+      id: nextId(),
+      type: TRUTH_TABLE_TYPE,
+      position: pos,
+      data: { kind: TRUTH_TABLE_KIND, state: false },
+    };
+    setNodes((nds) => {
+      const next = [...nds, newNode] as GNode[];
+      setHistory((h) => pushSnapshot(h, { nodes: next, edges: live.current.edges }));
+      flash("+ truth table");
+      return next;
+    });
+  }, [flash]);
 
   const handleDeleteCustom = useCallback(
     (id: string) => {
@@ -787,7 +844,8 @@ function EditorInner() {
   const counts = useMemo(() => {
     let gates = 0, inputs = 0, outputs = 0;
     for (const n of nodes) {
-      if      (n.data.kind === "INPUT")  inputs++;
+      if (n.type === TRUTH_TABLE_TYPE)        continue;
+      else if (n.data.kind === "INPUT")  inputs++;
       else if (n.data.kind === "OUTPUT") outputs++;
       else                               gates++;
     }
@@ -796,6 +854,7 @@ function EditorInner() {
 
   return (
     <CustomGatesProvider value={customs}>
+    <TruthTableProvider value={{ data: truthTableData, currentRow: truthTableRow }}>
     <WireCommitContext.Provider value={wireCommit}>
     <div className="flex h-screen overflow-hidden bg-[#1e1e1e] font-mono text-white">
       <Sidebar onAdd={addNode} customs={customs} onDeleteCustom={handleDeleteCustom} />
@@ -875,6 +934,8 @@ function EditorInner() {
             <ActionButton label="✕ LIMPAR" onClick={handleClear} danger />
             <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
             <ActionButton label="⎘ SAVE GATE" onClick={handleSaveAsGate} />
+            <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
+            <ActionButton label="⊞ TRUTH TABLE" onClick={addTruthTable} />
           </div>
 
           {/* Linha 2: stats */}
@@ -908,6 +969,7 @@ function EditorInner() {
       )}
     </div>
     </WireCommitContext.Provider>
+    </TruthTableProvider>
     </CustomGatesProvider>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Type, X } from "lucide-react";
+import { ArrowLeft, ChevronRight, Type, X } from "lucide-react";
 import { useState } from "react";
 import type { CustomGateDef } from "./customGates";
 import { customKind } from "./customGates";
@@ -13,60 +13,189 @@ interface Props {
   onDeleteCustom: (id: string) => void;
 }
 
-function TextToolItem({
-  onAdd,
-  onDragStart,
+// ─── Ícones SVG das portas ────────────────────────────────────────────────────
+
+function GateIcon({
+  kind,
+  color = "#b0b0b0",
+  size = 20,
 }: {
-  onAdd: () => void;
-  onDragStart: (e: React.DragEvent) => void;
+  kind: GateKind;
+  color?: string;
+  size?: number;
 }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      type="button"
-      draggable
-      onDragStart={onDragStart}
-      onClick={onAdd}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      title="Insere um bloco de texto editável"
-      className="w-full h-8 flex items-center gap-2 px-2 rounded-xs cursor-grab active:cursor-grabbing text-left transition-colors duration-100"
-      style={{
-        background: hovered ? "#363636" : "transparent",
-        border: `1px solid ${hovered ? "#555" : "transparent"}`,
-      }}
-    >
-      <Type
-        size={11}
-        strokeWidth={2}
-        style={{ color: hovered ? "#fff" : "#b0b0b0" }}
-      />
-      <span
-        className="font-mono text-[10px] font-semibold tracking-[0.06em] flex-1"
-        style={{ color: hovered ? "#fff" : "#b0b0b0" }}
-      >
-        TEXTO
-      </span>
-    </button>
-  );
+  const stroke = color;
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke,
+    strokeWidth: 1.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  switch (kind) {
+    case "INPUT":
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="12" r="4.5" fill={stroke} stroke="none" />
+          <line x1="13.5" y1="12" x2="22" y2="12" />
+        </svg>
+      );
+    case "OUTPUT":
+      return (
+        <svg {...common}>
+          <line x1="2" y1="12" x2="10.5" y2="12" />
+          <circle cx="15" cy="12" r="4.5" />
+        </svg>
+      );
+    case "AND":
+      return (
+        <svg {...common}>
+          <path d="M5 4 L5 20 L11 20 A8 8 0 0 0 11 4 Z" />
+          <line x1="1" y1="9" x2="5" y2="9" />
+          <line x1="1" y1="15" x2="5" y2="15" />
+          <line x1="19" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    case "OR":
+      return (
+        <svg {...common}>
+          <path d="M4 4 Q9 12 4 20 Q12 20 20 12 Q12 4 4 4 Z" />
+          <line x1="1" y1="9" x2="6" y2="9" />
+          <line x1="1" y1="15" x2="6" y2="15" />
+          <line x1="20" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    case "NOT":
+      return (
+        <svg {...common}>
+          <path d="M5 4 L5 20 L19 12 Z" />
+          <circle cx="20.5" cy="12" r="1.5" />
+          <line x1="1" y1="12" x2="5" y2="12" />
+          <line x1="22" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    case "XOR":
+      return (
+        <svg {...common}>
+          <path d="M6 4 Q11 12 6 20 Q14 20 22 12 Q14 4 6 4 Z" />
+          <path d="M2 4 Q7 12 2 20" />
+          <line x1="0" y1="9" x2="5" y2="9" />
+          <line x1="0" y1="15" x2="5" y2="15" />
+          <line x1="22" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    case "NAND":
+      return (
+        <svg {...common}>
+          <path d="M5 4 L5 20 L10 20 A7 7 0 0 0 10 4 Z" />
+          <circle cx="18.5" cy="12" r="1.5" />
+          <line x1="1" y1="9" x2="5" y2="9" />
+          <line x1="1" y1="15" x2="5" y2="15" />
+          <line x1="20" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    case "NOR":
+      return (
+        <svg {...common}>
+          <path d="M4 4 Q9 12 4 20 Q11 20 18 12 Q11 4 4 4 Z" />
+          <circle cx="19.5" cy="12" r="1.5" />
+          <line x1="1" y1="9" x2="6" y2="9" />
+          <line x1="1" y1="15" x2="6" y2="15" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    case "XNOR":
+      return (
+        <svg {...common}>
+          <path d="M6 4 Q11 12 6 20 Q13 20 19 12 Q13 4 6 4 Z" />
+          <path d="M2 4 Q7 12 2 20" />
+          <circle cx="20.5" cy="12" r="1.5" />
+          <line x1="0" y1="9" x2="5" y2="9" />
+          <line x1="0" y1="15" x2="5" y2="15" />
+          <line x1="22" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <rect x="4" y="6" width="16" height="12" rx="1" />
+          <line x1="1" y1="9" x2="4" y2="9" />
+          <line x1="1" y1="15" x2="4" y2="15" />
+          <line x1="20" y1="12" x2="23" y2="12" />
+        </svg>
+      );
+  }
 }
 
-function GroupLabel({ label }: { label: string }) {
+// ─── Categoria colapsável ─────────────────────────────────────────────────────
+
+function Category({
+  title,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const [hovered, setHovered] = useState(false);
   return (
-    <div className="px-3 pt-2.5 pb-1 text-[9px] font-semibold tracking-[0.14em] uppercase text-[#888] font-mono">
-      {label}
+    <div className="border-b border-[#3a3a3a]">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className="w-full flex items-center gap-1.5 px-3 py-2 text-left transition-colors duration-100"
+        style={{
+          background: hovered ? "#363636" : "transparent",
+        }}
+      >
+        <ChevronRight
+          size={11}
+          strokeWidth={2}
+          style={{
+            color: hovered ? "#fff" : "#888",
+            transform: open ? "rotate(90deg)" : "rotate(0deg)",
+            transition: "transform 0.15s ease",
+          }}
+        />
+        <span
+          className="flex-1 text-[9px] font-semibold tracking-[0.14em] uppercase font-mono"
+          style={{ color: hovered ? "#fff" : "#888" }}
+        >
+          {title}
+        </span>
+      </button>
+      {open && <div className="px-2 pb-2 pt-1">{children}</div>}
     </div>
   );
 }
 
-function GateItem({ kind, label, description, onAdd, onDragStart }: {
+// ─── Tile de porta (grid 2 colunas) ───────────────────────────────────────────
+
+function GateTile({
+  kind,
+  label,
+  description,
+  onAdd,
+  onDragStart,
+  iconColor,
+}: {
   kind: GateKind;
   label: string;
   description: string;
   onAdd: (k: GateKind) => void;
   onDragStart: (e: React.DragEvent, k: GateKind) => void;
+  iconColor?: string;
 }) {
   const [hovered, setHovered] = useState(false);
+  const resolvedColor = hovered ? "#fff" : iconColor ?? "#b0b0b0";
 
   return (
     <button
@@ -77,31 +206,65 @@ function GateItem({ kind, label, description, onAdd, onDragStart }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       title={description}
-      className="w-full h-8 flex items-center gap-2 px-2 rounded-xs cursor-grab active:cursor-grabbing text-left transition-colors duration-100"
+      className="h-14 flex flex-col items-center justify-center gap-1 px-1 rounded-xs cursor-grab active:cursor-grabbing transition-colors duration-100"
       style={{
-        background: hovered ? "#363636" : "transparent",
-        border: `1px solid ${hovered ? "#555" : "transparent"}`,
+        background: hovered ? "#363636" : "#1e1e1e",
+        border: `1px solid ${hovered ? "#555" : "#3a3a3a"}`,
       }}
     >
-      <span className="font-mono text-[10px] font-semibold tracking-[0.06em] flex-1"
-        style={{ color: hovered ? "#fff" : "#b0b0b0" }}>
+      <GateIcon kind={kind} color={resolvedColor} size={40} />
+      <span
+        className="font-mono text-[9px] font-semibold tracking-[0.08em] leading-none"
+        style={{ color: resolvedColor }}
+      >
         {label}
       </span>
-      {(kind === "INPUT" || kind === "OUTPUT") && (
-        <span className="text-[8px] font-mono tracking-wide px-1 py-0.5 rounded-xs border"
-          style={{
-            color: kind === "INPUT" ? "#4ade80" : "#f87171",
-            borderColor: kind === "INPUT" ? "#4ade8044" : "#f8717144",
-            background: kind === "INPUT" ? "#4ade8010" : "#f8717110",
-          }}>
-          {kind === "INPUT" ? "IO" : "IO"}
-        </span>
-      )}
     </button>
   );
 }
 
-function CustomGateItem({
+// ─── Tile de ferramenta de texto ──────────────────────────────────────────────
+
+function TextTile({
+  onAdd,
+  onDragStart,
+}: {
+  onAdd: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const color = hovered ? "#fff" : "#b0b0b0";
+  return (
+    <button
+      type="button"
+      draggable
+      onDragStart={onDragStart}
+      onClick={onAdd}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="Insere um bloco de texto editável"
+      className="h-14 flex flex-col items-center justify-center gap-1 px-1 rounded-xs cursor-grab active:cursor-grabbing transition-colors duration-100"
+      style={{
+        background: hovered ? "#363636" : "#1e1e1e",
+        border: `1px solid ${hovered ? "#555" : "#3a3a3a"}`,
+      }}
+    >
+      <Type size={18} strokeWidth={2} style={{ color }} />
+      <span
+        className="font-mono text-[9px] font-semibold tracking-[0.08em] leading-none"
+        style={{ color }}
+      >
+        TEXTO
+      </span>
+    </button>
+  );
+}
+
+// ─── Tile de porta customizada ────────────────────────────────────────────────
+
+const CUSTOM_COLOR = "#22d3ee";
+
+function CustomGateTile({
   def,
   onAdd,
   onDelete,
@@ -114,9 +277,11 @@ function CustomGateItem({
 }) {
   const [hovered, setHovered] = useState(false);
   const kind = customKind(def.id);
+  const color = hovered ? "#fff" : CUSTOM_COLOR;
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (window.confirm(`Remover a porta customizada "${def.name}"?`)) {
       onDelete(def.id);
     }
@@ -124,10 +289,10 @@ function CustomGateItem({
 
   return (
     <div
-      className="w-full h-8 flex items-center gap-1 rounded-xs transition-colors duration-100"
+      className="relative h-14 rounded-xs transition-colors duration-100"
       style={{
-        background: hovered ? "#363636" : "transparent",
-        border: `1px solid ${hovered ? "#555" : "transparent"}`,
+        background: hovered ? "#363636" : "#1e1e1e",
+        border: `1px solid ${hovered ? "#555" : `${CUSTOM_COLOR}44`}`,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -138,37 +303,44 @@ function CustomGateItem({
         onDragStart={(e) => onDragStart(e, kind)}
         onClick={() => onAdd(kind)}
         title={`${def.name} — ${def.inputs} in / ${def.outputs} out`}
-        className="flex-1 h-full flex items-center gap-2 px-2 cursor-grab active:cursor-grabbing text-left bg-transparent"
+        className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 cursor-grab active:cursor-grabbing bg-transparent"
       >
+        <svg
+          width={20}
+          height={20}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="5" y="5" width="14" height="14" rx="1" />
+          <line x1="1" y1="9" x2="5" y2="9" />
+          <line x1="1" y1="15" x2="5" y2="15" />
+          <line x1="19" y1="12" x2="23" y2="12" />
+        </svg>
         <span
-          className="font-mono text-[10px] font-semibold tracking-[0.06em] flex-1 truncate"
-          style={{ color: hovered ? "#fff" : "#22d3ee" }}
+          className="font-mono text-[9px] font-semibold tracking-[0.06em] leading-none max-w-full truncate px-1"
+          style={{ color }}
         >
           {def.name}
-        </span>
-        <span
-          className="text-[8px] font-mono tracking-wide px-1 py-0.5 rounded-xs border"
-          style={{
-            color: "#22d3ee",
-            borderColor: "#22d3ee44",
-            background: "#22d3ee10",
-          }}
-        >
-          {def.inputs}/{def.outputs}
         </span>
       </button>
       <button
         type="button"
         onClick={handleDelete}
         title="Remover"
-        className="h-full w-6 flex items-center justify-center text-[#6a6a6a] hover:text-[#f87171] transition-colors"
+        className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center text-[#6a6a6a] hover:text-[#f87171] transition-colors"
         style={{ opacity: hovered ? 1 : 0 }}
       >
-        <X size={11} strokeWidth={2} />
+        <X size={10} strokeWidth={2.2} />
       </button>
     </div>
   );
 }
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 export default function Sidebar({ onAdd, onAddText, customs, onDeleteCustom }: Props) {
   const onDragStart = (e: React.DragEvent, kind: GateKind) => {
@@ -187,7 +359,7 @@ export default function Sidebar({ onAdd, onAddText, customs, onDeleteCustom }: P
   return (
     <aside
       onContextMenu={(e) => e.preventDefault()}
-      className="w-44 shrink-0 flex flex-col bg-[#2c2c2c] border-r border-[#3a3a3a] select-none"
+      className="w-60 shrink-0 flex flex-col bg-[#2c2c2c] border-r border-[#3a3a3a] select-none"
     >
       {/* Header */}
       <div className="flex items-center h-10 border-b border-[#3a3a3a] shrink-0">
@@ -203,82 +375,65 @@ export default function Sidebar({ onAdd, onAddText, customs, onDeleteCustom }: P
         </span>
       </div>
 
-      {/* Palette */}
+      {/* Categorias */}
       <div className="flex-1 overflow-y-auto">
-        <GroupLabel label="Entradas / Saídas" />
-        <div className="px-2 pb-1 flex flex-col gap-0.5">
-          {io.map((g) => (
-            <GateItem
-              key={g.kind}
-              kind={g.kind}
-              label={g.label}
-              description={g.description}
-              onAdd={onAdd}
-              onDragStart={onDragStart}
-            />
-          ))}
-        </div>
+        <Category title="IO">
+          <div className="grid grid-cols-2 gap-1">
+            {io.map((g) => (
+              <GateTile
+                key={g.kind}
+                kind={g.kind}
+                label={g.label}
+                description={g.description}
+                onAdd={onAdd}
+                onDragStart={onDragStart}
+                iconColor={g.kind === "INPUT" ? "#4ade80" : "#f87171"}
+              />
+            ))}
+          </div>
+        </Category>
 
-        <div className="h-px bg-[#3a3a3a] mx-0 my-1" />
+        <Category title="Logic Gates">
+          <div className="grid grid-cols-2 gap-1">
+            {gates.map((g) => (
+              <GateTile
+                key={g.kind}
+                kind={g.kind}
+                label={g.label}
+                description={g.description}
+                onAdd={onAdd}
+                onDragStart={onDragStart}
+              />
+            ))}
+          </div>
+        </Category>
 
-        <GroupLabel label="Portas Lógicas" />
-        <div className="px-2 pb-2 flex flex-col gap-0.5">
-          {gates.map((g) => (
-            <GateItem
-              key={g.kind}
-              kind={g.kind}
-              label={g.label}
-              description={g.description}
-              onAdd={onAdd}
-              onDragStart={onDragStart}
-            />
-          ))}
-        </div>
+        <Category title="Text">
+          <div className="grid grid-cols-2 gap-1">
+            <TextTile onAdd={onAddText} onDragStart={onDragStartText} />
+          </div>
+        </Category>
 
-        <div className="h-px bg-[#3a3a3a] mx-0 my-1" />
-
-        <GroupLabel label="Ferramentas" />
-        <div className="px-2 pb-2 flex flex-col gap-0.5">
-          <TextToolItem onAdd={onAddText} onDragStart={onDragStartText} />
-        </div>
-
-        <div className="h-px bg-[#3a3a3a] mx-0 my-1" />
-
-        <GroupLabel label="Customizadas" />
-        <div className="px-2 pb-2 flex flex-col gap-0.5">
+        <Category title="Customizadas">
           {customs.length === 0 ? (
-            <div className="px-2 py-1 text-[9px] font-mono text-[#6a6a6a] italic leading-4">
-              Nenhuma ainda. Use o botão{" "}
+            <div className="px-1 py-2 text-[9px] font-mono text-[#6a6a6a] italic leading-4">
+              Nenhuma ainda. Use{" "}
               <span className="text-[#aaa]">SAVE GATE</span> no topo do canvas.
             </div>
           ) : (
-            customs.map((def) => (
-              <CustomGateItem
-                key={def.id}
-                def={def}
-                onAdd={onAdd}
-                onDelete={onDeleteCustom}
-                onDragStart={onDragStart}
-              />
-            ))
+            <div className="grid grid-cols-2 gap-1">
+              {customs.map((def) => (
+                <CustomGateTile
+                  key={def.id}
+                  def={def}
+                  onAdd={onAdd}
+                  onDelete={onDeleteCustom}
+                  onDragStart={onDragStart}
+                />
+              ))}
+            </div>
           )}
-        </div>
-
-        <div className="h-px bg-[#3a3a3a] mx-0 my-1" />
-
-        {/* Help */}
-        <div className="px-3 py-3">
-          <div className="text-[9px] font-semibold tracking-[0.14em] uppercase text-[#888] font-mono mb-2">
-            Como usar
-          </div>
-          <ul className="text-[9px] font-mono text-[#6a6a6a] leading-5 space-y-1">
-            <li>Arraste ou clique para inserir.</li>
-            <li>Conecte pelo <span className="text-[#aaa]">ponto direito</span> de uma porta até o <span className="text-[#aaa]">ponto esquerdo</span> de outra.</li>
-            <li>Clique em <span className="text-[#aaa]">INPUT</span> para alternar 0/1.</li>
-            <li><span className="text-[#aaa]">Delete</span> remove o nó selecionado.</li>
-            <li><span className="text-[#aaa]">SAVE GATE</span> empacota o canvas como porta reutilizável.</li>
-          </ul>
-        </div>
+        </Category>
       </div>
     </aside>
   );

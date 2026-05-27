@@ -2,6 +2,18 @@
 
 import { ArrowLeft, ChevronRight, Type, X } from "lucide-react";
 import { useState } from "react";
+import {
+  TbBoxMultiple,
+  TbCircle,
+  TbCircleDotFilled,
+  TbLogicAnd,
+  TbLogicNand,
+  TbLogicNor,
+  TbLogicNot,
+  TbLogicOr,
+  TbLogicXnor,
+  TbLogicXor,
+} from "react-icons/tb";
 import type { CustomGateDef } from "./customGates";
 import { customKind } from "./customGates";
 import { GATE_CATALOG, type GateKind } from "./types";
@@ -13,7 +25,19 @@ interface Props {
   onDeleteCustom: (id: string) => void;
 }
 
-// ─── Ícones SVG das portas ────────────────────────────────────────────────────
+// ─── Ícones das portas (Tabler) ───────────────────────────────────────────────
+
+const GATE_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
+  INPUT: TbCircleDotFilled,
+  OUTPUT: TbCircle,
+  AND: TbLogicAnd,
+  OR: TbLogicOr,
+  NOT: TbLogicNot,
+  XOR: TbLogicXor,
+  NAND: TbLogicNand,
+  NOR: TbLogicNor,
+  XNOR: TbLogicXnor,
+};
 
 function GateIcon({
   kind,
@@ -24,111 +48,8 @@ function GateIcon({
   color?: string;
   size?: number;
 }) {
-  const stroke = color;
-  const common = {
-    width: size,
-    height: size,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke,
-    strokeWidth: 1.5,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-
-  switch (kind) {
-    case "INPUT":
-      return (
-        <svg {...common}>
-          <circle cx="9" cy="12" r="4.5" fill={stroke} stroke="none" />
-          <line x1="13.5" y1="12" x2="22" y2="12" />
-        </svg>
-      );
-    case "OUTPUT":
-      return (
-        <svg {...common}>
-          <line x1="2" y1="12" x2="10.5" y2="12" />
-          <circle cx="15" cy="12" r="4.5" />
-        </svg>
-      );
-    case "AND":
-      return (
-        <svg {...common}>
-          <path d="M5 4 L5 20 L11 20 A8 8 0 0 0 11 4 Z" />
-          <line x1="1" y1="9" x2="5" y2="9" />
-          <line x1="1" y1="15" x2="5" y2="15" />
-          <line x1="19" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    case "OR":
-      return (
-        <svg {...common}>
-          <path d="M4 4 Q9 12 4 20 Q12 20 20 12 Q12 4 4 4 Z" />
-          <line x1="1" y1="9" x2="6" y2="9" />
-          <line x1="1" y1="15" x2="6" y2="15" />
-          <line x1="20" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    case "NOT":
-      return (
-        <svg {...common}>
-          <path d="M5 4 L5 20 L19 12 Z" />
-          <circle cx="20.5" cy="12" r="1.5" />
-          <line x1="1" y1="12" x2="5" y2="12" />
-          <line x1="22" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    case "XOR":
-      return (
-        <svg {...common}>
-          <path d="M6 4 Q11 12 6 20 Q14 20 22 12 Q14 4 6 4 Z" />
-          <path d="M2 4 Q7 12 2 20" />
-          <line x1="0" y1="9" x2="5" y2="9" />
-          <line x1="0" y1="15" x2="5" y2="15" />
-          <line x1="22" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    case "NAND":
-      return (
-        <svg {...common}>
-          <path d="M5 4 L5 20 L10 20 A7 7 0 0 0 10 4 Z" />
-          <circle cx="18.5" cy="12" r="1.5" />
-          <line x1="1" y1="9" x2="5" y2="9" />
-          <line x1="1" y1="15" x2="5" y2="15" />
-          <line x1="20" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    case "NOR":
-      return (
-        <svg {...common}>
-          <path d="M4 4 Q9 12 4 20 Q11 20 18 12 Q11 4 4 4 Z" />
-          <circle cx="19.5" cy="12" r="1.5" />
-          <line x1="1" y1="9" x2="6" y2="9" />
-          <line x1="1" y1="15" x2="6" y2="15" />
-          <line x1="21" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    case "XNOR":
-      return (
-        <svg {...common}>
-          <path d="M6 4 Q11 12 6 20 Q13 20 19 12 Q13 4 6 4 Z" />
-          <path d="M2 4 Q7 12 2 20" />
-          <circle cx="20.5" cy="12" r="1.5" />
-          <line x1="0" y1="9" x2="5" y2="9" />
-          <line x1="0" y1="15" x2="5" y2="15" />
-          <line x1="22" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-    default:
-      return (
-        <svg {...common}>
-          <rect x="4" y="6" width="16" height="12" rx="1" />
-          <line x1="1" y1="9" x2="4" y2="9" />
-          <line x1="1" y1="15" x2="4" y2="15" />
-          <line x1="20" y1="12" x2="23" y2="12" />
-        </svg>
-      );
-  }
+  const Icon = GATE_ICONS[kind] ?? TbBoxMultiple;
+  return <Icon size={size} color={color} />;
 }
 
 // ─── Categoria colapsável ─────────────────────────────────────────────────────
@@ -305,21 +226,7 @@ function CustomGateTile({
         title={`${def.name} — ${def.inputs} in / ${def.outputs} out`}
         className="w-full h-full flex flex-col items-center justify-center gap-1 px-1 cursor-grab active:cursor-grabbing bg-transparent"
       >
-        <svg
-          width={20}
-          height={20}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke={color}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="5" y="5" width="14" height="14" rx="1" />
-          <line x1="1" y1="9" x2="5" y2="9" />
-          <line x1="1" y1="15" x2="5" y2="15" />
-          <line x1="19" y1="12" x2="23" y2="12" />
-        </svg>
+        <TbBoxMultiple size={40} color={color} />
         <span
           className="font-mono text-[9px] font-semibold tracking-[0.06em] leading-none max-w-full truncate px-1"
           style={{ color }}

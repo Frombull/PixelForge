@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, Type, X } from "lucide-react";
 import { useState } from "react";
 import type { CustomGateDef } from "./customGates";
 import { customKind } from "./customGates";
@@ -8,8 +8,47 @@ import { GATE_CATALOG, type GateKind } from "./types";
 
 interface Props {
   onAdd: (kind: GateKind) => void;
+  onAddText: () => void;
   customs: CustomGateDef[];
   onDeleteCustom: (id: string) => void;
+}
+
+function TextToolItem({
+  onAdd,
+  onDragStart,
+}: {
+  onAdd: () => void;
+  onDragStart: (e: React.DragEvent) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      draggable
+      onDragStart={onDragStart}
+      onClick={onAdd}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="Insere um bloco de texto editável"
+      className="w-full h-8 flex items-center gap-2 px-2 rounded-xs cursor-grab active:cursor-grabbing text-left transition-colors duration-100"
+      style={{
+        background: hovered ? "#363636" : "transparent",
+        border: `1px solid ${hovered ? "#555" : "transparent"}`,
+      }}
+    >
+      <Type
+        size={11}
+        strokeWidth={2}
+        style={{ color: hovered ? "#fff" : "#b0b0b0" }}
+      />
+      <span
+        className="font-mono text-[10px] font-semibold tracking-[0.06em] flex-1"
+        style={{ color: hovered ? "#fff" : "#b0b0b0" }}
+      >
+        TEXTO
+      </span>
+    </button>
+  );
 }
 
 function GroupLabel({ label }: { label: string }) {
@@ -131,9 +170,14 @@ function CustomGateItem({
   );
 }
 
-export default function Sidebar({ onAdd, customs, onDeleteCustom }: Props) {
+export default function Sidebar({ onAdd, onAddText, customs, onDeleteCustom }: Props) {
   const onDragStart = (e: React.DragEvent, kind: GateKind) => {
     e.dataTransfer.setData("application/logic-gate", kind);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const onDragStartText = (e: React.DragEvent) => {
+    e.dataTransfer.setData("application/logic-gates-text", "1");
     e.dataTransfer.effectAllowed = "move";
   };
 
@@ -189,6 +233,13 @@ export default function Sidebar({ onAdd, customs, onDeleteCustom }: Props) {
               onDragStart={onDragStart}
             />
           ))}
+        </div>
+
+        <div className="h-px bg-[#3a3a3a] mx-0 my-1" />
+
+        <GroupLabel label="Ferramentas" />
+        <div className="px-2 pb-2 flex flex-col gap-0.5">
+          <TextToolItem onAdd={onAddText} onDragStart={onDragStartText} />
         </div>
 
         <div className="h-px bg-[#3a3a3a] mx-0 my-1" />

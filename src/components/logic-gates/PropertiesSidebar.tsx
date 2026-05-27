@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { CustomGateDef } from "./customGates";
 import { customIdFromKind, isCustomKind } from "./customGates";
+import type { TextNodeData, TextSize } from "./TextNode";
+import { TEXT_DEFAULT_COLOR } from "./TextNode";
 import { getDescriptor, type GateNodeData } from "./types";
 import type { GateNode } from "./simulator";
 
@@ -11,9 +13,23 @@ interface Props {
   selectionCount: number;
   customs: CustomGateDef[];
   onRename: (id: string, name: string) => void;
+  onUpdateText?: (id: string, patch: Partial<TextNodeData>) => void;
   // Quando muda, foca + seleciona o input de nome.
   focusRenameSignal?: number;
 }
+
+const TEXT_PALETTE: string[] = [
+  "#ffffff",
+  "#aaaaaa",
+  "#f87171",
+  "#facc15",
+  "#4ade80",
+  "#22d3ee",
+  "#60a5fa",
+  "#f472b6",
+];
+
+const TEXT_SIZES: TextSize[] = ["S", "M", "L"];
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -39,6 +55,7 @@ export default function PropertiesSidebar({
   selectionCount,
   customs,
   onRename,
+  onUpdateText,
   focusRenameSignal,
 }: Props) {
   const [draftName, setDraftName] = useState("");
@@ -112,6 +129,97 @@ export default function PropertiesSidebar({
   }
 
   if (!node) return null;
+
+  // Texto — painel com texto, tamanho e cor.
+  if (node.type === "text") {
+    const td = node.data as unknown as TextNodeData;
+    const currentSize = td.size ?? "M";
+    const currentColor = td.color ?? TEXT_DEFAULT_COLOR;
+    return (
+      <aside
+        onContextMenu={(e) => e.preventDefault()}
+        className="w-52 shrink-0 flex flex-col bg-[#2c2c2c] border-l border-[#3a3a3a] select-none"
+      >
+        {header}
+        <div className="flex-1 overflow-y-auto">
+          <SectionLabel label="Identidade" />
+          <div className="px-3 pb-2 flex flex-col gap-1.5">
+            <Field label="Tipo" value="Texto" />
+            <Field label="ID" value={node.id} />
+          </div>
+
+          <div className="h-px bg-[#3a3a3a] my-1" />
+
+          <SectionLabel label="Conteúdo" />
+          <div className="px-3 pb-2">
+            <textarea
+              value={td.text ?? ""}
+              onChange={(e) => onUpdateText?.(node.id, { text: e.target.value })}
+              placeholder="Digite o texto..."
+              rows={3}
+              className="w-full px-2 py-1 text-[10px] font-mono text-[#ddd] bg-[#1e1e1e] border border-[#3a3a3a] focus:border-[#888] focus:outline-none rounded-xs resize-none"
+            />
+          </div>
+
+          <div className="h-px bg-[#3a3a3a] my-1" />
+
+          <SectionLabel label="Tamanho" />
+          <div className="px-3 pb-2 flex gap-1">
+            {TEXT_SIZES.map((s) => {
+              const active = s === currentSize;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => onUpdateText?.(node.id, { size: s })}
+                  className="flex-1 h-7 font-mono text-[10px] font-semibold tracking-[0.1em] rounded-xs transition-colors"
+                  style={{
+                    background: active ? "#363636" : "#1e1e1e",
+                    border: `1px solid ${active ? "#888" : "#3a3a3a"}`,
+                    color: active ? "#fff" : "#b0b0b0",
+                  }}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="h-px bg-[#3a3a3a] my-1" />
+
+          <SectionLabel label="Cor" />
+          <div className="px-3 pb-3 grid grid-cols-8 gap-1">
+            {TEXT_PALETTE.map((c) => {
+              const active = c.toLowerCase() === currentColor.toLowerCase();
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  title={c}
+                  onClick={() => onUpdateText?.(node.id, { color: c })}
+                  className="w-full aspect-square rounded-xs transition-transform"
+                  style={{
+                    background: c,
+                    border: `1px solid ${active ? "#fff" : "#3a3a3a"}`,
+                    boxShadow: active ? "0 0 0 1px #000 inset" : "none",
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          <div className="h-px bg-[#3a3a3a] my-1" />
+
+          <SectionLabel label="Posição" />
+          <div className="px-3 pb-2 flex flex-col gap-1.5">
+            <Field label="X" value={Math.round(node.position.x)} />
+            <Field label="Y" value={Math.round(node.position.y)} />
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   const d = node.data as GateNodeData;
 
   // Truth Table — painel mínimo (sem rename / pinos).

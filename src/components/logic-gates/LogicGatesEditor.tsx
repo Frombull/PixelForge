@@ -40,12 +40,20 @@ import {
 import { CustomGatesProvider } from "./customGatesContext";
 import { nodeIsActive, outKey, simulate, type GateNode as GNode } from "./simulator";
 import TruthTableNode from "./TruthTableNode";
+import TextNode, {
+  TEXT_DEFAULT_COLOR,
+  TEXT_DEFAULT_SIZE,
+  TEXT_DEFAULT_TEXT,
+  type TextNodeData,
+} from "./TextNode";
 import { buildTruthTable, currentRowIndex } from "./truthTable";
 import { TruthTableProvider } from "./truthTableContext";
 import { GATE_CATALOG, getDescriptor, type GateKind, type GateNodeData } from "./types";
 
 const TRUTH_TABLE_KIND = "TRUTHTABLE";
 const TRUTH_TABLE_TYPE = "truthtable";
+const TEXT_TYPE = "text";
+const TEXT_KIND = "TEXT";
 
 // ─── Histórico (Undo / Redo) ──────────────────────────────────────────────────
 
@@ -83,7 +91,7 @@ function redoSnapshot(history: History): { history: History; snapshot: Snapshot 
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const nodeTypes: NodeTypes = { gate: GateNode, truthtable: TruthTableNode };
+const nodeTypes: NodeTypes = { gate: GateNode, truthtable: TruthTableNode, text: TextNode };
 const edgeTypes: EdgeTypes = { wire: WireEdge };
 
 const GRID = 24;
@@ -508,14 +516,47 @@ function EditorInner() {
     [flash],
   );
 
+  // ── Adicionar nó de texto ─────────────────────────────────────────────────────
+  const addTextNode = useCallback(
+    (position?: { x: number; y: number }) => {
+      const raw = position ?? { x: 240 + Math.random() * 160, y: 180 + Math.random() * 140 };
+      const pos = snapPos(raw);
+      const data: TextNodeData = {
+        kind: TEXT_KIND,
+        text: TEXT_DEFAULT_TEXT,
+        size: TEXT_DEFAULT_SIZE,
+        color: TEXT_DEFAULT_COLOR,
+        state: false,
+      };
+      const newNode = {
+        id: nextId(),
+        type: TEXT_TYPE,
+        position: pos,
+        data,
+      } as unknown as GNode;
+      setNodes((nds) => {
+        const next = [...nds, newNode] as GNode[];
+        setHistory((h) => pushSnapshot(h, { nodes: next, edges: live.current.edges }));
+        flash("+ texto");
+        return next;
+      });
+    },
+    [flash],
+  );
+
   // ── Drag & drop ───────────────────────────────────────────────────────────────
   const onDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }, []);
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    const pos = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+    if (e.dataTransfer.getData("application/logic-gates-text")) {
+      addTextNode(pos);
+      return;
+    }
     const kind = e.dataTransfer.getData("application/logic-gate") as GateKind;
     if (!kind || !GATE_CATALOG.find((g) => g.kind === kind)) return;
-    addNode(kind, screenToFlowPosition({ x: e.clientX, y: e.clientY }));
-  }, [addNode, screenToFlowPosition]);
+    addNode(kind, pos);
+  }, [addNode, addTextNode, screenToFlowPosition]);
 
   // ── Botão direito para pan (bloqueia context menu) ────────────────────────────
   // O ReactFlow usa panOnDrag={[1, 2]} para aceitar MB do meio e MB direito.
@@ -526,7 +567,7 @@ function EditorInner() {
 
   // ── Simulação ─────────────────────────────────────────────────────────────────
   const gateNodes = useMemo(
-    () => nodes.filter((n) => n.type !== TRUTH_TABLE_TYPE) as GNode[],
+    () => nodes.filter((n) => n.type !== TRUTH_TABLE_TYPE && n.type !== TEXT_TYPE) as GNode[],
     [nodes],
   );
 
@@ -562,6 +603,7 @@ function EditorInner() {
   const decoratedNodes = useMemo(() =>
     nodes.map((n) => {
       if (n.type === TRUTH_TABLE_TYPE) return n;
+      if (n.type === TEXT_TYPE) return n;
       const desc = getDescriptor(n.data.kind, customs);
       const outCount = desc.outputs;
       let v: boolean;
@@ -662,6 +704,19 @@ function EditorInner() {
       flash("custom removido");
     },
     [flash],
+  );
+
+  const handleUpdateText = useCallback(
+    (nodeId: string, patch: Partial<TextNodeData>) => {
+      const nextNodes = live.current.nodes.map((n) => {
+        if (n.id !== nodeId || n.type !== TEXT_TYPE) return n;
+        return { ...n, data: { ...n.data, ...patch } } as GNode;
+      });
+      // Mudanças leves (digitação, cor, tamanho) — atualiza sem flash repetitivo.
+      setNodes(nextNodes);
+      setHistory((h) => pushSnapshot(h, { nodes: nextNodes, edges: live.current.edges }));
+    },
+    [],
   );
 
   const handleRenameNode = useCallback(
@@ -895,6 +950,7 @@ function EditorInner() {
     let gates = 0, inputs = 0, outputs = 0;
     for (const n of nodes) {
       if (n.type === TRUTH_TABLE_TYPE)        continue;
+      else if (n.type === TEXT_TYPE)          continue;
       else if (n.data.kind === "INPUT")  inputs++;
       else if (n.data.kind === "OUTPUT") outputs++;
       else                               gates++;
@@ -907,7 +963,7 @@ function EditorInner() {
     <TruthTableProvider value={{ data: truthTableData, currentRow: truthTableRow }}>
     <WireCommitContext.Provider value={wireCommit}>
     <div className="flex h-screen overflow-hidden bg-[#1e1e1e] font-mono text-white">
-      <Sidebar onAdd={addNode} customs={customs} onDeleteCustom={handleDeleteCustom} />
+      <Sidebar onAdd={addNode} onAddText={() => addTextNode()} customs={customs} onDeleteCustom={handleDeleteCustom} />
 
       {/* Canvas — ocupa todo o restante, sem toolbar */}
       <div
@@ -1010,6 +1066,7 @@ function EditorInner() {
         selectionCount={selectedNodes.length}
         customs={customs}
         onRename={handleRenameNode}
+        onUpdateText={handleUpdateText}
         focusRenameSignal={renameTick}
       />
 

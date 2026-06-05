@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import InfosSidebar from "@/components/InfosSidebar";
+import InfosContentWrapper from "@/components/InfosContentWrapper";
 
 export default function InfosLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,12 +23,10 @@ export default function InfosLayout({ children }: { children: React.ReactNode })
           {/* Divider */}
           <div className="hidden lg:block w-px bg-[#2a2d3e] shrink-0 self-stretch" />
 
-          {/* Main content — centered independently from sidebar */}
-          <div className="flex-1 min-w-0 flex flex-col items-center px-6 lg:px-10">
-            <div className="w-full max-w-6xl lg:-translate-x-[110px]">
-              {children}
-            </div>
-          </div>
+          {/* Main content — background shifts on article pages */}
+          <InfosContentWrapper>
+            {children}
+          </InfosContentWrapper>
 
         </div>
 

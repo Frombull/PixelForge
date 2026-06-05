@@ -9,12 +9,14 @@ interface Concept {
   description: string;
   category: string;
   links: string[];
+  image?: string;
 }
 
 const concepts: Concept[] = [
   {
     id: "bezier-curves",
     title: "Curvas de Bézier",
+    image: "/images/module-previews/bezier_cover.jpg",
     description:
       "Curvas paramétricas definidas por pontos de controle, amplamente utilizadas em design gráfico, animação e modelagem 3D. Fundamentais para criar formas suaves e orgânicas.",
     category: "Computação Gráfica",
@@ -23,6 +25,7 @@ const concepts: Concept[] = [
   {
     id: "animations",
     title: "Animações",
+    image: "/images/module-previews/animation_cover.jpg",
     description:
       "Sequências temporais que criam movimento através da interpolação entre estados, fundamentais em jogos, interfaces e mídia digital. Essenciais para dar vida e fluidez às experiências visuais interativas.",
     category: "Computação Gráfica",
@@ -170,28 +173,44 @@ export default function InfosPage() {
                           data-concept-id={concept.id}
                           onClick={() => handleConceptClick(concept.id)}
                           className="bg-[#1a1b26] p-0 relative cursor-pointer block transition-colors group border border-[#2a2d3e] rounded-md overflow-hidden hover:bg-[#171823] hover:border-[#3a3d52]">
-                   
-                  <div className="p-[18px] px-5 pb-5 pt-2">
-                    <div className={`text-[9px] tracking-widest uppercase mb-2.5 pb-2 inline-flex items-center gap-1.5 ${isCG ? 'text-[#7dcfff]' : 'text-[#bb9af7]'}`}>
-                      {concept.category}
-                    </div>
-                    <div className="text-base font-bold text-[#c0caf5] mb-2 tracking-wide pr-6 leading-tight font-mono">
-                      {concept.title}
-                    </div>
-                    <div className="text-[11px] text-[#a9b1d6] leading-relaxed font-light line-clamp-3 font-mono">
-                      {concept.description}
-                    </div>
-                    
-                    <div className="mt-3.5 flex flex-wrap gap-1.5">
-                      {concept.links.map((link, i) => (
-                        <span key={i} className="text-[9px] text-[#9aa5ce] border border-[#2f3244] bg-[#14161f] px-1.5 py-0.5 rounded-[3px] tracking-wide">
-                          {link.toLowerCase()}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
+
+                          {concept.image && (
+                            <div className="relative -mx-0 -mt-0 overflow-hidden rounded-t-md h-40 bg-[#0f1017] border-b border-[#2a2d3e]">
+                              <img
+                                src={concept.image}
+                                alt={`${concept.title} preview`}
+                                className="w-full h-full object-cover"
+                                style={{
+                                  WebkitMaskImage:
+                                    "radial-gradient(circle at center, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 100%)",
+                                  maskImage:
+                                    "radial-gradient(circle at center, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 100%)",
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          <div className="p-[18px] px-5 pb-5 pt-2">
+                            <div className={`text-[9px] tracking-widest uppercase mb-2.5 pb-2 inline-flex items-center gap-1.5 ${isCG ? 'text-[#7dcfff]' : 'text-[#bb9af7]'}`}>
+                              {concept.category}
+                            </div>
+                            <div className="text-base font-bold text-[#c0caf5] mb-2 tracking-wide pr-6 leading-tight font-mono">
+                              {concept.title}
+                            </div>
+                            <div className="text-[11px] text-[#a9b1d6] leading-relaxed font-light line-clamp-3 font-mono">
+                              {concept.description}
+                            </div>
+
+                            <div className="mt-3.5 flex flex-wrap gap-1.5">
+                              {concept.links.map((link, i) => (
+                                <span key={i} className="text-[9px] text-[#9aa5ce] border border-[#2f3244] bg-[#14161f] px-1.5 py-0.5 rounded-[3px] tracking-wide">
+                                  {link.toLowerCase()}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
             })}
                   </div>
                 </div>

@@ -44,7 +44,38 @@ export interface GateNodeData {
   state: boolean;
   value?: boolean;
   name?: string;
+  // Override per-instance da aridade. Só válido pra portas N-árias built-in
+  // (AND/OR/NAND/NOR/XOR/XNOR). Ignorado em INPUT/OUTPUT/NOT/custom.
+  inputs?: number;
   [key: string]: unknown;
+}
+
+const NARY_KINDS: ReadonlySet<GateKind> = new Set([
+  "AND",
+  "OR",
+  "NAND",
+  "NOR",
+  "XOR",
+  "XNOR",
+]);
+
+export function isNaryKind(kind: GateKind): boolean {
+  return NARY_KINDS.has(kind);
+}
+
+export const NARY_MIN_INPUTS = 2;
+export const NARY_MAX_INPUTS = 8;
+
+// Aridade efetiva: respeita override por nó, com clamp.
+export function effectiveInputs(
+  data: GateNodeData,
+  customs?: CustomGateDef[],
+): number {
+  const desc = getDescriptor(data.kind, customs);
+  if (!isNaryKind(data.kind)) return desc.inputs;
+  const override = data.inputs;
+  if (typeof override !== "number" || !Number.isFinite(override)) return desc.inputs;
+  return Math.min(NARY_MAX_INPUTS, Math.max(NARY_MIN_INPUTS, Math.floor(override)));
 }
 
 export function getDescriptor(

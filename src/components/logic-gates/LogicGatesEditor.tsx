@@ -48,7 +48,16 @@ import TextNode, {
 } from "./TextNode";
 import { buildTruthTable, currentRowIndex } from "./truthTable";
 import { TruthTableProvider } from "./truthTableContext";
-import { GATE_CATALOG, getDescriptor, type GateKind, type GateNodeData } from "./types";
+import {
+  effectiveInputs,
+  GATE_CATALOG,
+  getDescriptor,
+  isNaryKind,
+  NARY_MAX_INPUTS,
+  NARY_MIN_INPUTS,
+  type GateKind,
+  type GateNodeData,
+} from "./types";
 
 const TRUTH_TABLE_KIND = "TRUTHTABLE";
 const TRUTH_TABLE_TYPE = "truthtable";
@@ -719,6 +728,31 @@ function EditorInner() {
     [],
   );
 
+  const handleUpdateInputs = useCallback(
+    (nodeId: string, count: number) => {
+      const node = live.current.nodes.find((n) => n.id === nodeId);
+      if (!node || !isNaryKind(node.data.kind)) return;
+      const clamped = Math.min(
+        NARY_MAX_INPUTS,
+        Math.max(NARY_MIN_INPUTS, Math.floor(count)),
+      );
+      const current = effectiveInputs(node.data, customs);
+      if (clamped === current) return;
+      const nextNodes = live.current.nodes.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, inputs: clamped } } : n,
+      );
+      // Poda arestas que apontam pra handles fora do novo range.
+      const nextEdges = live.current.edges.filter((e) => {
+        if (e.target !== nodeId) return true;
+        const h = e.targetHandle ?? "in-0";
+        const idx = parseInt(h.replace("in-", ""), 10) || 0;
+        return idx < clamped;
+      });
+      commit(nextNodes, nextEdges, `entradas: ${clamped}`);
+    },
+    [commit, customs],
+  );
+
   const handleRenameNode = useCallback(
     (nodeId: string, name: string) => {
       const trimmed = name.trim();
@@ -1067,6 +1101,7 @@ function EditorInner() {
         customs={customs}
         onRename={handleRenameNode}
         onUpdateText={handleUpdateText}
+        onUpdateInputs={handleUpdateInputs}
         focusRenameSignal={renameTick}
       />
 

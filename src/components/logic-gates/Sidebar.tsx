@@ -25,7 +25,7 @@ interface Props {
   onDeleteCustom: (id: string) => void;
 }
 
-// ─── Ícones das portas (Tabler) ───────────────────────────────────────────────
+// ─── Icones das portas (Tabler) ───────────────────────────────────────────────
 
 const GATE_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
   INPUT: TbCircleDotFilled,

@@ -1,11 +1,19 @@
 "use client";
 
+import { Minus, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { CustomGateDef } from "./customGates";
 import { customIdFromKind, isCustomKind } from "./customGates";
 import type { TextNodeData, TextSize } from "./TextNode";
 import { TEXT_DEFAULT_COLOR } from "./TextNode";
-import { getDescriptor, type GateNodeData } from "./types";
+import {
+  effectiveInputs,
+  getDescriptor,
+  isNaryKind,
+  NARY_MAX_INPUTS,
+  NARY_MIN_INPUTS,
+  type GateNodeData,
+} from "./types";
 import type { GateNode } from "./simulator";
 
 interface Props {
@@ -14,6 +22,7 @@ interface Props {
   customs: CustomGateDef[];
   onRename: (id: string, name: string) => void;
   onUpdateText?: (id: string, patch: Partial<TextNodeData>) => void;
+  onUpdateInputs?: (id: string, count: number) => void;
   // Quando muda, foca + seleciona o input de nome.
   focusRenameSignal?: number;
 }
@@ -56,6 +65,7 @@ export default function PropertiesSidebar({
   customs,
   onRename,
   onUpdateText,
+  onUpdateInputs,
   focusRenameSignal,
 }: Props) {
   const [draftName, setDraftName] = useState("");
@@ -304,7 +314,45 @@ export default function PropertiesSidebar({
 
         <SectionLabel label="Pinos" />
         <div className="px-3 pb-2 flex flex-col gap-1.5">
-          <Field label="Entradas" value={desc.inputs} />
+          {isNaryKind(d.kind) && onUpdateInputs ? (
+            (() => {
+              const current = effectiveInputs(d, customs);
+              const dec = () => onUpdateInputs(node.id, current - 1);
+              const inc = () => onUpdateInputs(node.id, current + 1);
+              const canDec = current > NARY_MIN_INPUTS;
+              const canInc = current < NARY_MAX_INPUTS;
+              return (
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-mono tracking-[0.14em] uppercase text-[#6a6a6a] w-14 shrink-0">
+                    Entradas
+                  </span>
+                  <div className="flex items-center gap-0">
+                    <button
+                      type="button"
+                      onClick={dec}
+                      disabled={!canDec}
+                      className="w-6 h-6 flex items-center justify-center bg-[#1e1e1e] border border-[#3a3a3a] text-[#b0b0b0] hover:text-white hover:border-[#888] disabled:opacity-30 disabled:hover:text-[#b0b0b0] disabled:hover:border-[#3a3a3a] transition-colors rounded-xs"
+                    >
+                      <Minus size={11} strokeWidth={2} />
+                    </button>
+                    <span className="w-7 h-6 flex items-center justify-center text-[10px] font-mono text-[#ddd] bg-[#1e1e1e] border-y border-[#3a3a3a]">
+                      {current}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={inc}
+                      disabled={!canInc}
+                      className="w-6 h-6 flex items-center justify-center bg-[#1e1e1e] border border-[#3a3a3a] text-[#b0b0b0] hover:text-white hover:border-[#888] disabled:opacity-30 disabled:hover:text-[#b0b0b0] disabled:hover:border-[#3a3a3a] transition-colors rounded-xs"
+                    >
+                      <Plus size={11} strokeWidth={2} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
+            <Field label="Entradas" value={desc.inputs} />
+          )}
           <Field label="Saídas" value={desc.outputs} />
         </div>
 

@@ -2,6 +2,7 @@ import type { Edge, Node } from "@xyflow/react";
 import type { CustomGateDef } from "./customGates";
 import { customIdFromKind, isCustomKind } from "./customGates";
 import type { BuiltInKind, GateKind, GateNodeData } from "./types";
+import { isNaryKind, NARY_MAX_INPUTS, NARY_MIN_INPUTS } from "./types";
 
 export type GateNode = Node<GateNodeData>;
 
@@ -96,7 +97,13 @@ function evalOutput(
     }
   } else {
     const bk = kind as BuiltInKind;
-    const arity = builtinArity(bk);
+    let arity = builtinArity(bk);
+    if (isNaryKind(bk)) {
+      const override = (node.data as GateNodeData).inputs;
+      if (typeof override === "number" && Number.isFinite(override)) {
+        arity = Math.min(NARY_MAX_INPUTS, Math.max(NARY_MIN_INPUTS, Math.floor(override)));
+      }
+    }
     const inputs = collectInputs(nodeId, arity, ctx, visiting);
     result = computeBuiltin(bk, inputs);
   }

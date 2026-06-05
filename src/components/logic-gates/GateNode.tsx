@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import type { CustomGateDef } from "./customGates";
 import { customIdFromKind, isCustomKind } from "./customGates";
 import { useCustomGates } from "./customGatesContext";
-import { getDescriptor, type GateNodeData } from "./types";
+import { effectiveInputs, getDescriptor, type GateNodeData } from "./types";
 
 function cls(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
@@ -106,8 +106,9 @@ export default function GateNode({ id, data, selected }: NodeProps) {
     outputNames = def?.outputNames ?? [];
   }
 
-  const inputHandles = Array.from({ length: desc.inputs }, (_, i) => {
-    const top = desc.inputs === 1 ? 50 : (i + 1) * (100 / (desc.inputs + 1));
+  const inputCount = effectiveInputs(d, customs);
+  const inputHandles = Array.from({ length: inputCount }, (_, i) => {
+    const top = inputCount === 1 ? 50 : (i + 1) * (100 / (inputCount + 1));
     return (
       <Handle
         key={`in-${i}`}
@@ -164,7 +165,7 @@ export default function GateNode({ id, data, selected }: NodeProps) {
     </>
   ) : null;
 
-  const pinCount = Math.max(desc.inputs, desc.outputs, 1);
+  const pinCount = Math.max(inputCount, desc.outputs, 1);
   const minHeight = Math.max(48, pinCount * 20);
   const minWidth = isCustom ? 96 : 72;
 

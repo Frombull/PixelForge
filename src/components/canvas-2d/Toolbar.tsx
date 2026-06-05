@@ -1,16 +1,41 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
+import katex from "katex";
+import "katex/dist/katex.min.css";
 import { COLORS, TOOLS, PLACEHOLDER_TOOLS } from "./lib/constants";
-import type { Tool } from "./lib/types";
+import type { Tool, Shape } from "./lib/types";
+import { buildTransformMatrixLatex, getMatrixTitle } from "./lib/matrixMath";
 
 interface ToolbarProps {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
+  selectedShape: Shape | null;
 }
 
-export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
+const MATRIX_TOOLS: Tool[] = ["TRANSLATE", "ROTATE", "SCALE", "SHEAR"];
+
+export default function Toolbar({ activeTool, onToolChange, selectedShape }: ToolbarProps) {
+  const matrixRef = useRef<HTMLDivElement>(null);
+  const showMatrix = MATRIX_TOOLS.includes(activeTool);
+
+  useEffect(() => {
+    const el = matrixRef.current;
+    if (!el) return;
+    if (!showMatrix) {
+      el.innerHTML = "";
+      return;
+    }
+    const latex = buildTransformMatrixLatex(activeTool, selectedShape);
+    if (!latex) { el.innerHTML = ""; return; }
+    try {
+      el.innerHTML = katex.renderToString(latex, { throwOnError: false });
+    } catch {
+      // fail silently
+    }
+  }, [activeTool, selectedShape, showMatrix]);
+
   return (
     <div
       style={{
@@ -111,6 +136,43 @@ export default function Toolbar({ activeTool, onToolChange }: ToolbarProps) {
       </div>
 
       <div style={{ flex: 1 }} />
+
+      {/* ── Transformation matrix (bottom of sidebar) */}
+      {showMatrix && (
+        <div
+          style={{
+            borderTop: `1px solid ${COLORS.border}`,
+            padding: "10px 10px 12px",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 600,
+              color: COLORS.textLabel,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              marginBottom: 10,
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            {getMatrixTitle(activeTool)}
+          </div>
+          <div
+            ref={matrixRef}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              // KaTeX font-size override so the matrix fits the narrow sidebar
+              fontSize: "1.1rem",
+              color: COLORS.textBright,
+              minHeight: 60,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

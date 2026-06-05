@@ -219,6 +219,7 @@ export default function PolygonEditor() {
         <Toolbar
           activeTool={tool}
           onToolChange={handleToolChange}
+          selectedShape={selectedShape}
         />
 
         <EditorCanvas

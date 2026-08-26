@@ -15,6 +15,8 @@ export default function TopBar({
   infoButtonRef,
   settingsButtonRef,
   onResetCamera,
+  onSaveScene,
+  onLoadScene,
   onToggleCullingView,
   onToggleAliasingStress,
   onToggleInfo,
@@ -40,6 +42,36 @@ export default function TopBar({
           <path d="M3 11.5 12 4l9 7.5" />
           <path d="M6.5 10v9.5h11V10" />
         </svg>
+      </button>
+
+      <button
+        aria-label="Salvar cena"
+        className={`${topbarButtonClass} w-auto gap-1 px-2 text-[0.68rem]`}
+        onContextMenu={preventContextMenu}
+        onClick={onSaveScene}
+        title="Salvar cena em arquivo JSON"
+        type="button"
+      >
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path d="M5 4h12l2 2v14H5z" />
+          <path d="M8 4v6h8V4M8 20v-6h8v6" />
+        </svg>
+        <span>Salvar</span>
+      </button>
+
+      <button
+        aria-label="Carregar cena"
+        className={`${topbarButtonClass} w-auto gap-1 px-2 text-[0.68rem]`}
+        onContextMenu={preventContextMenu}
+        onClick={onLoadScene}
+        title="Carregar cena de arquivo JSON"
+        type="button"
+      >
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path d="M4 5h6l2 2h8v12H4z" />
+          <path d="M12 10v6M9.5 12.5 12 10l2.5 2.5" />
+        </svg>
+        <span>Abrir</span>
       </button>
 
       <button

@@ -551,8 +551,14 @@ export class SceneManager {
     
     setGridColor(color) {
         if (this.gridHelper) {
-            this.gridHelper.material.color.set(color);
-            this.gridHelper.material.needsUpdate = true;
+            const materials = Array.isArray(this.gridHelper.material)
+                ? this.gridHelper.material
+                : [this.gridHelper.material];
+            materials.forEach((material) => {
+                if (!material?.color) return;
+                material.color.set(color);
+                material.needsUpdate = true;
+            });
         }
     }
     

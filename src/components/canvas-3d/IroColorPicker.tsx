@@ -83,7 +83,7 @@ export default function IroColorPicker({
     const mount = mountRef.current;
     if (!mount) return;
 
-    const picker = new iro.ColorPicker(mount, {
+    const picker = iro.ColorPicker(mount, {
       width: 196,
       color: colorInputs.hex,
       borderWidth: 1,

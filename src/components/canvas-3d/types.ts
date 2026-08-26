@@ -111,6 +111,11 @@ export type Canvas3DState = {
 
 export type Canvas3DStatus = "loading" | "ready" | "error";
 
+export type Canvas3DSceneLoadResult = {
+  ok: boolean;
+  error?: string;
+};
+
 export const EMPTY_STATE: Canvas3DState = {
   mode: "translate",
   isOrthographic: false,
@@ -173,6 +178,8 @@ export type TopBarProps = {
   infoButtonRef: RefObject<HTMLButtonElement | null>;
   settingsButtonRef: RefObject<HTMLButtonElement | null>;
   onResetCamera: () => void;
+  onSaveScene: () => void;
+  onLoadScene: () => void;
   onToggleCullingView: () => void;
   onToggleAliasingStress: () => void;
   onToggleInfo: () => void;
@@ -206,6 +213,9 @@ export type Canvas3DBridge = {
   mount: () => unknown;
   unmount: () => void;
   getState: () => Canvas3DState | null;
+  saveScene: () => string | null;
+  serializeScene: () => string | null;
+  loadScene: (payload: string) => Canvas3DSceneLoadResult;
 
   addObject: (kind: CanvasObjectKind) => void;
   setMode: (mode: Canvas3DMode) => void;

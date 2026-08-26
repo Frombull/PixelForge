@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties } from "react";
 import katex from "katex";
 import DebugPane from "./DebugPane";
 import LeftSidebar from "./LeftSidebar";
@@ -66,11 +66,13 @@ export default function Canvas3DWorkspace() {
   });
 
   const [colorInputs, setColorInputs] = useState<ColorInputState>(EMPTY_COLOR_INPUTS);
+  const [sceneFeedback, setSceneFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const settingsRef = useRef<HTMLDivElement | null>(null);
   const settingsButtonRef = useRef<HTMLButtonElement | null>(null);
   const infoRef = useRef<HTMLDivElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
+  const sceneFileInputRef = useRef<HTMLInputElement | null>(null);
   const scaleMatrixRef = useRef<HTMLDivElement | null>(null);
   const projectionSettingsRef = useRef<ProjectionCameraSettings>(projectionSettings);
   const selected = engineState.selected;
@@ -430,6 +432,54 @@ export default function Canvas3DWorkspace() {
     setIsInfoOpen(false);
   };
 
+  const saveScene = () => {
+    const payload = window.Canvas3DBridge?.serializeScene();
+    if (!payload) {
+      setSceneFeedback({ type: "error", text: "O Canvas ainda não está pronto para salvar." });
+      return;
+    }
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `pixelforge-scene-${stamp}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    setSceneFeedback({ type: "success", text: "Cena salva em um arquivo JSON." });
+  };
+
+  const openScenePicker = () => {
+    sceneFileInputRef.current?.click();
+  };
+
+  const loadSceneFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setSceneFeedback({ type: "error", text: "O arquivo excede o limite de 10 MB." });
+      return;
+    }
+
+    try {
+      const payload = await file.text();
+      const result = window.Canvas3DBridge?.loadScene(payload);
+      if (!result?.ok) {
+        setSceneFeedback({ type: "error", text: result?.error || "Não foi possível carregar a cena." });
+        return;
+      }
+
+      setSceneFeedback({ type: "success", text: `Cena carregada: ${file.name}` });
+    } catch {
+      setSceneFeedback({ type: "error", text: "Não foi possível ler o arquivo selecionado." });
+    }
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-(--ui-main-bg) font-mono text-(--ui-text)" style={themeVars}>
       <div className="app-noise pointer-events-none absolute inset-0 z-0" />
@@ -475,13 +525,37 @@ export default function Canvas3DWorkspace() {
             isCullingViewEnabled={engineState.isCullingViewEnabled}
             isInfoOpen={isInfoOpen}
             isSettingsOpen={isSettingsOpen}
+            onLoadScene={openScenePicker}
             onResetCamera={() => window.Canvas3DBridge?.resetCamera()}
+            onSaveScene={saveScene}
             onToggleAliasingStress={() => window.Canvas3DBridge?.toggleAliasingStress()}
             onToggleCullingView={() => window.Canvas3DBridge?.toggleCullingView()}
             onToggleInfo={handleToggleInfo}
             onToggleSettings={handleToggleSettings}
             settingsButtonRef={settingsButtonRef}
           />
+
+          <input
+            ref={sceneFileInputRef}
+            accept=".json,application/json"
+            className="hidden"
+            onChange={loadSceneFile}
+            type="file"
+          />
+
+          {sceneFeedback && (
+            <div
+              aria-live="polite"
+              className={`absolute right-2 top-[4.35rem] z-60 max-w-[19rem] rounded border px-3 py-2 text-[0.68rem] shadow-lg backdrop-blur-sm ${
+                sceneFeedback.type === "success"
+                  ? "border-emerald-300/40 bg-emerald-950/85 text-emerald-100"
+                  : "border-rose-300/40 bg-rose-950/85 text-rose-100"
+              }`}
+              role="status"
+            >
+              {sceneFeedback.text}
+            </div>
+          )}
 
           <SettingsPane
             cameraSettings={projectionSettings}

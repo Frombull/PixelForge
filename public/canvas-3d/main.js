@@ -80,6 +80,65 @@ function rgbToHsv(r, g, b) {
     };
 }
 
+const SCENE_FORMAT = 'pixelforge.canvas3d.scene';
+const SCENE_VERSION = 1;
+const MAX_SCENE_OBJECTS = 1000;
+
+function finiteOr(value, fallback) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+}
+
+function vectorToData(vector) {
+    return {
+        x: finiteOr(vector?.x, 0),
+        y: finiteOr(vector?.y, 0),
+        z: finiteOr(vector?.z, 0)
+    };
+}
+
+function dataToVector(value, fallback = { x: 0, y: 0, z: 0 }) {
+    return new THREE.Vector3(
+        finiteOr(value?.x, fallback.x),
+        finiteOr(value?.y, fallback.y),
+        finiteOr(value?.z, fallback.z)
+    );
+}
+
+function normalizeHex(value, fallback = '#ffffff') {
+    const normalized = String(value || '').trim();
+    const hex = normalized.startsWith('#') ? normalized : `#${normalized}`;
+    return /^#[0-9a-f]{6}$/i.test(hex) ? hex : fallback;
+}
+
+function materialToData(material) {
+    const source = Array.isArray(material) ? material[0] : material;
+    const color = source?.color;
+
+    return {
+        hex: color?.isColor ? `#${color.getHexString()}` : '#ffffff',
+        opacity: clamp(finiteOr(source?.opacity, 1), 0, 1),
+        transparent: Boolean(source?.transparent),
+        metalness: finiteOr(source?.metalness, 0),
+        roughness: finiteOr(source?.roughness, 1),
+        wireframe: Boolean(source?.wireframe),
+        depthTest: source?.depthTest !== false,
+        depthWrite: source?.depthWrite !== false,
+        side: Number.isFinite(source?.side) ? source.side : THREE.FrontSide
+    };
+}
+
+function sceneSkewToData(skew) {
+    return {
+        xy: finiteOr(skew?.xy, 0),
+        xz: finiteOr(skew?.xz, 0),
+        yx: finiteOr(skew?.yx, 0),
+        yz: finiteOr(skew?.yz, 0),
+        zx: finiteOr(skew?.zx, 0),
+        zy: finiteOr(skew?.zy, 0)
+    };
+}
+
 class App {
     constructor() {
         this.raycaster = new THREE.Raycaster();
@@ -322,6 +381,327 @@ class App {
             atmosphereColor: lighting.atmosphereColor,
             shadowsEnabled: lighting.shadowsEnabled
         };
+    }
+
+    getSceneObjectType(object) {
+        if (object?.userData?.isSubtractCube) return 'subtractCube';
+        if (object?.userData?.sceneKind) return object.userData.sceneKind;
+        if (object?.geometry?.type === 'CylinderGeometry') return 'cylinder';
+        return 'cube';
+    }
+
+    getSceneGeometrySnapshot(object) {
+        const parameters = object?.geometry?.parameters;
+        if (object?.geometry?.type === 'CylinderGeometry' && parameters) {
+            return {
+                kind: 'cylinder',
+                radiusTop: finiteOr(parameters.radiusTop, 0.5),
+                radiusBottom: finiteOr(parameters.radiusBottom, 0.5),
+                height: finiteOr(parameters.height, 1),
+                radialSegments: Math.max(3, Math.round(finiteOr(parameters.radialSegments, 32)))
+            };
+        }
+
+        if (parameters?.width !== undefined) {
+            return {
+                kind: 'box',
+                width: finiteOr(parameters.width, 1),
+                height: finiteOr(parameters.height, 1),
+                depth: finiteOr(parameters.depth, 1)
+            };
+        }
+
+        return { kind: 'box', width: 1, height: 1, depth: 1 };
+    }
+
+    serializeScene() {
+        if (!this.sceneManager || !this.objectManager) return null;
+
+        const camera = this.sceneManager.camera;
+        const target = this.controlsManager?.controls?.target;
+        const settings = this.getSettingsSnapshot();
+        const selectedIndex = this.objectManager.selectedObject
+            ? this.objectManager.objects.indexOf(this.objectManager.selectedObject)
+            : -1;
+
+        const scene = {
+            format: SCENE_FORMAT,
+            version: SCENE_VERSION,
+            objects: this.objectManager.objects.map((object) => ({
+                uuid: object.uuid,
+                name: object.userData.name || object.userData.type || 'Object',
+                type: this.getSceneObjectType(object),
+                geometry: this.getSceneGeometrySnapshot(object),
+                position: vectorToData(object.position),
+                rotation: {
+                    x: object.rotation.x * 180 / Math.PI,
+                    y: object.rotation.y * 180 / Math.PI,
+                    z: object.rotation.z * 180 / Math.PI
+                },
+                scale: vectorToData(object.scale),
+                skew: sceneSkewToData(this.objectManager.getSkew(object)),
+                material: materialToData(object.material)
+            })),
+            selectedIndex,
+            mode: this.gizmoManager.currentMode,
+            view: {
+                cullingView: Boolean(this.sceneManager.showSecondViewport),
+                aliasingStress: Boolean(this.sceneManager.isAliasingStressEnabled)
+            },
+            camera: {
+                projection: this.currentProjection,
+                position: vectorToData(camera?.position),
+                target: vectorToData(target),
+                perspective: { ...this.projectionCameraSettings.perspective },
+                ortographic: { ...this.projectionCameraSettings.ortographic },
+                panini: { ...this.projectionCameraSettings.panini }
+            },
+            settings
+        };
+
+        return JSON.stringify(scene, null, 2);
+    }
+
+    disposeSceneObject(object) {
+        if (!object) return;
+
+        this.objectManager.removeHighlight(object);
+        if (object.userData?.subtractedObjects instanceof Map) {
+            object.userData.subtractedObjects.forEach((entry) => entry?.geometry?.dispose?.());
+            object.userData.subtractedObjects.clear();
+        }
+
+        object.traverse((node) => {
+            if (node === object) return;
+            node.geometry?.dispose?.();
+            if (node.material) {
+                const materials = Array.isArray(node.material) ? node.material : [node.material];
+                materials.forEach((material) => material?.dispose?.());
+            }
+        });
+
+        object.geometry?.dispose?.();
+        if (object.userData?.originalGeometry) object.userData.originalGeometry.dispose();
+        if (object.material) {
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            materials.forEach((material) => material?.dispose?.());
+        }
+        this.sceneManager.scene.remove(object);
+    }
+
+    clearSceneObjects() {
+        this.objectManager.objects.forEach((object) => this.disposeSceneObject(object));
+        this.objectManager.objects.length = 0;
+        this.objectManager.selectedObject = null;
+        this.objectManager.hoveredObject = null;
+        this.objectManager.skewValues.clear();
+    }
+
+    createSceneObject(type, geometry) {
+        let object;
+        if (type === 'cylinder') object = this.objectManager.addCylinder();
+        else if (type === 'subtractCube') object = this.objectManager.addSubtractCube();
+        else object = this.objectManager.addCube();
+
+        const parameters = geometry || {};
+        let replacement = null;
+        if (type === 'cylinder' && geometry?.kind === 'cylinder') {
+            replacement = new THREE.CylinderGeometry(
+                Math.max(0.001, finiteOr(parameters.radiusTop, 0.5)),
+                Math.max(0.001, finiteOr(parameters.radiusBottom, 0.5)),
+                Math.max(0.001, finiteOr(parameters.height, 1)),
+                Math.max(3, Math.round(finiteOr(parameters.radialSegments, 32)))
+            );
+        } else if (geometry?.kind === 'box') {
+            replacement = new THREE.BoxGeometry(
+                Math.max(0.001, finiteOr(parameters.width, 1)),
+                Math.max(0.001, finiteOr(parameters.height, 1)),
+                Math.max(0.001, finiteOr(parameters.depth, 1))
+            );
+        }
+
+        if (replacement) {
+            object.geometry.dispose();
+            object.geometry = replacement;
+            object.userData.originalGeometry = null;
+        }
+
+        return object;
+    }
+
+    applySceneMaterial(object, data) {
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach((material) => {
+            if (!material) return;
+            if (material.color) material.color.set(normalizeHex(data?.hex, '#ffffff'));
+            if (Number.isFinite(Number(data?.opacity))) material.opacity = clamp(Number(data.opacity), 0, 1);
+            material.transparent = data?.transparent === undefined
+                ? material.opacity < 1
+                : Boolean(data.transparent);
+            if (Number.isFinite(Number(data?.metalness)) && 'metalness' in material) {
+                material.metalness = clamp(Number(data.metalness), 0, 1);
+            }
+            if (Number.isFinite(Number(data?.roughness)) && 'roughness' in material) {
+                material.roughness = clamp(Number(data.roughness), 0, 1);
+            }
+            if ('wireframe' in material) material.wireframe = Boolean(data?.wireframe);
+            if (typeof data?.depthTest === 'boolean') material.depthTest = data.depthTest;
+            if (typeof data?.depthWrite === 'boolean') material.depthWrite = data.depthWrite;
+            if ([THREE.FrontSide, THREE.BackSide, THREE.DoubleSide].includes(data?.side)) {
+                material.side = data.side;
+            }
+            material.needsUpdate = true;
+        });
+    }
+
+    applySceneObject(object, data) {
+        object.userData.name = String(data?.name || object.userData.name || 'Object').slice(0, 120);
+        object.userData.type = data?.type === 'cylinder'
+            ? 'Cylinder'
+            : data?.type === 'subtractCube' ? 'Subtract Cube' : 'Cube';
+        object.position.copy(dataToVector(data?.position, { x: 0, y: 0, z: 0 }));
+        object.rotation.set(
+            finiteOr(data?.rotation?.x, 0) * Math.PI / 180,
+            finiteOr(data?.rotation?.y, 0) * Math.PI / 180,
+            finiteOr(data?.rotation?.z, 0) * Math.PI / 180
+        );
+        object.scale.set(
+            Math.max(APP_CONFIG.minScale, finiteOr(data?.scale?.x, 1)),
+            Math.max(APP_CONFIG.minScale, finiteOr(data?.scale?.y, 1)),
+            Math.max(APP_CONFIG.minScale, finiteOr(data?.scale?.z, 1))
+        );
+
+        const skew = sceneSkewToData(data?.skew);
+        this.objectManager.setSkew(object, skew);
+        if (Object.values(skew).some((value) => value !== 0)) this.objectManager.applySkew(object);
+        this.applySceneMaterial(object, data?.material);
+    }
+
+    applySceneSettings(data) {
+        const settings = data?.settings || {};
+        const cameraData = data?.camera || {};
+
+        this.wireframeVisible = Boolean(settings.wireframeVisible);
+        this.snapToGrid = Boolean(settings.snapToGrid);
+        this.snapSize = Math.max(0.001, finiteOr(settings.snapSize, DEFAULT_VALUES.snapSize));
+        this.renderMethod = this.normalizeRenderMethod(settings.renderMethod);
+
+        this.sceneManager.setGridVisible(settings.gridVisible !== false);
+        this.sceneManager.setAxesVisible(settings.axesVisible !== false);
+        this.sceneManager.setBackgroundColor(normalizeHex(settings.backgroundColor, '#ffffff'));
+        this.sceneManager.setGridColor(normalizeHex(settings.gridColor, APP_CONFIG.defaultGridColorHex));
+        this.sceneManager.setToneMappingExposure(finiteOr(settings.exposure, 1));
+        this.sceneManager.setHemisphereLightIntensity(finiteOr(settings.hemisphereIntensity, 0.5));
+        this.sceneManager.setKeyLightIntensity(finiteOr(settings.keyLightIntensity, 1.1));
+        this.sceneManager.setFillLightIntensity(finiteOr(settings.fillLightIntensity, 0.35));
+        this.sceneManager.setRimLightIntensity(finiteOr(settings.rimLightIntensity, 0.2));
+        this.sceneManager.setAtmosphereEnabled(Boolean(settings.atmosphereEnabled));
+        this.sceneManager.setAtmosphereDensity(finiteOr(settings.atmosphereDensity, 0.008));
+        this.sceneManager.setAtmosphereColor(normalizeHex(settings.atmosphereColor, '#ffffff'));
+        this.sceneManager.setShadowsEnabled(settings.shadowsEnabled !== false);
+
+        const current = this.projectionCameraSettings;
+        this.projectionCameraSettings = {
+            perspective: {
+                fov: clamp(finiteOr(cameraData.perspective?.fov, finiteOr(settings.perspectiveFov, current.perspective.fov)), 1, 179),
+                nearClip: Math.max(0.0001, finiteOr(cameraData.perspective?.nearClip, finiteOr(settings.perspectiveNearClip, current.perspective.nearClip))),
+                farClip: Math.max(0.001, finiteOr(cameraData.perspective?.farClip, finiteOr(settings.perspectiveFarClip, current.perspective.farClip)))
+            },
+            ortographic: {
+                nearClip: Math.max(0.0001, finiteOr(cameraData.ortographic?.nearClip, finiteOr(settings.ortographicNearClip, current.ortographic.nearClip))),
+                farClip: Math.max(0.001, finiteOr(cameraData.ortographic?.farClip, finiteOr(settings.ortographicFarClip, current.ortographic.farClip))),
+                zoom: Math.max(0.1, finiteOr(cameraData.ortographic?.zoom, finiteOr(settings.orthoZoom, current.ortographic.zoom)))
+            },
+            panini: {
+                fov: clamp(finiteOr(cameraData.panini?.fov, finiteOr(settings.paniniFov, current.panini.fov)), 1, 179),
+                nearClip: Math.max(0.0001, finiteOr(cameraData.panini?.nearClip, finiteOr(settings.paniniNearClip, current.panini.nearClip))),
+                farClip: Math.max(0.001, finiteOr(cameraData.panini?.farClip, finiteOr(settings.paniniFarClip, current.panini.farClip)))
+            }
+        };
+
+        const projection = this.normalizeCameraProjection(cameraData.projection || 'perspective');
+        const shouldBeOrthographic = projection === 'ortographic';
+        if (shouldBeOrthographic !== !this.sceneManager.isPerspective) {
+            this.sceneManager.toggleCameraType(this.controlsManager.controls);
+            this.transformControls.camera = this.sceneManager.camera;
+            this.viewportGizmo.camera = this.sceneManager.camera;
+        }
+        this.currentProjection = projection;
+        this.applyProjectionCameraSettings(projection);
+
+        if (Boolean(data?.view?.cullingView) !== Boolean(this.sceneManager.showSecondViewport)) {
+            this.sceneManager.toggleSecondViewport();
+        }
+        if (Boolean(data?.view?.aliasingStress) !== Boolean(this.sceneManager.isAliasingStressEnabled)) {
+            this.sceneManager.toggleAliasingStress();
+        }
+
+        const target = dataToVector(cameraData.target, { x: 0, y: 0, z: 0 });
+        this.sceneManager.camera.position.copy(dataToVector(cameraData.position, vectorToData(this.sceneManager.camera.position)));
+        this.sceneManager.camera.lookAt(target);
+        this.controlsManager.controls.target.copy(target);
+        this.controlsManager.controls.update();
+        this.viewportGizmo.update();
+        this.applyTransformSnapSettings();
+    }
+
+    loadScene(payload) {
+        let data;
+        try {
+            data = typeof payload === 'string' ? JSON.parse(payload) : payload;
+        } catch (error) {
+            return { ok: false, error: 'O arquivo não contém um JSON válido.' };
+        }
+
+        if (!data || data.format !== SCENE_FORMAT || data.version !== SCENE_VERSION) {
+            return { ok: false, error: 'Formato de cena incompatível com esta versão do PixelForge.' };
+        }
+        if (!Array.isArray(data.objects) || data.objects.length > MAX_SCENE_OBJECTS) {
+            return { ok: false, error: `A cena precisa ter entre 0 e ${MAX_SCENE_OBJECTS} objetos.` };
+        }
+        if (data.objects.some((object) => !object || typeof object !== 'object')) {
+            return { ok: false, error: 'A lista de objetos da cena é inválida.' };
+        }
+
+        try {
+            this.clearSceneObjects();
+            data.objects.forEach((record) => {
+                const type = record.type === 'cylinder' || record.type === 'subtractCube' ? record.type : 'cube';
+                const object = this.createSceneObject(type, record.geometry);
+                if (typeof record.uuid === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(record.uuid)) {
+                    object.uuid = record.uuid;
+                }
+                this.applySceneObject(object, { ...record, type });
+            });
+
+            this.applySceneSettings(data);
+            this.applyWireframeVisibility();
+
+            const selectedIndex = Number.isInteger(data.selectedIndex) ? data.selectedIndex : -1;
+            if (selectedIndex >= 0 && selectedIndex < this.objectManager.objects.length) {
+                this.objectManager.select(this.objectManager.objects[selectedIndex]);
+            } else {
+                this.objectManager.deselect();
+            }
+
+            this.objectManager.objects.forEach((object) => {
+                if (!object.userData.isSubtractCube) return;
+                object.userData.lastPosition.set(NaN, NaN, NaN);
+                object.userData.lastRotation.set(NaN, NaN, NaN, NaN);
+                object.userData.lastScale.set(NaN, NaN, NaN);
+            });
+            this.booleanOps.update();
+            this.updateSelection();
+            const mode = [MODES.TRANSLATE, MODES.ROTATE, MODES.SCALE, MODES.SKEW].includes(data.mode)
+                ? data.mode
+                : MODES.TRANSLATE;
+            this.setMode(mode);
+            this.emitState();
+            return { ok: true };
+        } catch (error) {
+            console.warn('Scene load failed:', error);
+            return { ok: false, error: 'Não foi possível aplicar a cena. Verifique o arquivo e tente novamente.' };
+        }
     }
 
     getStateSnapshot() {
@@ -1085,6 +1465,12 @@ window.Canvas3DBridge = {
     mount: mountCanvas3DApp,
     unmount: unmountCanvas3DApp,
     getState: () => appInstance?.getStateSnapshot() || null,
+    saveScene: () => appInstance?.serializeScene() || null,
+    serializeScene: () => appInstance?.serializeScene() || null,
+    loadScene: (payload) => appInstance?.loadScene(payload) || {
+        ok: false,
+        error: 'Canvas 3D ainda não está pronto.'
+    },
 
     addObject: (kind) => appInstance?.addObject(kind),
     setMode: (mode) => appInstance?.setMode(mode),

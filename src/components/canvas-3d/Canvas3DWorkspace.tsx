@@ -43,6 +43,8 @@ export default function Canvas3DWorkspace() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   const [isTransformOpen, setIsTransformOpen] = useState(true);
   const [isMaterialOpen, setIsMaterialOpen] = useState(true);
   const [cameraProjection, setCameraProjection] = useState<CameraProjection>("perspective");
@@ -113,6 +115,24 @@ export default function Canvas3DWorkspace() {
       cancelled = true;
       window.removeEventListener("canvas3d:state", handleStateChange as EventListener);
       window.Canvas3DBridge?.unmount();
+    };
+  }, []);
+
+  useEffect(() => {
+    const container = document.getElementById("canvas-container");
+    if (!container) return;
+
+    let animationFrameId: number | null = null;
+    const observer = new ResizeObserver(() => {
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
@@ -437,12 +457,14 @@ export default function Canvas3DWorkspace() {
       <div id="app-layout" className="fixed inset-0 z-10 flex">
         <LeftSidebar
           engineState={engineState}
+          isCollapsed={isLeftSidebarCollapsed}
           matrixTitle={matrixTitle}
           onAddObject={addObject}
           onDeleteObject={(uuid) => window.Canvas3DBridge?.deleteObject(uuid)}
           onFocusObject={(uuid) => window.Canvas3DBridge?.focusObject(uuid)}
           onSelectObject={(uuid) => window.Canvas3DBridge?.selectObject(uuid)}
           onSetMode={setMode}
+          onToggleCollapse={() => setIsLeftSidebarCollapsed((prev) => !prev)}
           scaleMatrixRef={scaleMatrixRef}
           shouldShowTransformMatrix={shouldShowTransformMatrix}
         />
@@ -513,6 +535,7 @@ export default function Canvas3DWorkspace() {
         <RightSidebar
           colorInputs={colorInputs}
           colorMode={colorMode}
+          isCollapsed={isRightSidebarCollapsed}
           isMaterialOpen={isMaterialOpen}
           isTransformOpen={isTransformOpen}
           onAlphaChange={setAlpha}
@@ -522,6 +545,7 @@ export default function Canvas3DWorkspace() {
           onSetColorMode={setColorMode}
           onSetHexDraft={setHexDraft}
           onToggleMaterial={() => setIsMaterialOpen((prev) => !prev)}
+          onToggleCollapse={() => setIsRightSidebarCollapsed((prev) => !prev)}
           onToggleTransform={() => setIsTransformOpen((prev) => !prev)}
           onUpdateHsvColor={updateHsvColor}
           onUpdateRgbColor={updateRgbColor}

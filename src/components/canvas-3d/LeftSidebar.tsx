@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { KEY_BINDINGS } from "../../../public/canvas-3d/utils/constants";
 import { type Canvas3DMode, type Canvas3DState, type CanvasObjectKind } from "./types";
 
@@ -10,11 +10,13 @@ type LeftSidebarProps = {
   shouldShowTransformMatrix: boolean;
   matrixTitle: string;
   scaleMatrixRef: React.RefObject<HTMLDivElement | null>;
+  isCollapsed: boolean;
   onAddObject: (kind: CanvasObjectKind) => void;
   onSetMode: (mode: Canvas3DMode) => void;
   onSelectObject: (uuid: string) => void;
   onFocusObject: (uuid: string) => void;
   onDeleteObject: (uuid: string) => void;
+  onToggleCollapse: () => void;
 };
 
 export default function LeftSidebar({
@@ -22,11 +24,13 @@ export default function LeftSidebar({
   shouldShowTransformMatrix,
   matrixTitle,
   scaleMatrixRef,
+  isCollapsed,
   onAddObject,
   onSetMode,
   onSelectObject,
   onFocusObject,
   onDeleteObject,
+  onToggleCollapse,
 }: LeftSidebarProps) {
   const panelSectionClass = "border-b border-[#2a2d3e]";
   const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-(--ui-accent)";
@@ -35,7 +39,30 @@ export default function LeftSidebar({
   const panelButtonActiveClass = "!bg-(--ui-accent-active-bg)";
 
   return (
-    <aside id="sidebar-left" className="w-75 shrink-0 border-r border-[#2a2d3e] p-2 max-md:hidden flex flex-col">
+    <aside
+      id="sidebar-left"
+      className={`relative h-full shrink-0 border-r border-[#2a2d3e] transition-[width] duration-200 ease-out max-md:hidden ${
+        isCollapsed ? "w-10" : "w-75"
+      }`}
+    >
+      <button
+        aria-controls="sidebar-left-content"
+        aria-expanded={!isCollapsed}
+        aria-label={isCollapsed ? "Expandir barra lateral esquerda" : "Recolher barra lateral esquerda"}
+        className="absolute right-2 top-2 z-70 flex h-6 w-6 cursor-pointer items-center justify-center rounded-[0.1rem] border border-[#2a2d3e] bg-[var(--ui-field-bg)] text-(--ui-accent) transition-colors hover:bg-[var(--ui-accent-active-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--ui-accent)"
+        onClick={onToggleCollapse}
+        title={isCollapsed ? "Expandir barra lateral esquerda" : "Recolher barra lateral esquerda"}
+        type="button"
+      >
+        {isCollapsed ? <ChevronRight aria-hidden="true" size={16} /> : <ChevronLeft aria-hidden="true" size={16} />}
+      </button>
+
+      <div className="h-full w-full overflow-hidden">
+        <div
+          aria-hidden={isCollapsed}
+          className={`flex h-full w-75 flex-col p-2 transition-opacity duration-100 ${isCollapsed ? "opacity-0" : "opacity-100"}`}
+          id="sidebar-left-content"
+        >
       <div className={panelSectionClass} id="hierarchy-section">
         <div className={`${panelHeaderClass} relative flex items-center justify-center`}>
           <Link
@@ -172,6 +199,8 @@ export default function LeftSidebar({
           </div>
         </div>
       )}
+        </div>
+      </div>
     </aside>
   );
 }

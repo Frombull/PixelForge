@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { type ReactNode } from "react";
 import DraggableNumberInput from "./DraggableNumberInput";
 import { clamp } from "./workspaceMath";
 import { type ColorInputState, type ColorMode, type SelectedObjectState } from "./types";
@@ -8,10 +10,12 @@ type RightSidebarProps = {
   selected: SelectedObjectState | null;
   isTransformOpen: boolean;
   isMaterialOpen: boolean;
+  isCollapsed: boolean;
   colorMode: ColorMode;
   colorInputs: ColorInputState;
   onToggleTransform: () => void;
   onToggleMaterial: () => void;
+  onToggleCollapse: () => void;
   onSetColorMode: (mode: ColorMode) => void;
   onUpdateTransform: (field: string, value: number) => void;
   onResetTransformGroup: (targets: string[]) => void;
@@ -22,6 +26,47 @@ type RightSidebarProps = {
   onApplyHex: (hex: string) => void;
   onSetColorFromPicker: (hex: string) => void;
 };
+
+function RightSidebarShell({
+  children,
+  isCollapsed,
+  onToggleCollapse,
+}: {
+  children: ReactNode;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+}) {
+  return (
+    <aside
+      id="sidebar-right"
+      className={`relative h-full shrink-0 border-l border-[#2a2d3e] transition-[width] duration-200 ease-out max-lg:hidden ${
+        isCollapsed ? "w-10" : "w-80"
+      }`}
+    >
+      <button
+        aria-controls="sidebar-right-content"
+        aria-expanded={!isCollapsed}
+        aria-label={isCollapsed ? "Expandir barra lateral direita" : "Recolher barra lateral direita"}
+        className="absolute left-2 top-2 z-70 flex h-6 w-6 cursor-pointer items-center justify-center rounded-[0.1rem] border border-[#2a2d3e] bg-[var(--ui-field-bg)] text-(--ui-accent) transition-colors hover:bg-[var(--ui-accent-active-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--ui-accent)"
+        onClick={onToggleCollapse}
+        title={isCollapsed ? "Expandir barra lateral direita" : "Recolher barra lateral direita"}
+        type="button"
+      >
+        {isCollapsed ? <ChevronLeft aria-hidden="true" size={16} /> : <ChevronRight aria-hidden="true" size={16} />}
+      </button>
+
+      <div className="flex h-full w-full justify-end overflow-hidden">
+        <div
+          aria-hidden={isCollapsed}
+          className={`h-full w-80 shrink-0 p-2 transition-opacity duration-100 ${isCollapsed ? "opacity-0" : "opacity-100"}`}
+          id="sidebar-right-content"
+        >
+          {children}
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 type TransformField = {
   id: string;
@@ -106,10 +151,12 @@ export default function RightSidebar({
   selected,
   isTransformOpen,
   isMaterialOpen,
+  isCollapsed,
   colorMode,
   colorInputs,
   onToggleTransform,
   onToggleMaterial,
+  onToggleCollapse,
   onSetColorMode,
   onUpdateTransform,
   onResetTransformGroup,
@@ -129,7 +176,7 @@ export default function RightSidebar({
 
   if (!selected) {
     return (
-      <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-2 max-lg:hidden">
+      <RightSidebarShell isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse}>
         <div className={`${panelHeaderClass} text-center`}>
           <span className="inline-block text-center">Inspetor</span>
         </div>
@@ -137,12 +184,12 @@ export default function RightSidebar({
           <div className="text-2xl">◻</div>
           <div>Selecione um objeto para editar suas propriedades</div>
         </div>
-      </aside>
+      </RightSidebarShell>
     );
   }
 
   return (
-    <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-2 max-lg:hidden">
+    <RightSidebarShell isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse}>
       <div className={`${panelHeaderClass} text-center`}>
         <span className="inline-block text-center">Inspetor</span>
       </div>
@@ -294,6 +341,6 @@ export default function RightSidebar({
           </div>
         </div>
       </div>
-    </aside>
+    </RightSidebarShell>
   );
 }

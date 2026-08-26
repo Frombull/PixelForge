@@ -22,35 +22,34 @@
 [DONE] - Add image previews to modules
 [DONE] - Hold shift to snap
 [DONE] - Smoke tests
+[DONE] - Aliasing button on 3D canvas
 
 === [ ON IT ] ===========================================================================================================
 
-[TODO] - Deixar os cards de /infos/ como os cards da landing page
-[TODO] - Aliasing page
-[TODO] - Refactor canvas-2d page
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)
+[TODO] - Refactor canvas-2d page
+[TODO] - Deixar os cards de /infos/ como os cards da landing page
 cube color #d04949
+[TODO] - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
 
  
 === [ TODO ] ============================================================================================================
 
+[TODO] - Hints em forma de bolinha piscando quando entrar na página
 [TODO] - Usar o IRO color picker, redondo pra HSV
 Camera secundária:
     [TODO] - Mostrar culling pela câmera secundária
     [TODO] - Resize na tela da câmera secundária
-[TODO] - Serializar uma cena para salvar em um arquivo .json ou um tipo custom
 [TODO] - Iluminação decente | Arrumar background color picker com skybox atual
 [TODO] - Z buffer, A buffer - Entender melhor a transparencia do Z-buffer e porque o Zbuffer do threejs tem suporte a transaprecnia, adiconar Abuffer? 
 [TODO] - Panini projection and sliders (https://youtu.be/LE9kxUQ-l14)
 [TODO] - Load custom preset scene. 
-[TODO] - Toggle of EXTREME aliasing for example
 [TODO] - Tema claro por padrão? Mais facil na sala de aula
 [TODO] - Diferentes pontos de fuga?
 [TODO] - Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo, talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
 [TODO] - Carregar uma cena de um arquivo
 [TODO] - Carregar uma cena com query params
 [TODO] - Adicionar propriedade de hidden em objetos, toggle
-[TODO] - Hints em forma de bolinha piscando quando entrar na página
     BG:
 [TODO] - Custom AABB? (https://threejs.org/docs/?q=Box3#Box3) (https://gemini.google.com/app/d60d024f6d91380d) (https://learnopengl.com/Guest-Articles/2021/Scene/Frustum-Culling)
 [TODO] - Ctrl-c / ctrl-v
@@ -59,7 +58,7 @@ Camera secundária:
 [TODO] - Animação simples com interpolação e keyframes?
 [TODO] - Demo com varios cubos para mostrar frustum culling
 [TODO] - Atualizar readme.md
-[TODO] - Pensar em testes
+[TODO] - Testes com playwright ou cypress e unit test.
 
 === [ LINK ] ============================================================================================================
 

@@ -19,7 +19,6 @@ import {
   type Canvas3DStatus,
   type CanvasObjectKind,
   type ColorInputState,
-  type ColorMode,
   type ProjectionCameraSettings,
 } from "./types";
 import "katex/dist/katex.min.css";
@@ -66,7 +65,6 @@ export default function Canvas3DWorkspace() {
     },
   });
 
-  const [colorMode, setColorMode] = useState<ColorMode>("rgb");
   const [colorInputs, setColorInputs] = useState<ColorInputState>(EMPTY_COLOR_INPUTS);
 
   const settingsRef = useRef<HTMLDivElement | null>(null);
@@ -534,7 +532,6 @@ export default function Canvas3DWorkspace() {
 
         <RightSidebar
           colorInputs={colorInputs}
-          colorMode={colorMode}
           isCollapsed={isRightSidebarCollapsed}
           isMaterialOpen={isMaterialOpen}
           isTransformOpen={isTransformOpen}
@@ -542,7 +539,6 @@ export default function Canvas3DWorkspace() {
           onApplyHex={updateHexColor}
           onResetTransformGroup={resetTransformGroup}
           onSetColorFromPicker={setColorFromPicker}
-          onSetColorMode={setColorMode}
           onSetHexDraft={setHexDraft}
           onToggleMaterial={() => setIsMaterialOpen((prev) => !prev)}
           onToggleCollapse={() => setIsRightSidebarCollapsed((prev) => !prev)}

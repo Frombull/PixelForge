@@ -154,8 +154,6 @@ export const EMPTY_STATE: Canvas3DState = {
   },
 };
 
-export type ColorMode = "rgb" | "hsv";
-
 export type ColorInputState = {
   hex: string;
   alpha: number;

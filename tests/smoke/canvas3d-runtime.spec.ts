@@ -94,4 +94,27 @@ test.describe('Canvas 3D runtime', () => {
     await expect(page.locator('#sidebar-left')).not.toHaveCSS('width', '40px');
     await expect(page.locator('#sidebar-right')).not.toHaveCSS('width', '40px');
   });
+
+  test('uses the Iro wheel and keeps slider values in sync', async ({ page }) => {
+    const response = await page.goto('/canvas-3d');
+    expect(response?.status()).toBe(200);
+
+    await expect
+      .poll(() => page.evaluate(() => Boolean(window.Canvas3DBridge?.getState())))
+      .toBe(true);
+
+    await page.evaluate(() => {
+      window.Canvas3DBridge?.addObject('cube');
+      const objects = window.Canvas3DBridge?.getState()?.objects ?? [];
+      const addedObject = objects.at(-1);
+      if (addedObject) window.Canvas3DBridge?.selectObject(addedObject.uuid);
+    });
+    await expect.poll(() => page.evaluate(() => Boolean(window.Canvas3DBridge?.getState()?.selected))).toBe(true);
+
+    await expect(page.locator('#iro-color-picker svg')).toBeVisible();
+    const hueSlider = page.locator('#color-h');
+    await hueSlider.fill('180');
+    await expect(page.locator('output[for="color-h"]')).toHaveText('180°');
+    await expect.poll(() => page.evaluate(() => window.Canvas3DBridge?.getState()?.selected?.material.hsv.h)).toBe(180);
+  });
 });

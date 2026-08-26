@@ -38,7 +38,7 @@ function ColorSlider({
 
   return (
     <div className="grid grid-cols-[4.5rem_1fr_2.75rem] items-center gap-2">
-      <label className="truncate text-[0.68rem] text-(--ui-text-muted)" htmlFor={id} title={label}>
+      <label className="truncate text-[0.68rem] text-(--ui-text)" htmlFor={id} title={label}>
         {label}
       </label>
       <input
@@ -167,7 +167,7 @@ export default function IroColorPicker({
           className="h-7 w-7 shrink-0 rounded-[0.2rem] border border-[#2a2d3e]"
           style={{ backgroundColor: previewHex }}
         />
-        <label className="text-(--ui-text-muted)" htmlFor="color-hex">Hex</label>
+        <label className="text-(--ui-text)" htmlFor="color-hex">Hex</label>
         <input
           className={scalarInputClass}
           id="color-hex"

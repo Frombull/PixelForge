@@ -165,7 +165,7 @@ export default function RightSidebar({
 }: RightSidebarProps) {
   const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-(--ui-accent)";
   const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] text-(--ui-text) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)";
-  const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-[0.2rem] bg-(--ui-collapse-bg) px-2 py-1 text-xs text-(--ui-accent)";
+  const inspectorHeaderClass = "-mx-2 mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-none bg-(--ui-collapse-bg) px-4 py-1 text-xs text-(--ui-accent)";
   const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-(--ui-field-bg) px-[0.35rem] py-[0.2rem] text-[0.72rem] text-(--ui-text)";
   const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
 

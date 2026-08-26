@@ -9,12 +9,14 @@ const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
 
 export default function TopBar({
   isCullingViewEnabled,
+  isAliasingStressEnabled,
   isInfoOpen,
   isSettingsOpen,
   infoButtonRef,
   settingsButtonRef,
   onResetCamera,
   onToggleCullingView,
+  onToggleAliasingStress,
   onToggleInfo,
   onToggleSettings,
 }: TopBarProps) {
@@ -48,6 +50,17 @@ export default function TopBar({
         type="button"
       >
         Culling View
+      </button>
+
+      <button
+        aria-pressed={isAliasingStressEnabled}
+        className={`${topbarButtonClass} w-auto min-w-20 px-2 text-[0.7rem] ${isAliasingStressEnabled ? topbarButtonActiveClass : ""}`}
+        onContextMenu={preventContextMenu}
+        onClick={onToggleAliasingStress}
+        title="Ativar cenário extremo de aliasing"
+        type="button"
+      >
+        Aliasing
       </button>
 
       <button

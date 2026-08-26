@@ -331,6 +331,7 @@ class App {
             mode: this.gizmoManager.currentMode,
             isOrthographic: !this.sceneManager.isPerspective,
             isCullingViewEnabled: this.sceneManager.showSecondViewport,
+            isAliasingStressEnabled: this.sceneManager.isAliasingStressEnabled,
             isShiftSnapActive: this.isShiftSnapActive,
             cameraPosition: {
                 x: cameraPosition?.x ?? 0,
@@ -596,6 +597,12 @@ class App {
         const show = this.sceneManager.toggleSecondViewport();
         this.emitState();
         return show;
+    }
+
+    toggleAliasingStress() {
+        const enabled = this.sceneManager.toggleAliasingStress();
+        this.emitState();
+        return enabled;
     }
 
     setGridVisible(visible) {
@@ -1091,6 +1098,7 @@ window.Canvas3DBridge = {
     toggleCameraType: () => appInstance?.toggleCameraType(),
     setCameraProjection: (projection) => appInstance?.setCameraProjection(projection),
     toggleCullingView: () => appInstance?.toggleCullingView(),
+    toggleAliasingStress: () => appInstance?.toggleAliasingStress(),
 
     setGridVisible: (visible) => appInstance?.setGridVisible(visible),
     setAxesVisible: (visible) => appInstance?.setAxesVisible(visible),

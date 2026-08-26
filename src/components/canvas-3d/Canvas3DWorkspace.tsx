@@ -451,10 +451,12 @@ export default function Canvas3DWorkspace() {
           <div id="canvas-container" className="absolute inset-0" />
           <TopBar
             infoButtonRef={infoButtonRef}
+            isAliasingStressEnabled={engineState.isAliasingStressEnabled}
             isCullingViewEnabled={engineState.isCullingViewEnabled}
             isInfoOpen={isInfoOpen}
             isSettingsOpen={isSettingsOpen}
             onResetCamera={() => window.Canvas3DBridge?.resetCamera()}
+            onToggleAliasingStress={() => window.Canvas3DBridge?.toggleAliasingStress()}
             onToggleCullingView={() => window.Canvas3DBridge?.toggleCullingView()}
             onToggleInfo={handleToggleInfo}
             onToggleSettings={handleToggleSettings}
@@ -530,6 +532,3 @@ export default function Canvas3DWorkspace() {
     </div>
   );
 }
-
-
-

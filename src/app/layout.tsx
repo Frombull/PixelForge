@@ -14,11 +14,12 @@ const jetbrainsMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.pixelforge3d.com.br"),
   title: "Pixel Forge",
   description:
     "Uma plataforma para aprender e experimentar conceitos de computação gráfica e multimídia e IA de maneira interativa.",
   icons: {
-    icon: "./images/PixelForge_Logo_V2.png",
+    icon: "/images/PixelForge_Logo_V2.png",
   },
 };
 

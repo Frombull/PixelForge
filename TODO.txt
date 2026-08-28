@@ -26,6 +26,7 @@
 
 === [ ON IT ] ===========================================================================================================
 
+[TODO] - Salvar e Carregar uma cena de um arquivo
 [TODO] - Logo (https://www.figma.com/design/b1MNLJaGQkMewiBOlsegd4/PixelForge-Logos)
 [TODO] - Refactor canvas-2d page
 [TODO] - Deixar os cards de /infos/ como os cards da landing page
@@ -47,7 +48,6 @@ Camera secundária:
 [TODO] - Tema claro por padrão? Mais facil na sala de aula
 [TODO] - Diferentes pontos de fuga?
 [TODO] - Centro arbitrario de rotação, deixando eu escolher o vertice ou local 3D no mundo, talvez fazer um objeto "empty" e usar ele como referencia de rotação do objeto selecionado
-[TODO] - Carregar uma cena de um arquivo
 [TODO] - Carregar uma cena com query params
 [TODO] - Adicionar propriedade de hidden em objetos, toggle
     BG:

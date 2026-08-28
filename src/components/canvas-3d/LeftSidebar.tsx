@@ -151,6 +151,7 @@ export default function LeftSidebar({
         <div className="p-0">
           <div className="grid grid-cols-2 gap-2">
             <button
+              id="tour-tool-translate"
               className={`${panelToolButtonClass} ${engineState.mode === "translate" ? panelButtonActiveClass : ""}`}
               onClick={() => onSetMode("translate")}
               type="button"
@@ -159,6 +160,7 @@ export default function LeftSidebar({
               <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}</kbd>
             </button>
             <button
+              id="tour-tool-rotate"
               className={`${panelToolButtonClass} ${engineState.mode === "rotate" ? panelButtonActiveClass : ""}`}
               onClick={() => onSetMode("rotate")}
               type="button"
@@ -167,6 +169,7 @@ export default function LeftSidebar({
               <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.ROTATE_MODE.toUpperCase()}</kbd>
             </button>
             <button
+              id="tour-tool-scale"
               className={`${panelToolButtonClass} ${engineState.mode === "scale" ? panelButtonActiveClass : ""}`}
               onClick={() => onSetMode("scale")}
               type="button"
@@ -175,6 +178,7 @@ export default function LeftSidebar({
               <kbd className="rounded border border-[#2a2d3e] px-[0.3rem] text-[0.65rem] text-(--ui-accent)">{KEY_BINDINGS.SCALE_MODE.toUpperCase()}</kbd>
             </button>
             <button
+              id="tour-tool-skew"
               className={`${panelToolButtonClass} ${engineState.mode === "skew" ? panelButtonActiveClass : ""}`}
               onClick={() => onSetMode("skew")}
               type="button"

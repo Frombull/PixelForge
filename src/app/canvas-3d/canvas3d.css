@@ -99,3 +99,120 @@
 .iro-color-slider:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 2px #1b1c22, 0 0 0 4px var(--ui-accent);
 }
+
+/* ── Driver.js tour popover — Canvas 3D theme ─────────────────────────────── */
+
+.canvas3d-tour-popover.driver-popover {
+  background: #1a1b26;
+  border: 1px solid #2a2d3e;
+  border-radius: 0.15rem;
+  color: #c0caf5;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(125, 207, 255, 0.06);
+  padding: 1.1rem 1.25rem 1rem;
+  max-width: 300px;
+}
+
+.canvas3d-tour-popover .driver-popover-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7dcfff;
+  margin-bottom: 0.55rem;
+}
+
+.canvas3d-tour-popover .driver-popover-description {
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: #a9b1d6;
+}
+
+.canvas3d-tour-popover .driver-popover-description kbd {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 0.65rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid #2a2d3e;
+  border-radius: 0.15rem;
+  background: #0f1017;
+  color: #7dcfff;
+  line-height: 1.4;
+}
+
+.canvas3d-tour-popover .driver-popover-footer {
+  margin-top: 1rem;
+  gap: 0.4rem;
+}
+
+/* Progress text */
+.canvas3d-tour-popover .driver-popover-progress-text {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: #414868;
+}
+
+/* Buttons */
+.canvas3d-tour-popover .driver-popover-footer button {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  border-radius: 0.1rem;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.canvas3d-tour-popover .driver-popover-next-btn {
+  background: #1e2030;
+  border: 1px solid #7dcfff55;
+  color: #7dcfff;
+}
+
+.canvas3d-tour-popover .driver-popover-next-btn:hover {
+  background: #7dcfff18;
+  border-color: #7dcfff99;
+}
+
+.canvas3d-tour-popover .driver-popover-prev-btn {
+  background: transparent;
+  border: 1px solid #2a2d3e;
+  color: #a9b1d6;
+}
+
+.canvas3d-tour-popover .driver-popover-prev-btn:hover {
+  background: #2a2d3e55;
+  border-color: #414868;
+  color: #c0caf5;
+}
+
+.canvas3d-tour-popover .driver-popover-close-btn {
+  color: #414868;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.canvas3d-tour-popover .driver-popover-close-btn:hover {
+  color: #f7768e;
+}
+
+/* Arrow */
+.canvas3d-tour-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: #2a2d3e;
+}
+.canvas3d-tour-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: #2a2d3e;
+}
+.canvas3d-tour-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: #2a2d3e;
+}
+.canvas3d-tour-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: #2a2d3e;
+}
+
+/* Highlighted element ring */
+.driver-active-element {
+  outline: 2px solid #7dcfff66 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px #7dcfff18 !important;
+}

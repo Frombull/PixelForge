@@ -7,6 +7,7 @@ import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import SettingsPane from "./SettingsPane";
 import TopBar from "./TopBar";
+import Canvas3DTour from "./Canvas3DTour";
 import { injectImportMap, loadCanvasRuntimeModule, waitForBridge } from "./runtime";
 import { buildTransformMatrixLatex, clamp, getMatrixTitle } from "./workspaceMath";
 import {
@@ -503,6 +504,7 @@ export default function Canvas3DWorkspace() {
       )}
 
       <div id="app-layout" className="fixed inset-0 z-10 flex">
+        <Canvas3DTour />
         <LeftSidebar
           engineState={engineState}
           isCollapsed={isLeftSidebarCollapsed}

@@ -25,7 +25,7 @@ Main orchestrator. Responsibilities:
 - Inject import map and load runtime script.
 - Mount/unmount Canvas runtime via bridge.
 - Subscribe to runtime state event canvas3d:state.
-- Keep UI state (menus, color input mode, open panels).
+- Keep UI state (menus, sidebar state, open panels).
 - Pass callbacks and state to child components.
 - Render KaTeX matrix preview based on selected object/mode.
 
@@ -39,7 +39,7 @@ Left panel UI:
 ### src/components/canvas-3d/RightSidebar.tsx
 Right panel UI:
 - Transform controls (position, rotation, scale, skew).
-- Material controls (RGB/HSV/Hex/alpha).
+- Material controls (Iro color wheel plus HSV/RGB/Hex/alpha sliders).
 
 Note: this file replaced an older InspectorSidebar naming pattern.
 
@@ -51,6 +51,9 @@ Tweakpane-based live debug monitors (mode, selection, object count, FPS, etc).
 
 ### src/components/canvas-3d/DraggableNumberInput.tsx
 Reusable number input with horizontal drag-to-scrub behavior.
+
+### src/components/canvas-3d/IroColorPicker.tsx
+Iro-based circular material color picker with synchronized HSV, RGB, alpha, and Hex controls.
 
 ### src/components/canvas-3d/types.ts
 Single source of truth for:
@@ -179,6 +182,7 @@ Do not rename these keys unless runtime parsing in main.js is updated too.
 - src/components/canvas-3d/SettingsPane.tsx
 - src/components/canvas-3d/DebugPane.tsx
 - src/components/canvas-3d/DraggableNumberInput.tsx
+- src/components/canvas-3d/IroColorPicker.tsx
 - src/components/canvas-3d/runtime.ts
 - src/components/canvas-3d/workspaceMath.ts
 - src/components/canvas-3d/types.ts

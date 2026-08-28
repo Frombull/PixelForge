@@ -100,6 +100,7 @@ export type Canvas3DState = {
   mode: Canvas3DMode;
   isOrthographic: boolean;
   isCullingViewEnabled: boolean;
+  isAliasingStressEnabled: boolean;
   isShiftSnapActive: boolean;
   cameraPosition: NumericVec3;
   selectedUuid: string | null;
@@ -110,10 +111,16 @@ export type Canvas3DState = {
 
 export type Canvas3DStatus = "loading" | "ready" | "error";
 
+export type Canvas3DSceneLoadResult = {
+  ok: boolean;
+  error?: string;
+};
+
 export const EMPTY_STATE: Canvas3DState = {
   mode: "translate",
   isOrthographic: false,
   isCullingViewEnabled: false,
+  isAliasingStressEnabled: false,
   isShiftSnapActive: false,
   cameraPosition: { x: 0, y: 0, z: 0 },
   selectedUuid: null,
@@ -152,8 +159,6 @@ export const EMPTY_STATE: Canvas3DState = {
   },
 };
 
-export type ColorMode = "rgb" | "hsv";
-
 export type ColorInputState = {
   hex: string;
   alpha: number;
@@ -167,12 +172,16 @@ export type ColorInputState = {
 
 export type TopBarProps = {
   isCullingViewEnabled: boolean;
+  isAliasingStressEnabled: boolean;
   isInfoOpen: boolean;
   isSettingsOpen: boolean;
   infoButtonRef: RefObject<HTMLButtonElement | null>;
   settingsButtonRef: RefObject<HTMLButtonElement | null>;
   onResetCamera: () => void;
+  onSaveScene: () => void;
+  onLoadScene: () => void;
   onToggleCullingView: () => void;
+  onToggleAliasingStress: () => void;
   onToggleInfo: () => void;
   onToggleSettings: () => void;
 };
@@ -204,6 +213,9 @@ export type Canvas3DBridge = {
   mount: () => unknown;
   unmount: () => void;
   getState: () => Canvas3DState | null;
+  saveScene: () => string | null;
+  serializeScene: () => string | null;
+  loadScene: (payload: string) => Canvas3DSceneLoadResult;
 
   addObject: (kind: CanvasObjectKind) => void;
   setMode: (mode: Canvas3DMode) => void;
@@ -217,6 +229,7 @@ export type Canvas3DBridge = {
   toggleCameraType: () => boolean | undefined;
   setCameraProjection: (projection: CameraProjection) => CameraProjection | undefined;
   toggleCullingView: () => boolean | undefined;
+  toggleAliasingStress: () => boolean | undefined;
 
   setGridVisible: (visible: boolean) => void;
   setAxesVisible: (visible: boolean) => void;

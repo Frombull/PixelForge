@@ -1,18 +1,20 @@
 "use client";
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { type ReactNode } from "react";
 import DraggableNumberInput from "./DraggableNumberInput";
-import { clamp } from "./workspaceMath";
-import { type ColorInputState, type ColorMode, type SelectedObjectState } from "./types";
+import IroColorPicker from "./IroColorPicker";
+import { type ColorInputState, type SelectedObjectState } from "./types";
 
 type RightSidebarProps = {
   selected: SelectedObjectState | null;
   isTransformOpen: boolean;
   isMaterialOpen: boolean;
-  colorMode: ColorMode;
+  isCollapsed: boolean;
   colorInputs: ColorInputState;
   onToggleTransform: () => void;
   onToggleMaterial: () => void;
-  onSetColorMode: (mode: ColorMode) => void;
+  onToggleCollapse: () => void;
   onUpdateTransform: (field: string, value: number) => void;
   onResetTransformGroup: (targets: string[]) => void;
   onUpdateRgbColor: (channel: "r" | "g" | "b", value: number) => void;
@@ -22,6 +24,47 @@ type RightSidebarProps = {
   onApplyHex: (hex: string) => void;
   onSetColorFromPicker: (hex: string) => void;
 };
+
+function RightSidebarShell({
+  children,
+  isCollapsed,
+  onToggleCollapse,
+}: {
+  children: ReactNode;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+}) {
+  return (
+    <aside
+      id="sidebar-right"
+      className={`relative h-full shrink-0 border-l border-[#2a2d3e] transition-[width] duration-200 ease-out max-lg:hidden ${
+        isCollapsed ? "w-10" : "w-80"
+      }`}
+    >
+      <button
+        aria-controls="sidebar-right-content"
+        aria-expanded={!isCollapsed}
+        aria-label={isCollapsed ? "Expandir barra lateral direita" : "Recolher barra lateral direita"}
+        className="absolute left-2 top-2 z-70 flex h-6 w-6 cursor-pointer items-center justify-center rounded-[0.1rem] border border-[#2a2d3e] bg-[var(--ui-field-bg)] text-(--ui-accent) transition-colors hover:bg-[var(--ui-accent-active-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--ui-accent)"
+        onClick={onToggleCollapse}
+        title={isCollapsed ? "Expandir barra lateral direita" : "Recolher barra lateral direita"}
+        type="button"
+      >
+        {isCollapsed ? <ChevronLeft aria-hidden="true" size={16} /> : <ChevronRight aria-hidden="true" size={16} />}
+      </button>
+
+      <div className="flex h-full w-full justify-end overflow-hidden">
+        <div
+          aria-hidden={isCollapsed}
+          className={`h-full w-80 shrink-0 overflow-y-auto p-2 transition-opacity duration-100 ${isCollapsed ? "opacity-0" : "opacity-100"}`}
+          id="sidebar-right-content"
+        >
+          {children}
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 type TransformField = {
   id: string;
@@ -106,11 +149,11 @@ export default function RightSidebar({
   selected,
   isTransformOpen,
   isMaterialOpen,
-  colorMode,
+  isCollapsed,
   colorInputs,
   onToggleTransform,
   onToggleMaterial,
-  onSetColorMode,
+  onToggleCollapse,
   onUpdateTransform,
   onResetTransformGroup,
   onUpdateRgbColor,
@@ -121,15 +164,14 @@ export default function RightSidebar({
   onSetColorFromPicker,
 }: RightSidebarProps) {
   const panelHeaderClass = "mb-[0.55rem] p-0 text-xs uppercase tracking-[0.08em] text-(--ui-accent)";
-  const panelButtonActiveClass = "!bg-(--ui-accent-active-bg)";
   const resetButtonClass = "h-[1.4rem] w-[1.4rem] rounded-[0.35rem] text-(--ui-text) transition-colors hover:border-(--ui-accent) hover:text-(--ui-accent)";
-  const inspectorHeaderClass = "mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-[0.2rem] bg-(--ui-collapse-bg) px-2 py-1 text-xs text-(--ui-accent)";
+  const inspectorHeaderClass = "-mx-2 mb-[0.55rem] flex cursor-pointer items-center gap-[0.45rem] rounded-none bg-(--ui-collapse-bg) px-4 py-1 text-xs text-(--ui-accent)";
   const scalarInputClass = "w-full min-w-0 rounded-[0.35rem] border border-[#2a2d3e] bg-(--ui-field-bg) px-[0.35rem] py-[0.2rem] text-[0.72rem] text-(--ui-text)";
   const axisInputClass = `${scalarInputClass} pr-[1.6rem]`;
 
   if (!selected) {
     return (
-      <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-2 max-lg:hidden">
+      <RightSidebarShell isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse}>
         <div className={`${panelHeaderClass} text-center`}>
           <span className="inline-block text-center">Inspetor</span>
         </div>
@@ -137,12 +179,12 @@ export default function RightSidebar({
           <div className="text-2xl">◻</div>
           <div>Selecione um objeto para editar suas propriedades</div>
         </div>
-      </aside>
+      </RightSidebarShell>
     );
   }
 
   return (
-    <aside id="sidebar-right" className="w-80 shrink-0 border-l border-[#2a2d3e] p-2 max-lg:hidden">
+    <RightSidebarShell isCollapsed={isCollapsed} onToggleCollapse={onToggleCollapse}>
       <div className={`${panelHeaderClass} text-center`}>
         <span className="inline-block text-center">Inspetor</span>
       </div>
@@ -213,87 +255,18 @@ export default function RightSidebar({
           <CollapsibleHeader title="Material" isOpen={isMaterialOpen} onClick={onToggleMaterial} className={inspectorHeaderClass} />
 
           <div className={isMaterialOpen ? "p-0" : "hidden p-0"} id="material-content">
-            <div className="mb-[0.45rem] flex gap-[0.3rem]">
-              <button
-                className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] py-1 text-[0.72rem] text-(--ui-text) ${
-                  colorMode === "rgb" ? panelButtonActiveClass : ""
-                }`}
-                onClick={() => onSetColorMode("rgb")}
-                type="button"
-              >
-                RGB
-              </button>
-              <button
-                className={`flex-1 rounded-[0.35rem] border border-[#2a2d3e] py-1 text-[0.72rem] text-(--ui-text) ${
-                  colorMode === "hsv" ? panelButtonActiveClass : ""
-                }`}
-                onClick={() => onSetColorMode("hsv")}
-                type="button"
-              >
-                HSV
-              </button>
-            </div>
-
-            {colorMode === "rgb" ? (
-              <div className="grid grid-cols-3 gap-[0.35rem]" id="rgb-inputs">
-                <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-r">R</label><DraggableNumberInput className={scalarInputClass} id="color-r" max={255} min={0} onValueChange={(value) => onUpdateRgbColor("r", value)} step={1} value={colorInputs.r} /></div>
-                <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-g">G</label><DraggableNumberInput className={scalarInputClass} id="color-g" max={255} min={0} onValueChange={(value) => onUpdateRgbColor("g", value)} step={1} value={colorInputs.g} /></div>
-                <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-b">B</label><DraggableNumberInput className={scalarInputClass} id="color-b" max={255} min={0} onValueChange={(value) => onUpdateRgbColor("b", value)} step={1} value={colorInputs.b} /></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-[0.35rem]" id="hsv-inputs">
-                <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-h">H</label><DraggableNumberInput className={scalarInputClass} id="color-h" max={360} min={0} onValueChange={(value) => onUpdateHsvColor("h", value)} step={1} value={colorInputs.h} /></div>
-                <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-s">S</label><DraggableNumberInput className={scalarInputClass} id="color-s" max={100} min={0} onValueChange={(value) => onUpdateHsvColor("s", value)} step={1} value={colorInputs.s} /></div>
-                <div className="relative flex items-center"><label className="min-w-3 text-[0.68rem] text-(--ui-accent)" htmlFor="color-v">V</label><DraggableNumberInput className={scalarInputClass} id="color-v" max={100} min={0} onValueChange={(value) => onUpdateHsvColor("v", value)} step={1} value={colorInputs.v} /></div>
-              </div>
-            )}
-
-            <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
-              <span className="text-(--ui-text-muted)">Alpha</span>
-              <input
-                className="flex-1 accent-(--ui-accent)"
-                id="color-alpha"
-                max="100"
-                min="0"
-                onChange={(event) => onAlphaChange(clamp(Number(event.target.value), 0, 100))}
-                step="1"
-                type="range"
-                value={String(colorInputs.alpha)}
-              />
-              <span id="alpha-value">{`${colorInputs.alpha}%`}</span>
-            </div>
-
-            <div className="mt-[0.55rem] flex items-center gap-[0.45rem] text-[0.72rem]">
-              <span className="text-(--ui-text-muted)">Hex</span>
-              <input
-                aria-label="Color picker"
-                id="color-picker"
-                type="color"
-                className="h-7 w-7 p-0 border-none bg-transparent"
-                value={colorInputs.hex}
-                onChange={(event) => onSetColorFromPicker(String(event.target.value || "#ffffff"))}
-              />
-
-              <input
-                className={scalarInputClass}
-                id="color-hex"
-                maxLength={7}
-                onBlur={(event) => onApplyHex(event.target.value)}
-                onChange={(event) => onSetHexDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    onApplyHex((event.target as HTMLInputElement).value);
-                  }
-                }}
-                placeholder="#ffffff"
-                type="text"
-                value={colorInputs.hex}
-              />
-            </div>
+            <IroColorPicker
+              colorInputs={colorInputs}
+              onAlphaChange={onAlphaChange}
+              onApplyHex={onApplyHex}
+              onSetColorFromPicker={onSetColorFromPicker}
+              onSetHexDraft={onSetHexDraft}
+              onUpdateHsvColor={onUpdateHsvColor}
+              onUpdateRgbColor={onUpdateRgbColor}
+            />
           </div>
         </div>
       </div>
-    </aside>
+    </RightSidebarShell>
   );
 }

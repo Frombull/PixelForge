@@ -3,6 +3,8 @@ import { Sky } from 'three/addons/objects/Sky.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CAMERA_CONFIG, CAMERA_PROJECTION_DEFAULTS, DEFAULT_VALUES, COLORS } from '/canvas-3d/utils/constants.js';
 
+const EXTREME_ALIASING_SCALE = 0.24;
+
 export class SceneManager {
     constructor(container) {
         this.container = container;
@@ -11,6 +13,8 @@ export class SceneManager {
         this.orthographicCamera = null;
         this.camera = null;
         this.renderer = null;
+        this.isAliasingStressEnabled = false;
+        this.viewportSize = { width: 0, height: 0 };
         this.secondCamera = null;
         this.secondRenderer = null;
         this.gridHelper = null;
@@ -116,12 +120,16 @@ export class SceneManager {
     }
     
     createRenderer() {
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        // Keep the context without MSAA so the stress mode can expose aliasing
+        // by rendering at a deliberately tiny internal resolution.
+        this.renderer = new THREE.WebGLRenderer({ antialias: false });
         this.configureRenderer(this.renderer);
         this.renderer.setPixelRatio(this.getEffectivePixelRatio());
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.domElement.classList.add('main-canvas3d');
         this.container.appendChild(this.renderer.domElement);
+        this.viewportSize.width = this.container.clientWidth;
+        this.viewportSize.height = this.container.clientHeight;
     }
 
     createEnvironment() {
@@ -353,6 +361,30 @@ export class SceneManager {
         }
         return this.showSecondViewport;
     }
+
+    toggleAliasingStress() {
+        this.isAliasingStressEnabled = !this.isAliasingStressEnabled;
+        this.applyAliasingStressResolution();
+        return this.isAliasingStressEnabled;
+    }
+
+    applyAliasingStressResolution() {
+        if (!this.renderer) return;
+
+        const { width, height } = this.viewportSize;
+        if (width <= 0 || height <= 0) return;
+
+        if (this.isAliasingStressEnabled) {
+            this.renderer.setPixelRatio(EXTREME_ALIASING_SCALE);
+            this.renderer.setSize(width, height, false);
+            this.renderer.domElement.style.imageRendering = 'pixelated';
+            return;
+        }
+
+        this.renderer.setPixelRatio(this.getEffectivePixelRatio());
+        this.renderer.setSize(width, height, false);
+        this.renderer.domElement.style.imageRendering = 'auto';
+    }
     
     updateCameraHelper() {
         if (this.cameraHelper) this.scene.remove(this.cameraHelper);
@@ -473,7 +505,8 @@ export class SceneManager {
         const aspect = rect.width / rect.height;
         const pixelRatio = this.getEffectivePixelRatio();
 
-        this.renderer.setPixelRatio(pixelRatio);
+        this.viewportSize.width = rect.width;
+        this.viewportSize.height = rect.height;
         if (this.secondRenderer) {
             this.secondRenderer.setPixelRatio(pixelRatio);
         }
@@ -490,7 +523,7 @@ export class SceneManager {
             this.orthographicCamera.updateProjectionMatrix();
         }
 
-        this.renderer.setSize(rect.width, rect.height);
+        this.applyAliasingStressResolution();
         this.updateSecondViewportSize();
     }
     
@@ -518,8 +551,14 @@ export class SceneManager {
     
     setGridColor(color) {
         if (this.gridHelper) {
-            this.gridHelper.material.color.set(color);
-            this.gridHelper.material.needsUpdate = true;
+            const materials = Array.isArray(this.gridHelper.material)
+                ? this.gridHelper.material
+                : [this.gridHelper.material];
+            materials.forEach((material) => {
+                if (!material?.color) return;
+                material.color.set(color);
+                material.needsUpdate = true;
+            });
         }
     }
     

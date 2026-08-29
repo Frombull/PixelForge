@@ -36,6 +36,9 @@ cube color #d04949
  
 === [ TODO ] ============================================================================================================
 
+[TODO] - Feature de ddar zoom na matriz e conseguir editar os valores direto nela.
+[TODO] - Warnock, junt ao zbuffer, zbuffer verdadeiro, e reverse painter.
+[TODO] - Endpoint de parser de json como exemplo de entrega de tarefa.
 [TODO] - Hints em forma de bolinha piscando quando entrar na página
 [TODO] - Usar o IRO color picker, redondo pra HSV
 Camera secundária:

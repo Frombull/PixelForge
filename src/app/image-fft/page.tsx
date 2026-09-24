@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Moon, Sun } from "lucide-react";
 import { FFTProcessor, type Complex, type FFTResult } from "@/lib/FFTProcessor";
+import { useTheme } from "@/lib/theme";
+import { Slider } from "@/components/ui/Slider";
 
 enum DrawMode {
   BRUSH = "brush",
@@ -10,6 +12,7 @@ enum DrawMode {
 }
 
 export default function ImageFFTPage() {
+  const { theme, toggleTheme } = useTheme();
   const originalCanvasRef = useRef<HTMLCanvasElement>(null);
   const fftCanvasRef = useRef<HTMLCanvasElement>(null);
   const [drawMode, setDrawMode] = useState<DrawMode>(DrawMode.BRUSH);
@@ -519,69 +522,63 @@ export default function ImageFFTPage() {
     }
   };
 
-  const inputClasses =
-    "w-20 h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
-
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',sans-serif]">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
-        input[type=range]::-webkit-slider-thumb { cursor: grab; }
-        input[type=range]::-moz-range-thumb { cursor: grab; border-radius: 0; }
-      `}</style>
-
+    <div className="pf-surface min-h-screen bg-[var(--pf-bg)] text-[var(--pf-fg)] pb-20 font-sans transition-colors duration-200">
       {/* Header */}
-      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-6 border-b border-[#222]">
-        <div>
-          <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
-            Multimídia - Edição FFT
-          </div>
-          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
+      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-2 border-b border-[var(--pf-border-strong)]">
+        <div className="flex items-baseline gap-4">
+          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[var(--pf-fg-strong)]">
             <a
               href="/"
-              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              className="flex items-center text-[var(--pf-fg-muted)] no-underline transition-all duration-200 hover:text-[var(--pf-fg-strong)]"
               title="Voltar para a Home"
             >
               <ArrowLeft size={32} strokeWidth={1} />
             </a>
             <span>
-              <strong className="font-medium text-white">
+              <strong className="font-medium text-[var(--pf-fg-strong)]">
                 Domínio Espacial
               </strong>{" "}
               vs{" "}
-              <strong className="font-medium text-white">
+              <strong className="font-medium text-[var(--pf-fg-strong)]">
                 Domínio da Frequência
               </strong>
             </span>
           </h1>
+          <span className="font-sans text-[12px] text-[var(--pf-fg-faint)] tracking-[0.15em] uppercase whitespace-nowrap">
+            Multimídia - Edição FFT
+          </span>
         </div>
-        <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
-          <div>FFT · Domínio da Frequência · Transformada de Fourier · Processamento de Imagens</div>
+        <div className="flex items-start gap-6">
+          <div className="font-sans text-[12px] text-[var(--pf-fg-faint)] text-right leading-[1.8]">
+            <div>FFT · Domínio da Frequência · Transformada de Fourier · Processamento de Imagens</div>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center w-8 h-8 shrink-0 text-[var(--pf-fg-muted)] hover:text-[var(--pf-fg-strong)] border border-[var(--pf-border-strong)] hover:border-[var(--pf-accent)] rounded transition-colors"
+            title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
+          </button>
         </div>
       </header>
 
       {/* Main Workspace */}
-      <div className="px-16">
-        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-8 border-b border-[#1a1a1a]">
-          01 <span className="text-[#333]">-</span> Editor Visual Interativo FFT
-        </div>
-
-        <div className="grid grid-cols-2 gap-[2px] bg-[#1a1a1a] mb-[2px]">
+      <div className="px-16 pt-8">
+        <div className="grid grid-cols-2 gap-[2px] bg-[var(--pf-border)] mb-[2px]">
           {/* Left Column: Original (Reconstructed) Image */}
-          <div className="bg-[#0d0d0d] p-10 pt-5 flex flex-col items-center">
-            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+          <div className="bg-[var(--pf-bg)] p-10 pt-5 flex flex-col items-center">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[var(--pf-border)]">
+              <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] tracking-[0.18em] uppercase">
                 Visualização
               </span>
-              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
-                Espacial
-              </span>
-              <span className="font-['IBM_Plex_Mono',monospace] text-xs text-[#3a3a3a] ml-auto">
-                Reconstruída
+              <span className="text-[22px] font-normal text-[var(--pf-fg-strong)] tracking-[-0.01em]">
+                Espectro Espacial
               </span>
             </div>
 
-            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] self-center items-center justify-center p-2 mb-auto">
+            <div className="w-full flex aspect-square bg-[var(--pf-bg-raised)] border border-[var(--pf-border)] self-center items-center justify-center p-2 mb-auto">
               <canvas
                 ref={originalCanvasRef}
                 className="w-full h-full object-contain"
@@ -591,20 +588,17 @@ export default function ImageFFTPage() {
           </div>
 
           {/* Right Column: Frequency Domain & Controls */}
-          <div className="bg-[#0d0d0d] p-10 pt-5 flex flex-col items-center">
-            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+          <div className="bg-[var(--pf-bg)] p-10 pt-5 flex flex-col items-center">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[var(--pf-border)]">
+              <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] tracking-[0.18em] uppercase">
                 Edição
               </span>
-              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
-                Frequência
-              </span>
-              <span className="font-['IBM_Plex_Mono',monospace] text-xs text-[#3a3a3a] ml-auto">
-                Espectro
+              <span className="text-[22px] font-normal text-[var(--pf-fg-strong)] tracking-[-0.01em]">
+                Espectro Frequência
               </span>
             </div>
 
-            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] self-center items-center justify-center p-2 mb-6">
+            <div className="w-full flex aspect-square bg-[var(--pf-bg-raised)] border border-[var(--pf-border)] self-center items-center justify-center p-2 mb-6">
               <canvas
                 ref={fftCanvasRef}
                 className="w-full h-full object-contain"
@@ -612,10 +606,10 @@ export default function ImageFFTPage() {
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-6 w-full pt-6 border-t border-[#1a1a1a]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-center gap-6 w-full pt-6 border-t border-[var(--pf-border)]">
               {/* Toolbar */}
               <div className="flex flex-wrap items-center justify-center gap-6 w-full">
-                <label className="cursor-pointer font-['IBM_Plex_Mono',monospace] text-[11px] text-[#777] tracking-[0.1em] uppercase hover:text-[#bbb] transition-colors whitespace-nowrap px-3 py-1.5 border border-[#222] hover:border-[#444] rounded bg-[#111]">
+                <label className="cursor-pointer font-sans text-[11px] text-[var(--pf-fg-muted)] tracking-[0.1em] uppercase hover:text-[var(--pf-fg-strong)] transition-colors whitespace-nowrap px-3 py-1.5 border border-[var(--pf-border-strong)] hover:border-[var(--pf-accent)] rounded bg-[var(--pf-bg-raised)]">
                   <input
                     type="file"
                     accept="image/*"
@@ -625,30 +619,30 @@ export default function ImageFFTPage() {
                   Carregar Imagem ⇪
                 </label>
 
-                <div className="w-px h-6 bg-[#222]"></div>
+                <div className="w-px h-6 bg-[var(--pf-border-strong)]"></div>
 
-                <div className="flex items-center gap-4">
-                  <span className="text-[10px] text-[#444] font-['IBM_Plex_Mono',monospace] tracking-[0.08em] uppercase">
+                <div className="flex items-center gap-4 min-w-[220px]">
+                  <span className="text-[11px] text-[var(--pf-fg-faint)] font-sans tracking-[0.08em] uppercase whitespace-nowrap">
                     Pincel
                   </span>
-                  <input
-                    type="range"
-                    min="1"
-                    max="256"
+                  <Slider
+                    min={1}
+                    max={256}
                     value={brushSize}
-                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                    className={inputClasses}
+                    onChange={setBrushSize}
+                    aria-label="Tamanho do pincel"
+                    className="w-32"
                   />
-                  <span className="text-[10px] font-['IBM_Plex_Mono',monospace] text-[#555] w-6 text-right">
+                  <span className="text-[11px] font-sans text-[var(--pf-fg-muted)] w-8 text-right tabular-nums">
                     {brushSize}px
                   </span>
                 </div>
 
-                <div className="w-px h-6 bg-[#222]"></div>
+                <div className="w-px h-6 bg-[var(--pf-border-strong)]"></div>
 
                 <button
                   onClick={resetFFT}
-                  className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#8a5a5a] hover:text-[#d46a6a] tracking-[0.1em] uppercase transition-colors px-3 py-1.5 border border-[#331111] bg-[#160505] hover:border-[#552222] rounded"
+                  className="font-sans text-[11px] text-[var(--pf-danger-fg)] hover:text-[var(--pf-danger-fg-hover)] tracking-[0.1em] uppercase transition-colors px-3 py-1.5 border border-[var(--pf-danger-border)] bg-[var(--pf-danger-bg)] hover:border-[var(--pf-danger-border-hover)] rounded"
                   title="Resetar edições"
                 >
                   Resetar FFT ↺
@@ -659,28 +653,25 @@ export default function ImageFFTPage() {
         </div>
 
         {/* Info Footer */}
-        <div className="bg-[#0d0d0d] py-10 px-10 border-t-2 border-[#1a1a1a]">
-          <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-4 mb-6 border-b border-[#1a1a1a]">
-            02 <span className="text-[#333]">-</span> Teoria e Funcionamento FFT
-          </div>
+        <div className="bg-[var(--pf-bg)] py-10 px-10 border-t-2 border-[var(--pf-border)]">
           <div className="grid grid-cols-2 gap-16">
             <div>
-              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+              <h3 className="text-[15px] font-medium text-[var(--pf-fg)] mb-4">
                 O que é a Transformada Rápida de Fourier?
               </h3>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-5">
                 A Transformada Rápida de Fourier (FFT) aplicada a imagens
                 converte a informação de{" "}
-                <code className="font-['IBM_Plex_Mono',monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                <code className="font-sans text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-[5px] py-[1px]">
                   pixels (domínio espacial)
                 </code>{" "}
                 para{" "}
-                <code className="font-['IBM_Plex_Mono',monospace] text-[11.5px] text-[#666] bg-[#161616] px-[5px] py-[1px]">
+                <code className="font-sans text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-[5px] py-[1px]">
                   frequências (domínio da frequência)
                 </code>
                 .
               </p>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-5">
                 Em vez de medir a intensidade de luz em cada coordenada (x, y),
                 você visualiza quão rápido as intensidades mudam ao longo da
                 imagem original. O centro do espectro de frequência representa
@@ -690,22 +681,22 @@ export default function ImageFFTPage() {
               </p>
             </div>
             <div>
-              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+              <h3 className="text-[15px] font-medium text-[var(--pf-fg)] mb-4">
                 Manipulando no Domínio da Frequência
               </h3>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-5">
                 As regiões afastadas do centro representam as altas frequências
                 (texturas complexas, fios de cabelo e bordas de contraste
                 perfeitamente nítidas e secas).
               </p>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px]">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-[14px]">
                 <strong>Filtro Passa-Baixas: </strong> Use o pincel e tente
                 apagar por completo as bordas do espectro (deixando apenas o
                 centro iluminado intacto). A imagem gerada à esquerda ficará com
                 efeito de{" "}
                 <em className="italic">borrão / desfoque gaussiano</em> nativo.
               </p>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-[14px]">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-[14px]">
                 <strong>Filtro Passa-Altas: </strong> O oposto - ao apagar toda
                 a área central concentrada e deixar somente os pontos distantes,
                 a imagem gerada não terá preenchimento sólido de cor e será

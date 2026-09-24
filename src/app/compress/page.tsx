@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Moon, Sun } from "lucide-react";
+import { useTheme } from "@/lib/theme";
+import { Slider } from "@/components/ui/Slider";
 
 interface ImageInfo {
   dimensions: string;
@@ -16,6 +18,7 @@ interface CompressionStats {
 }
 
 export default function CompressPage() {
+  const { theme, toggleTheme } = useTheme();
   const [originalImageData, setOriginalImageData] = useState<File | null>(null);
   const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string>("");
   const [originalImageInfo, setOriginalImageInfo] = useState<ImageInfo | null>(
@@ -249,60 +252,55 @@ export default function CompressPage() {
     setIsProcessing(false);
   };
 
-  const inputClasses =
-    "w-full h-[1px] bg-[#222] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-[10px] [&::-webkit-slider-thumb]:h-[10px] [&::-webkit-slider-thumb]:bg-[#c8c8c8] [&::-webkit-slider-thumb]:border-none [&::-moz-range-thumb]:w-[10px] [&::-moz-range-thumb]:h-[10px] [&::-moz-range-thumb]:bg-[#c8c8c8] [&::-moz-range-thumb]:border-none";
-
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] pb-20 font-['DM_Sans',sans-serif]">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
-        input[type=range]::-webkit-slider-thumb { cursor: grab; }
-        input[type=range]::-moz-range-thumb { cursor: grab; border-radius: 0; }
-      `}</style>
-
-      <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 pt-10 px-5 sm:px-8 lg:px-16 pb-6 border-b border-[#222]">
-        <div>
-          <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
-            Multimídia - Compressão de Imagens
-          </div>
-          <h1 className="flex items-center gap-4 text-3xl sm:text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0]">
+    <div className="pf-surface min-h-screen bg-[var(--pf-bg)] text-[var(--pf-fg)] pb-20 font-sans transition-colors duration-200">
+      <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 pt-10 px-5 sm:px-8 lg:px-16 pb-6 border-b border-[var(--pf-border-strong)]">
+        <div className="flex items-baseline gap-4">
+          <h1 className="flex items-center gap-4 text-3xl sm:text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[var(--pf-fg-strong)]">
             <a
               href="/"
-              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white cursor-pointer"
+              className="flex items-center text-[var(--pf-fg-muted)] no-underline transition-all duration-200 hover:text-[var(--pf-fg-strong)] cursor-pointer"
               title="Voltar para a Home"
             >
               <ArrowLeft size={32} strokeWidth={1} />
             </a>
             <span>
-              <strong className="font-medium text-white">Compressão</strong> e{" "}
-              <strong className="font-medium text-white">Qualidade Visual</strong>
+              <strong className="font-medium text-[var(--pf-fg-strong)]">Compressão</strong> e{" "}
+              <strong className="font-medium text-[var(--pf-fg-strong)]">Qualidade Visual</strong>
             </span>
           </h1>
+          <span className="font-sans text-[12px] text-[var(--pf-fg-faint)] tracking-[0.15em] uppercase whitespace-nowrap">
+            Multimídia - Compressão de Imagens
+          </span>
         </div>
-        <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#444] text-right leading-[1.8]">
-          <div>JPEG - WEBP - DCT - Fractal - Compressão com perda</div>
+        <div className="flex items-start gap-6">
+          <div className="font-sans text-[12px] text-[var(--pf-fg-faint)] text-right leading-[1.8]">
+            <div>JPEG - WEBP - DCT - Fractal - Compressão com perda</div>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center w-8 h-8 shrink-0 text-[var(--pf-fg-muted)] hover:text-[var(--pf-fg-strong)] border border-[var(--pf-border-strong)] hover:border-[var(--pf-accent)] rounded transition-colors"
+            title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
+          </button>
         </div>
       </header>
 
-      <div className="px-5 sm:px-8 lg:px-16">
-        <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pt-10 pb-4 mb-4 border-b border-[#1a1a1a]">
-          01 <span className="text-[#333]">-</span> Laboratório de Compressão Interativo
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-0.5 bg-[#1a1a1a] mb-0.5">
-          <div className="bg-[#0d0d0d] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
-            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+      <div className="px-5 sm:px-8 lg:px-16 pt-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-0.5 bg-[var(--pf-border)] mb-0.5">
+          <div className="bg-[var(--pf-bg)] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[var(--pf-border)]">
+              <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] tracking-[0.18em] uppercase">
                 Entrada
               </span>
-              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+              <span className="text-[22px] font-normal text-[var(--pf-fg-strong)] tracking-[-0.01em]">
                 Imagem Original
               </span>
             </div>
 
-
-
-            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] items-center justify-center p-2 mb-6">
+            <div className="w-full flex aspect-square bg-[var(--pf-bg-raised)] border border-[var(--pf-border)] items-center justify-center p-2 mb-6">
               {originalPreviewUrl ? (
                 <img
                   src={originalPreviewUrl}
@@ -310,17 +308,17 @@ export default function CompressPage() {
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555]">
+                <div className="font-sans text-[12px] text-[var(--pf-fg-faint)]">
                   Nenhuma imagem carregada
                 </div>
               )}
             </div>
 
-                        <div
-              className={`mb-6 border border-dashed rounded bg-[#111] transition-colors cursor-pointer ${
+            <div
+              className={`mb-6 border border-dashed rounded bg-[var(--pf-bg-raised)] transition-colors cursor-pointer ${
                 isDragging
                   ? "border-[#6f8f6f]"
-                  : "border-[#2a2a2a] hover:border-[#454545]"
+                  : "border-[var(--pf-border-strong)] hover:border-[var(--pf-accent)]"
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -329,7 +327,7 @@ export default function CompressPage() {
             >
               <button
                 type="button"
-                className="w-full text-center px-4 py-3 font-['IBM_Plex_Mono',monospace] text-[11px] text-[#777] hover:text-[#b8b8b8] transition-colors cursor-pointer"
+                className="w-full text-center px-4 py-3 font-sans text-[12px] text-[var(--pf-fg-muted)] hover:text-[var(--pf-fg-strong)] transition-colors cursor-pointer"
               >
                 {isImageLoaded
                   ? "Trocar imagem (arraste ou clique)"
@@ -344,45 +342,45 @@ export default function CompressPage() {
               />
             </div>
 
-            <div className="bg-[#101010] border border-[#1e1e1e] p-4">
+            <div className="bg-[var(--pf-bg-raised)] border border-[var(--pf-border)] p-4">
               <div className="flex justify-between mb-2">
-                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                   Dimensões
                 </span>
-                <span className="text-[13px] text-[#cfcfcf]">
+                <span className="text-[13px] text-[var(--pf-fg)]">
                   {originalImageInfo?.dimensions || "-"}
                 </span>
               </div>
               <div className="flex justify-between mb-2">
-                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                   Tamanho
                 </span>
-                <span className="text-[13px] text-[#cfcfcf]">
+                <span className="text-[13px] text-[var(--pf-fg)]">
                   {originalImageInfo?.size || "-"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                   Formato
                 </span>
-                <span className="text-[13px] text-[#cfcfcf]">
+                <span className="text-[13px] text-[var(--pf-fg)]">
                   {originalImageInfo?.format || "-"}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0d0d0d] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
-            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[#1e1e1e]">
-              <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#555] tracking-[0.18em] uppercase">
+          <div className="bg-[var(--pf-bg)] p-6 sm:p-8 lg:p-10 pt-5 flex flex-col">
+            <div className="flex items-baseline gap-4 w-full mb-7 pb-5 border-b border-[var(--pf-border)]">
+              <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] tracking-[0.18em] uppercase">
                 Saída
               </span>
-              <span className="text-[22px] font-normal text-[#ececec] tracking-[-0.01em]">
+              <span className="text-[22px] font-normal text-[var(--pf-fg-strong)] tracking-[-0.01em]">
                 Imagem Comprimida
               </span>
             </div>
 
-            <div className="w-full flex aspect-square bg-[#111] border border-[#1e1e1e] items-center justify-center p-2 mb-6">
+            <div className="w-full flex aspect-square bg-[var(--pf-bg-raised)] border border-[var(--pf-border)] items-center justify-center p-2 mb-6">
               {compressedImageUrl ? (
                 <img
                   src={compressedImageUrl}
@@ -390,22 +388,22 @@ export default function CompressPage() {
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#555] text-center px-4">
+                <div className="font-sans text-[12px] text-[var(--pf-fg-faint)] text-center px-4">
                   Selecione um algoritmo e clique em "Comprimir"
                 </div>
               )}
             </div>
 
-            <div className="pt-6 border-t border-[#1a1a1a]">
+            <div className="pt-6 border-t border-[var(--pf-border)]">
               <div className="flex flex-wrap items-center gap-3 mb-5">
                 {["jpeg", "webp", "dct", "fractal"].map((type) => (
                   <button
                     key={type}
                     onClick={() => setCurrentCompressionType(type)}
-                    className={`font-['IBM_Plex_Mono',monospace] text-[11px] tracking-[0.08em] uppercase px-3 py-1.5 border transition-colors cursor-pointer ${
+                    className={`font-sans text-[12px] tracking-[0.08em] uppercase px-3 py-1.5 border transition-colors cursor-pointer ${
                       currentCompressionType === type
-                        ? "border-[#6a3f3f] bg-[#1c0f0f] text-[#d9a6a6]"
-                        : "border-[#252525] bg-[#111] text-[#747474] hover:text-[#b8b8b8]"
+                        ? "border-[var(--pf-danger-border-hover)] bg-[var(--pf-danger-bg)] text-[var(--pf-danger-fg-hover)]"
+                        : "border-[var(--pf-border-strong)] bg-[var(--pf-bg-raised)] text-[var(--pf-fg-muted)] hover:text-[var(--pf-fg-strong)]"
                     }`}
                   >
                     {type}
@@ -416,20 +414,20 @@ export default function CompressPage() {
               {currentCompressionType !== "fractal" && (
                 <div className="mb-5">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                    <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                       Qualidade
                     </span>
-                    <span className="font-['IBM_Plex_Mono',monospace] text-[11px] text-[#a8a8a8]">
+                    <span className="font-sans text-[12px] text-[var(--pf-fg)]">
                       {quality}%
                     </span>
                   </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="100"
+                  <Slider
+                    min={1}
+                    max={100}
                     value={quality}
-                    onChange={(e) => setQuality(parseInt(e.target.value, 10))}
-                    className={inputClasses}
+                    onChange={setQuality}
+                    aria-label="Qualidade de compressão"
+                    className="w-full"
                   />
                 </div>
               )}
@@ -437,88 +435,85 @@ export default function CompressPage() {
               <button
                 onClick={compressImage}
                 disabled={isProcessing || !isImageLoaded}
-                className="w-full font-['IBM_Plex_Mono',monospace] text-[11px] tracking-widest uppercase text-[#d2b0b0] px-3 py-2 border border-[#4a2323] bg-[#1a0c0c] hover:border-[#6a2f2f] hover:text-[#f1c7c7] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full font-sans text-[12px] tracking-widest uppercase text-[var(--pf-danger-fg-hover)] px-3 py-2 border border-[var(--pf-danger-border)] bg-[var(--pf-danger-bg)] hover:border-[var(--pf-danger-border-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isProcessing ? "Processando..." : "Comprimir"}
               </button>
             </div>
 
             {isProcessing && (
-              <div className="mt-5 font-['IBM_Plex_Mono',monospace] text-[11px] text-[#9d6d6d]">
+              <div className="mt-5 font-sans text-[12px] text-[var(--pf-danger-fg)]">
                 Gerando imagem comprimida...
               </div>
             )}
 
             {compressedInfo && compressionStats && (
-              <div className="mt-6 bg-[#101010] border border-[#1e1e1e] p-4">
+              <div className="mt-6 bg-[var(--pf-bg-raised)] border border-[var(--pf-border)] p-4">
                 <div className="flex justify-between mb-2">
-                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                     Novo tamanho
                   </span>
-                  <span className="text-[13px] text-[#cfcfcf]">{compressedInfo.size}</span>
+                  <span className="text-[13px] text-[var(--pf-fg)]">{compressedInfo.size}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                     Formato
                   </span>
-                  <span className="text-[13px] text-[#cfcfcf]">{compressedInfo.format}</span>
+                  <span className="text-[13px] text-[var(--pf-fg)]">{compressedInfo.format}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                     Redução
                   </span>
-                  <span className="text-[13px] text-[#cfcfcf]">{compressionStats.reductionPercentage}</span>
+                  <span className="text-[13px] text-[var(--pf-fg)]">{compressionStats.reductionPercentage}</span>
                 </div>
                 <div className="flex justify-between mb-2">
-                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                     Economia
                   </span>
-                  <span className="text-[13px] text-[#cfcfcf]">{compressionStats.sizeReduction}</span>
+                  <span className="text-[13px] text-[var(--pf-fg)]">{compressionStats.sizeReduction}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="font-['IBM_Plex_Mono',monospace] text-[10px] text-[#666] uppercase tracking-[0.08em]">
+                  <span className="font-sans text-[11px] text-[var(--pf-fg-faint)] uppercase tracking-[0.08em]">
                     Taxa
                   </span>
-                  <span className="text-[13px] text-[#cfcfcf]">{compressionStats.compressionRatio}</span>
+                  <span className="text-[13px] text-[var(--pf-fg)]">{compressionStats.compressionRatio}</span>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-[#0d0d0d] py-10 px-5 sm:px-8 lg:px-10 border-t-2 border-[#1a1a1a]">
-          <div className="flex items-center gap-6 font-['IBM_Plex_Mono',monospace] text-[10px] text-[#444] tracking-[0.2em] uppercase pb-4 mb-6 border-b border-[#1a1a1a]">
-            02 <span className="text-[#333]">-</span> Teoria e Análise de Compressão
-          </div>
+        <div className="bg-[var(--pf-bg)] py-10 px-5 sm:px-8 lg:px-10 border-t-2 border-[var(--pf-border)]">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
             <div>
-              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+              <h3 className="text-[15px] font-medium text-[var(--pf-fg)] mb-4">
                 Como a compressão reduz o tamanho?
               </h3>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-5">
                 Algoritmos de compressão removem redundâncias de cor e detalhe que
                 o olho humano percebe menos. O resultado é um arquivo menor,
                 mais leve para armazenamento e transmissão.
               </p>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75]">
                 Nesta interface, você compara algoritmos com perda e observa o
                 impacto direto na nitidez, nas texturas finas e no peso final da
                 imagem.
               </p>
             </div>
             <div>
-              <h3 className="text-[15px] font-medium text-[#ccc] mb-4">
+              <h3 className="text-[15px] font-medium text-[var(--pf-fg)] mb-4">
                 Leitura rápida dos algoritmos
               </h3>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-5">
                 <strong>JPEG / WEBP:</strong> codecs padrão com ajuste contínuo
                 de qualidade para equilibrar fidelidade e tamanho.
               </p>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-5">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-5">
                 <strong>DCT simulada:</strong> mostra o efeito de quantização,
                 reduzindo variações sutis de pixel para economizar dados.
               </p>
-              <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+              <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75]">
                 <strong>Fractal simulada:</strong> prioriza padrões globais da
                 imagem e tende a criar aspecto mais suavizado em detalhes finos.
               </p>

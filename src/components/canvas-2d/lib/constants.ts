@@ -1,31 +1,36 @@
 import type { Tool, EditorSettings } from "./types";
 
-// ─── Theme ────────────────────────────────────────────────────────────────────
+// ─── Theme (light) ────────────────────────────────────────────────────────────
 export const COLORS = {
-  bg:         "#1e1e1e",
-  panel:      "#2c2c2c",
-  panelAlt:   "#363636",
-  border:     "#3a3a3a",
-  borderAct:  "#888888",
-  accent:     "#aaaaaa",
-  accentDim:  "#3a3a3a",
-  accentHover:"#cccccc",
-  green:      "#4ade80",
-  red:        "#f87171",
-  yellow:     "#fbbf24",
-  purple:     "#a78bfa",
-  text:       "#ffffff",
-  textDim:    "#ffffff",
-  textMid:    "#b0b0b0",
-  textBright: "#ffffff",
-  textLabel:  "#ffffff",
-  textSubtle: "#6a6a6a",
-  axisX:      "#f87171",   // red  → X axis
-  axisY:      "#4ade80",   // green → Y axis
-  grid:       "#272727",
-  handle:     "#aaaaaa",
-  selection:  "#aaaaaa",
+  bg:         "#f5f5f4",
+  panel:      "#ffffff",
+  panelAlt:   "#ececea",
+  border:     "#d8d6d2",
+  borderAct:  "#57534e",
+  accent:     "#57534e",
+  accentDim:  "#e7e5e2",
+  accentHover:"#292524",
+  green:      "#16a34a",
+  red:        "#dc2626",
+  yellow:     "#d97706",
+  purple:     "#7c3aed",
+  text:       "#1c1917",
+  textDim:    "#1c1917",
+  textMid:    "#57534e",
+  textBright: "#0c0a09",
+  textLabel:  "#1c1917",
+  textSubtle: "#a19d98",
+  axisX:      "#dc2626",   // red  → X axis
+  axisY:      "#16a34a",   // green → Y axis
+  grid:       "#e7e5e2",
+  handle:     "#57534e",
+  selection:  "#57534e",
 } as const;
+
+// ─── Typography ───────────────────────────────────────────────────────────────
+export const FONT_FAMILY = "'Inter', 'Inter Tight', system-ui, sans-serif";
+export const FONT_IMPORT_URL =
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
 
 // ─── Grid / Snap ──────────────────────────────────────────────────────────────
 /** Base grid cell size in world units */
@@ -39,6 +44,8 @@ export const TOOLS: { id: Tool; icon: string; shortcut: string; label: string }[
   { id: "ROTATE",    icon: "↻", shortcut: "R", label: "Rotacionar" },
   { id: "SCALE",     icon: "⇲", shortcut: "S", label: "Escala" },
   { id: "SHEAR",     icon: "⧖", shortcut: "H", label: "Cisalhamento" },
+  { id: "BEZIER",    icon: "◠", shortcut: "B", label: "Curvas Bézier" },
+  { id: "ANIMATE",   icon: "▶", shortcut: "A", label: "Animação" },
 ];
 
 export const TOOL_KEY_MAP: Record<string, Tool> = {
@@ -48,15 +55,33 @@ export const TOOL_KEY_MAP: Record<string, Tool> = {
   r: "ROTATE",
   s: "SCALE",
   h: "SHEAR",
+  b: "BEZIER",
+  a: "ANIMATE",
 };
 
 // ─── Placeholder buttons ──────────────────────────────────────────────────────
 export const PLACEHOLDER_TOOLS = [
-  { label: "Curvas",                group: "Ferramentas" },
-  { label: "Animação",              group: "Ferramentas" },
   { label: "Cisalhamento Uniforme", group: "Transformações" },
   { label: "Cisalh. Não-Uniforme",  group: "Transformações" },
 ] as const;
+
+// ─── Bezier ───────────────────────────────────────────────────────────────────
+export const BEZIER_STROKE = "#d97706";
+export const BEZIER_CONTROL_COLOR = "#0891b2";
+export const BEZIER_CONSTRUCTION_GREEN = "#16a34a";
+export const BEZIER_CONSTRUCTION_BLUE = "#2563eb";
+export const BEZIER_CURVE_RESOLUTION = 32;
+export const BEZIER_CURVE_WIDTH = 10; // world units / zoom — final curve stroke weight
+export const BEZIER_PREVIEW_WIDTH = 7; // construction/preview curve stroke weight
+
+// ─── Animation ────────────────────────────────────────────────────────────────
+export const DEFAULT_ANIMATION = {
+  currentFrame: 0,
+  maxFrames: 60,
+  frameRate: 24,
+  isPlaying: false,
+  loop: true,
+} as const;
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 export const PALETTE: string[] = [
@@ -71,7 +96,7 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   showGrid:       true,
   showAxes:       true,
   showVertexDots: true,
-  showDebug:      false,
+  showDebug:      true,
 };
 
 // ─── Misc ─────────────────────────────────────────────────────────────────────

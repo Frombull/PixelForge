@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { COLORS } from "./lib/constants";
+import { COLORS, FONT_FAMILY } from "./lib/constants";
 
 interface MenuAction {
   label: string;
@@ -58,11 +58,11 @@ export default function Menubar({
       <span
         style={{
           color: COLORS.accent,
-          fontSize: 11,
-          fontWeight: 700,
+          fontSize: 14,
+          fontWeight: 800,
           letterSpacing: "0.18em",
           marginRight: 20,
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: FONT_FAMILY,
         }}
       >
         POLYFORGE
@@ -96,21 +96,21 @@ function MenuButton({ label, shortcut, onClick, disabled }: MenuAction) {
           ? COLORS.textBright
           : COLORS.textMid,
         cursor: disabled ? "default" : "pointer",
-        fontSize: 10,
+        fontSize: 13,
         padding: "0 10px",
         height: "100%",
         letterSpacing: "0.08em",
         display: "flex",
         alignItems: "center",
         gap: 5,
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         opacity: disabled ? 0.4 : 1,
         transition: "color 0.1s",
       }}
     >
       {label}
       {shortcut && (
-        <span style={{ fontSize: 9, color: COLORS.textSubtle }}>{shortcut}</span>
+        <span style={{ fontSize: 12, color: COLORS.textSubtle }}>{shortcut}</span>
       )}
     </button>
   );

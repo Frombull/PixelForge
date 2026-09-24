@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import { COLORS } from "./lib/constants";
+import { COLORS, FONT_FAMILY } from "./lib/constants";
 import type { Shape } from "./lib/types";
 import ColorPicker from "./ColorPicker";
 
@@ -51,14 +51,14 @@ export default function Inspector({
   return (
     <div
       style={{
-        width: 200,
+        width: 270,
         background: COLORS.panel,
         borderLeft: `1px solid ${COLORS.border}`,
         display: "flex",
         flexDirection: "column",
         flexShrink: 0,
         overflow: "hidden",
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         userSelect: "none",
       }}
     >
@@ -75,8 +75,8 @@ export default function Inspector({
       >
         <span
           style={{
-            fontSize: 9,
-            fontWeight: 600,
+            fontSize: 12,
+            fontWeight: 700,
             color: COLORS.textLabel,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
@@ -88,7 +88,7 @@ export default function Inspector({
           <span
             style={{
               marginLeft: "auto",
-              fontSize: 9,
+              fontSize: 12,
               color: COLORS.textSubtle,
               background: COLORS.panelAlt,
               border: `1px solid ${COLORS.border}`,
@@ -161,7 +161,7 @@ export default function Inspector({
             {/* Fill */}
             <Section label="Aparência">
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 9, color: COLORS.textMid, letterSpacing: "0.08em" }}>COR</span>
+                <span style={{ fontSize: 12, color: COLORS.textMid, letterSpacing: "0.08em" }}>COR</span>
                 <div
                   ref={fillSwatchRef}
                   title="Abrir color picker"
@@ -180,7 +180,7 @@ export default function Inspector({
                 />
                 <span
                   style={{
-                    fontSize: 9,
+                    fontSize: 12,
                     color: COLORS.textMid,
                     letterSpacing: "0.06em",
                     fontFamily: "inherit",
@@ -244,8 +244,8 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div style={{ padding: "10px 12px 12px" }}>
       <div
         style={{
-          fontSize: 9,
-          fontWeight: 600,
+          fontSize: 12,
+          fontWeight: 700,
           color: COLORS.textLabel,
           letterSpacing: "0.14em",
           textTransform: "uppercase",
@@ -286,7 +286,7 @@ function InfoCell({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, flex: 1 }}>
-      <span style={{ fontSize: 8, color: COLORS.textMid, letterSpacing: "0.1em" }}>{label}</span>
+      <span style={{ fontSize: 11, color: COLORS.textMid, letterSpacing: "0.1em" }}>{label}</span>
       <span
         style={{
           fontSize: dim ? 9 : 10,
@@ -339,7 +339,7 @@ function NumField({
     >
       <span
         style={{
-          fontSize: 8,
+          fontSize: 11,
           color: COLORS.textMid,
           letterSpacing: "0.1em",
           textTransform: "uppercase",
@@ -377,7 +377,7 @@ function NumField({
           border: `1px solid ${focused ? COLORS.accent : COLORS.border}`,
           borderRadius: 2,
           color: focused ? COLORS.textBright : COLORS.text,
-          fontSize: 10,
+          fontSize: 13,
           padding: "4px 6px",
           fontFamily: "inherit",
           outline: "none",
@@ -402,11 +402,11 @@ function AxisButton({ label, onClick, color }: { label: string; onClick: () => v
         border: `1px solid ${hovered ? COLORS.accent + "88" : COLORS.border}`,
         borderRadius: 2,
         color: hovered ? COLORS.textBright : COLORS.textMid,
-        fontSize: 9,
+        fontSize: 12,
         padding: "5px 0",
         cursor: "pointer",
         letterSpacing: "0.08em",
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         transition: "all 0.12s",
         outline: "none",
       }}
@@ -430,12 +430,12 @@ function ResetButton({ onClick }: { onClick: () => void }) {
         border: `1px solid ${hovered ? COLORS.red + "88" : COLORS.border}`,
         borderRadius: 2,
         color: hovered ? COLORS.red : COLORS.textMid,
-        fontSize: 9,
-        fontWeight: 500,
+        fontSize: 12,
+        fontWeight: 600,
         padding: "6px 0",
         cursor: "pointer",
         letterSpacing: "0.08em",
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         transition: "all 0.12s",
         display: "flex",
         alignItems: "center",
@@ -461,10 +461,10 @@ function EmptyState() {
         textAlign: "center",
       }}
     >
-      <span style={{ fontSize: 18, opacity: 0.15 }}>◻</span>
+      <span style={{ fontSize: 21, opacity: 0.15 }}>◻</span>
       <span
         style={{
-          fontSize: 9,
+          fontSize: 12,
           color: COLORS.textSubtle,
           letterSpacing: "0.1em",
           lineHeight: 1.6,

@@ -225,12 +225,14 @@ export default function HeroLogo3D() {
     parent.addEventListener("pointermove", handlePointerMove);
     parent.addEventListener("pointerleave", handlePointerLeave);
 
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
 
-    const animate = () => {
+    const animate = (timestamp: number) => {
       frameRef.current = window.requestAnimationFrame(animate);
 
-      const t = clock.getElapsedTime();
+      timer.update(timestamp);
+      const t = timer.getElapsed();
       const { x, y, active } = pointerRef.current;
 
       let targetX: number;
@@ -275,7 +277,7 @@ export default function HeroLogo3D() {
       renderer.render(scene, camera);
     };
 
-    animate();
+    frameRef.current = window.requestAnimationFrame(animate);
 
     return () => {
       if (frameRef.current !== null) {
@@ -285,6 +287,7 @@ export default function HeroLogo3D() {
       parent.removeEventListener("pointermove", handlePointerMove);
       parent.removeEventListener("pointerleave", handlePointerLeave);
       resizeObserver.disconnect();
+      timer.dispose();
 
       edges.dispose();
       geometry.dispose();

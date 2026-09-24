@@ -1,0 +1,42 @@
+/*
+ * Overrides do ReactFlow para o editor de portas lógicas.
+ * Tailwind não alcança classes geradas por libs externas — CSS é necessário aqui.
+ */
+
+/* O SVG das edges precisa ocupar 100% do container (globals.css não inclui svg) */
+.react-flow__edges,
+.react-flow__edges svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+/* Controles */
+.react-flow__controls button {
+  background: #2c2c2c;
+  border-bottom: 1px solid #3a3a3a;
+  color: #b0b0b0;
+  fill: #b0b0b0;
+}
+.react-flow__controls button:hover {
+  background: #363636;
+  color: #fff;
+  fill: #fff;
+}
+
+/* Seleção de nó */
+.react-flow__node.selected > div,
+.react-flow__node.selected > button {
+  box-shadow: 0 0 0 1px #888 !important;
+}
+
+/* Handle e linha de conexão */
+.react-flow__handle {
+  cursor: crosshair;
+}
+.react-flow__connection-path {
+  stroke: #aaa;
+}

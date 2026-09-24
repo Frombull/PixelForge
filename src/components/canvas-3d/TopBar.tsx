@@ -9,12 +9,16 @@ const topbarButtonActiveClass = "!bg-[rgba(35,50,70,0.8)] !text-white";
 
 export default function TopBar({
   isCullingViewEnabled,
+  isAliasingStressEnabled,
   isInfoOpen,
   isSettingsOpen,
   infoButtonRef,
   settingsButtonRef,
   onResetCamera,
+  onSaveScene,
+  onLoadScene,
   onToggleCullingView,
+  onToggleAliasingStress,
   onToggleInfo,
   onToggleSettings,
 }: TopBarProps) {
@@ -41,6 +45,36 @@ export default function TopBar({
       </button>
 
       <button
+        aria-label="Salvar cena"
+        className={`${topbarButtonClass} w-auto gap-1 px-2 text-[0.68rem]`}
+        onContextMenu={preventContextMenu}
+        onClick={onSaveScene}
+        title="Salvar cena em arquivo JSON"
+        type="button"
+      >
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path d="M5 4h12l2 2v14H5z" />
+          <path d="M8 4v6h8V4M8 20v-6h8v6" />
+        </svg>
+        <span>Salvar</span>
+      </button>
+
+      <button
+        aria-label="Carregar cena"
+        className={`${topbarButtonClass} w-auto gap-1 px-2 text-[0.68rem]`}
+        onContextMenu={preventContextMenu}
+        onClick={onLoadScene}
+        title="Carregar cena de arquivo JSON"
+        type="button"
+      >
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path d="M4 5h6l2 2h8v12H4z" />
+          <path d="M12 10v6M9.5 12.5 12 10l2.5 2.5" />
+        </svg>
+        <span>Abrir</span>
+      </button>
+
+      <button
         className={`${topbarButtonClass} w-auto min-w-16 px-2 text-[0.7rem] ${isCullingViewEnabled ? topbarButtonActiveClass : ""}`}
         onContextMenu={preventContextMenu}
         onClick={onToggleCullingView}
@@ -48,6 +82,17 @@ export default function TopBar({
         type="button"
       >
         Culling View
+      </button>
+
+      <button
+        aria-pressed={isAliasingStressEnabled}
+        className={`${topbarButtonClass} w-auto min-w-20 px-2 text-[0.7rem] ${isAliasingStressEnabled ? topbarButtonActiveClass : ""}`}
+        onContextMenu={preventContextMenu}
+        onClick={onToggleAliasingStress}
+        title="Ativar cenário extremo de aliasing"
+        type="button"
+      >
+        Aliasing
       </button>
 
       <button

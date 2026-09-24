@@ -1,0 +1,54 @@
+export const metadata = {
+  title: "Animações — PixelForge",
+  description:
+    "Conceitos fundamentais de animação digital: keyframes, interpolação e timing.",
+};
+
+# Animações
+
+**Animação** é a ilusão de movimento criada pela apresentação rápida de uma
+sequência de quadros estáticos. Em mídia digital, esses quadros podem ser
+desenhados a mão, gerados proceduralmente ou interpolados entre estados-chave.
+
+## Keyframes e interpolação
+
+A técnica mais comum é definir *keyframes* — quadros-chave que descrevem o
+estado de uma propriedade em momentos específicos — e deixar que o computador
+calcule os quadros intermediários por **interpolação**.
+
+```
+estado(t) = lerp(A, B, easing(t))
+```
+
+A função de *easing* controla a **sensação** do movimento. Uma interpolação
+linear costuma parecer mecânica; curvas suaves (ease-in, ease-out) imitam a
+aceleração e desaceleração natural dos objetos no mundo real.
+
+## Os 12 princípios da animação
+
+Definidos por Ollie Johnston e Frank Thomas na Disney, continuam relevantes
+para qualquer mídia animada:
+
+1. **Squash and stretch** — deformação que comunica peso e elasticidade
+2. **Anticipation** — preparar o espectador para a ação
+3. **Staging** — clareza visual da ação principal
+4. **Follow through** — partes secundárias continuam após o movimento parar
+
+> "Animation can explain whatever the mind of man can conceive."  
+> — Walt Disney
+
+## Vídeo: princípios em ação
+
+<YouTube id="uDqjIdI4bF4" title="The illusion of life" />
+
+## Aplicações modernas
+
+- Interfaces (micro-interações, transições de estado)
+- Jogos (skeletal animation, blend trees)
+- Cinema (CGI, motion capture)
+- Visualização de dados (transições entre views)
+
+---
+
+Veja também [Curvas de Bézier](/infos/bezier-curves) — elas definem boa parte
+das funções de *easing* usadas hoje em CSS e engines de animação.

@@ -6,7 +6,7 @@ export const graphicsTools: ToolCard[] = [
     previewImage: "/images/module-previews/canvas-2d-preview.jpg",
     description:
       "Desenhe e manipule formas geométricas com ferramentas interativas em 2D",
-    href: "/canvas",
+    href: "/canvas-2d",
     tags: [
       "Transformações 2D",
       "Curvas de Bézier",

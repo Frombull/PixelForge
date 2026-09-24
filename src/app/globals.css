@@ -20,7 +20,7 @@
 
 .grid-surface {
   position: relative;
-  background-color: #040404;
+  background-color: var(--pf-bg);
   isolation: isolate;
 }
 

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, Fragment } from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 
 //  Types
 interface NavLinkDef {
@@ -56,6 +58,7 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
 
   const desktopLinkBase =
     "group inline-flex items-center px-3 py-1.5 text-neutral-400 whitespace-nowrap transition-colors duration-100 hover:text-neutral-100";
@@ -122,6 +125,16 @@ export default function Header() {
             ))}
           </nav>
 
+          {/* Theme toggle (desktop) */}
+          <button
+            onClick={toggleTheme}
+            className="hidden lg:flex items-center justify-center w-8 h-8 shrink-0 text-neutral-400 hover:text-neutral-100 border border-[#2a2a2a] hover:border-sky-400/60 rounded transition-colors"
+            title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
+          </button>
+
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden items-center gap-4 z-10">
             <button
@@ -159,6 +172,13 @@ export default function Header() {
                   onClick={closeMobileMenu}
                 />
               ))}
+              <button
+                onClick={() => { toggleTheme(); closeMobileMenu(); }}
+                className="group inline-flex items-center gap-2 px-4 py-3 text-neutral-300 uppercase tracking-[0.06em] text-[11px] transition-colors duration-100 hover:text-neutral-100"
+              >
+                {theme === "dark" ? <Sun size={13} strokeWidth={1.5} /> : <Moon size={13} strokeWidth={1.5} />}
+                <span>{theme === "dark" ? "Modo claro" : "Modo escuro"}</span>
+              </button>
             </nav>
           </div>
         )}

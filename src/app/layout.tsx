@@ -34,7 +34,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="font-sans antialiased">
+      <body className="pf-surface font-sans antialiased bg-[var(--pf-bg)] text-[var(--pf-fg)]">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

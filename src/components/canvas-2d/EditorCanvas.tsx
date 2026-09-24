@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
-import type { Shape, ViewState, EditorSettings, DragState, Tool } from "./lib/types";
-import { drawGrid, drawAxes, drawShape, drawPolygonPreview, drawTranslateGizmo, drawRotateGizmo, drawScaleGizmo, drawShearGizmo, GIZMO_AXIS_LEN, GIZMO_HIT_RADIUS, ROTATE_GIZMO_RADIUS, SCALE_GIZMO_AXIS_LEN, SCALE_GIZMO_HIT_RADIUS, SHEAR_HANDLE_HALF, SHEAR_HANDLE_HIT, SHEAR_HANDLE_OFFSET } from "./lib/draw";
+import type { Shape, ViewState, EditorSettings, DragState, Tool, BezierKind, BezierVisibility } from "./lib/types";
+import { drawGrid, drawAxes, drawShape, drawPolygonPreview, drawTranslateGizmo, drawRotateGizmo, drawScaleGizmo, drawShearGizmo, drawBezierControlPoints, drawBezierCurve, drawBezierConstruction, getBezierMaxPoints, GIZMO_AXIS_LEN, GIZMO_HIT_RADIUS, ROTATE_GIZMO_RADIUS, SCALE_GIZMO_AXIS_LEN, SCALE_GIZMO_HIT_RADIUS, SHEAR_HANDLE_HALF, SHEAR_HANDLE_HIT, SHEAR_HANDLE_OFFSET } from "./lib/draw";
 import { getBounds } from "./lib/geometry";
 
 const VERTEX_HIT_RADIUS = 10; // screen px
@@ -18,6 +18,8 @@ import {
   PREVIEW_ID,
   POLYGON_STROKE,
   CLOSE_POLY_THRESHOLD,
+  BEZIER_STROKE,
+  FONT_FAMILY,
 } from "./lib/constants";
 import ZoomControls from "./ZoomControls";
 import SettingsMenu from "./SettingsMenu";
@@ -50,6 +52,14 @@ interface EditorCanvasProps {
   onCopy: () => void;
   onPaste: () => void;
   onDelete: () => void;
+
+  // Bezier tool
+  bezierPts: [number, number][];
+  onBezierPtsChange: (pts: [number, number][]) => void;
+  bezierKind: BezierKind;
+  bezierProgress: number;
+  bezierVisibility: BezierVisibility;
+  onBezierComplete: (shape: Shape) => void;
 }
 
 export default function EditorCanvas({
@@ -78,6 +88,12 @@ export default function EditorCanvas({
   onCopy,
   onPaste,
   onDelete,
+  bezierPts,
+  onBezierPtsChange,
+  bezierKind,
+  bezierProgress,
+  bezierVisibility,
+  onBezierComplete,
 }: EditorCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragRef = useRef<DragState | null>(null);
@@ -88,6 +104,9 @@ export default function EditorCanvas({
   const hoveredAxisRef = useRef<"x" | "y" | "xy" | null>(null);
   const hoveredVertexRef = useRef<number | null>(null);
   const activeVertexRef = useRef<number | null>(null);
+  // BEZIER tool state
+  const bezierDraggingIndexRef = useRef<number | null>(null);
+  const bezierHoveredIndexRef = useRef<number | null>(null);
   // ROTATE tool state
   const rotateActiveVertexRef = useRef<number | null>(null); // vertex used as pivot (-1 = shape center)
   const rotateMouseSSRef = useRef<[number, number] | null>(null); // screen-space mouse during drag
@@ -102,8 +121,12 @@ export default function EditorCanvas({
   // Keep latest values accessible in event handlers without stale closures
   const live = useRef({
     shapes, selectedId, tool, fillColor, strokeColor, view, settings, polyPts,
+    bezierPts, bezierKind, bezierProgress, bezierVisibility,
   });
-  live.current = { shapes, selectedId, tool, fillColor, strokeColor, view, settings, polyPts };
+  live.current = {
+    shapes, selectedId, tool, fillColor, strokeColor, view, settings, polyPts,
+    bezierPts, bezierKind, bezierProgress, bezierVisibility,
+  };
 
   // Sync polyRef with external state — when polyPts is cleared (ESC / tool change), reset the ref
   if (polyPts === null && polyRef.current !== null) {
@@ -121,7 +144,7 @@ export default function EditorCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const { shapes, selectedId, tool, view, settings, polyPts, fillColor } = live.current;
+    const { shapes, selectedId, tool, view, settings, polyPts, fillColor, bezierPts, bezierKind, bezierProgress, bezierVisibility } = live.current;
     const W = canvas.width;
     const H = canvas.height;
 
@@ -139,6 +162,25 @@ export default function EditorCanvas({
     const snap = settings.snapEnabled && !shiftRef.current;
     if (tool === "POLYGON" && mouseWorldRef.current) {
       drawPolygonPreview(ctx, polyPts ?? [], fillColor, view.zoom, mouseWorldRef.current, snap);
+    }
+
+    if (tool === "BEZIER") {
+      const maxPoints = getBezierMaxPoints(bezierKind);
+      const previewPts =
+        bezierPts.length < maxPoints && mouseWorldRef.current
+          ? [...bezierPts, mouseWorldRef.current]
+          : bezierPts;
+
+      drawBezierControlPoints(ctx, previewPts, view.zoom, bezierHoveredIndexRef.current);
+
+      if (bezierPts.length === maxPoints) {
+        if (bezierProgress > 0) {
+          drawBezierConstruction(ctx, bezierPts, Math.min(1, bezierProgress), view.zoom, bezierVisibility);
+          if (bezierVisibility.curve) drawBezierCurve(ctx, bezierPts, view.zoom, bezierProgress);
+        } else if (bezierVisibility.curve) {
+          drawBezierCurve(ctx, bezierPts, view.zoom, 1);
+        }
+      }
     }
 
     // Vertex highlights for TRANSLATE / ROTATE / SCALE tools (world space, before restore)
@@ -233,7 +275,7 @@ export default function EditorCanvas({
   // ── Render loop ─────────────────────────────────────────────────────────────
   useEffect(() => {
     draw();
-  }, [draw, shapes, selectedId, tool, view, settings, polyPts, fillColor, tick]);
+  }, [draw, shapes, selectedId, tool, view, settings, polyPts, fillColor, tick, bezierPts, bezierKind, bezierProgress, bezierVisibility]);
 
   // ── Canvas resize ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -274,6 +316,19 @@ export default function EditorCanvas({
       window.removeEventListener("keyup", onKey);
     };
   }, [draw]);
+
+  // ── Enter finalizes a completed bezier curve into a shape ───────────────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Enter") return;
+      const { tool, bezierPts, bezierKind } = live.current;
+      if (tool !== "BEZIER") return;
+      if (bezierPts.length !== getBezierMaxPoints(bezierKind)) return;
+      onBezierComplete(finalizeBezier(bezierPts, bezierKind, BEZIER_STROKE));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onBezierComplete]);
 
   // ── Wheel zoom ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -386,6 +441,31 @@ export default function EditorCanvas({
         const updated: [number, number][] = [...pts, [snX, snY]];
         polyRef.current = updated;
         onPolyPtsChange(updated);
+        return;
+      }
+
+      // ── BEZIER tool ────────────────────────────────────────────────────────
+      if (tool === "BEZIER") {
+        const { bezierPts, bezierKind } = live.current;
+        const maxPoints = getBezierMaxPoints(bezierKind);
+        const threshold = VERTEX_HIT_RADIUS / view.zoom;
+
+        // Dragging an existing control point takes priority once the curve is complete
+        if (bezierPts.length === maxPoints) {
+          for (let i = 0; i < bezierPts.length; i++) {
+            const [px, py] = bezierPts[i];
+            if (Math.hypot(wx - px, wy - py) <= threshold) {
+              bezierDraggingIndexRef.current = i;
+              return;
+            }
+          }
+          return;
+        }
+
+        // Still placing points
+        const [snX, snY] = snapPoint(wx, wy, settings.snapEnabled && !e.shiftKey);
+        const updated: [number, number][] = [...bezierPts, [snX, snY]];
+        onBezierPtsChange(updated);
         return;
       }
 
@@ -695,6 +775,31 @@ export default function EditorCanvas({
       if (tool === "POLYGON") {
         mouseWorldRef.current = [wx, wy];
         draw();
+      }
+
+      // ── BEZIER tool ──────────────────────────────────────────────────────────
+      if (tool === "BEZIER") {
+        const { bezierPts, bezierKind } = live.current;
+        const maxPoints = getBezierMaxPoints(bezierKind);
+
+        if (bezierDraggingIndexRef.current !== null) {
+          const idx = bezierDraggingIndexRef.current;
+          const [snX, snY] = snapPoint(wx, wy, snap);
+          const updated = bezierPts.map((p, i) => (i === idx ? [snX, snY] as [number, number] : p));
+          onBezierPtsChange(updated);
+          draw();
+        } else {
+          mouseWorldRef.current = [snWx, snWy];
+
+          if (bezierPts.length === maxPoints) {
+            const threshold = VERTEX_HIT_RADIUS / view.zoom;
+            const hit = bezierPts.findIndex(([px, py]) => Math.hypot(wx - px, wy - py) <= threshold);
+            bezierHoveredIndexRef.current = hit === -1 ? null : hit;
+          } else {
+            bezierHoveredIndexRef.current = null;
+          }
+          draw();
+        }
       }
 
       // ROTATE tool: vertex hover + mouse screen-space tracking
@@ -1098,6 +1203,7 @@ export default function EditorCanvas({
   // ── Mouse up ────────────────────────────────────────────────────────────────
   const handleMouseUp = useCallback(() => {
     panRef.current = null;
+    bezierDraggingIndexRef.current = null;
     if (!dragRef.current) return;
     const d = dragRef.current;
     dragRef.current = null;
@@ -1117,6 +1223,7 @@ export default function EditorCanvas({
     tool === "SCALE"     ? gizmoCursor    :
     tool === "SHEAR"     ? gizmoCursor    :
     tool === "ROTATE"    ? "crosshair"    :
+    tool === "ANIMATE"   ? "default"      :
     tool === "SELECT"    ? "default"      : "crosshair";
 
   return (
@@ -1162,20 +1269,71 @@ export default function EditorCanvas({
             bottom: 12,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#2c2c2c",
-            border: "1px solid #3a3a3a",
+            background: COLORS.panel,
+            border: `1px solid ${COLORS.border}`,
             padding: "4px 14px",
-            fontSize: 10,
-            color: "#ffffff",
+            fontSize: 13,
+            color: COLORS.textBright,
             pointerEvents: "none",
             letterSpacing: "0.08em",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: FONT_FAMILY,
             whiteSpace: "nowrap",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
           }}
         >
           {polyPts
             ? `${polyPts.length} vertices, clique perto do primeiro ponto para fechar o polígono`
             : "clique para colocar o primeiro vértice"}
+        </div>
+      )}
+
+      {tool === "BEZIER" && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 12,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              background: COLORS.panel,
+              border: `1px solid ${COLORS.border}`,
+              padding: "4px 14px",
+              fontSize: 13,
+              color: COLORS.textBright,
+              pointerEvents: "none",
+              letterSpacing: "0.08em",
+              fontFamily: FONT_FAMILY,
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            }}
+          >
+            {bezierPts.length === getBezierMaxPoints(bezierKind)
+              ? "curva completa — arraste os pontos ou crie a forma"
+              : `${bezierPts.length}/${getBezierMaxPoints(bezierKind)} pontos de controle`}
+          </div>
+          {bezierPts.length === getBezierMaxPoints(bezierKind) && (
+            <button
+              onClick={() => onBezierComplete(finalizeBezier(bezierPts, bezierKind, BEZIER_STROKE))}
+              style={{
+                background: COLORS.accentDim,
+                border: `1px solid ${COLORS.accent}`,
+                color: COLORS.accent,
+                fontSize: 13,
+                padding: "5px 12px",
+                letterSpacing: "0.06em",
+                fontFamily: FONT_FAMILY,
+                cursor: "pointer",
+              }}
+            >
+              Criar Curva ↵
+            </button>
+          )}
         </div>
       )}
 
@@ -1210,8 +1368,8 @@ export default function EditorCanvas({
               <span
                 key={i}
                 style={{
-                  fontSize: 10,
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 13,
+                  fontFamily: FONT_FAMILY,
                   letterSpacing: "0.1em",
                   color: COLORS.textMid,
                   opacity,
@@ -1259,21 +1417,21 @@ function ActionButton({
         border: `1px solid ${COLORS.border}`,
         color: disabled ? COLORS.textSubtle : hovered ? COLORS.textBright : COLORS.textMid,
         cursor: disabled ? "default" : "pointer",
-        fontSize: 10,
+        fontSize: 13,
         padding: "0 10px",
         height: 28,
         letterSpacing: "0.08em",
         display: "flex",
         alignItems: "center",
         gap: 5,
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         opacity: disabled ? 0.4 : 1,
         transition: "color 0.1s, background 0.1s",
         whiteSpace: "nowrap",
       }}
     >
       {label}
-      <span style={{ fontSize: 9, color: COLORS.textSubtle }}>{shortcut}</span>
+      <span style={{ fontSize: 12, color: COLORS.textSubtle }}>{shortcut}</span>
     </button>
   );
 }
@@ -1325,6 +1483,39 @@ function finalizePolygon(
   onPolyPtsChange(null);
 }
 
+function finalizeBezier(pts: [number, number][], kind: BezierKind, strokeColor: string): Shape {
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+
+  const localPts: [number, number][] = pts.map(([x, y]) => [x - cx, y - cy]);
+
+  return {
+    id: uid(),
+    type: "bezier",
+    x: cx,
+    y: cy,
+    points: localPts,
+    bezierKind: kind,
+    fill: "transparent",
+    stroke: strokeColor,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    shearX: 0,
+    shearY: 0,
+    originalPoints: localPts.map(([x, y]) => [x, y]),
+    originalX: cx,
+    originalY: cy,
+    originalRotation: 0,
+    originalScaleX: 1,
+    originalScaleY: 1,
+    originalShearX: 0,
+    originalShearY: 0,
+  };
+}
+
 // ─── Debug overlay ─────────────────────────────────────────────────────────────
 
 function drawDebug(
@@ -1354,21 +1545,21 @@ function drawDebug(
 
   const padX = 8;
   const padY = 44; // below action buttons (8 top + 28 height + 8 gap)
-  const lineH = 16;
-  const boxW = 200;
+  const lineH = 20;
+  const boxW = 230;
   const boxH = lines.length * lineH + 10 * 2;
 
   ctx.save();
-  ctx.fillStyle = "rgba(30,30,30,0.9)";
+  ctx.fillStyle = COLORS.panel;
   ctx.fillRect(padX, padY, boxW, boxH);
-  ctx.strokeStyle = "#3a3a3a";
+  ctx.strokeStyle = COLORS.border;
   ctx.lineWidth = 1;
   ctx.strokeRect(padX, padY, boxW, boxH);
 
-  ctx.font = `10px "JetBrains Mono", monospace`;
+  ctx.font = `600 12px ${FONT_FAMILY}`;
   lines.forEach((line, i) => {
-    ctx.fillStyle = line.startsWith("─") ? "#3a3a3a" : i === 0 ? "#aaaaaa" : "#7a7e8a";
-    ctx.fillText(line, padX + 8, padY + lineH * i + 12);
+    ctx.fillStyle = line.startsWith("─") ? COLORS.border : i === 0 ? COLORS.textBright : COLORS.textMid;
+    ctx.fillText(line, padX + 8, padY + lineH * i + 14);
   });
 
   ctx.restore();

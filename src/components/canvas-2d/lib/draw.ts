@@ -1,13 +1,23 @@
-import type { Shape, ViewState, EditorSettings } from "./types";
+import type { Shape, ViewState, EditorSettings, BezierKind, BezierVisibility } from "./types";
 import {
   getBounds,
   getWorldPoints,
   snapPoint,
+  sampleBezier,
+  bezierConstructionLevels,
 } from "./geometry";
 import {
   COLORS,
   GRID_STEP,
   CLOSE_POLY_THRESHOLD,
+  BEZIER_STROKE,
+  BEZIER_CONTROL_COLOR,
+  BEZIER_CONSTRUCTION_GREEN,
+  BEZIER_CONSTRUCTION_BLUE,
+  BEZIER_CURVE_RESOLUTION,
+  BEZIER_CURVE_WIDTH,
+  BEZIER_PREVIEW_WIDTH,
+  FONT_FAMILY,
 } from "./constants";
 
 
@@ -113,6 +123,40 @@ export function drawShape(
 
   ctx.save();
 
+  if (shape.type === "bezier") {
+    const curvePts = sampleBezier(pts, BEZIER_CURVE_RESOLUTION);
+    ctx.beginPath();
+    curvePts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+    ctx.strokeStyle = shape.stroke;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = BEZIER_CURVE_WIDTH / zoom;
+    ctx.stroke();
+
+    if (settings.showVertexDots) {
+      pts.forEach(([x, y]) => {
+        ctx.fillStyle = selected ? COLORS.textBright : BEZIER_CONTROL_COLOR;
+        ctx.beginPath();
+        ctx.arc(x, y, 4 / zoom, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    if (selected) {
+      const b = getBounds(shape);
+      ctx.strokeStyle = COLORS.borderAct;
+      ctx.lineWidth = 1 / zoom;
+      ctx.globalAlpha = 0.5;
+      ctx.setLineDash([4 / zoom, 3 / zoom]);
+      ctx.strokeRect(b.x, b.y, b.w, b.h);
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+    return;
+  }
+
   // ── Path
   ctx.beginPath();
   if (shape.type === "circle") {
@@ -128,7 +172,7 @@ export function drawShape(
   ctx.fillStyle = shape.fill + "66";
   ctx.fill();
   ctx.strokeStyle = shape.stroke;
-  ctx.lineWidth = (shape.type === "polygon" ? 3 : 1.5) / zoom;
+  ctx.lineWidth = (shape.type === "polygon" ? 5 : 2.5) / zoom;
   ctx.stroke();
 
   // ── Vertex dots
@@ -224,14 +268,14 @@ export function drawTranslateGizmo(
   // ── Coordinate label — above and to the right of the center point
   const fmt = (v: number) => parseFloat((v / GRID_STEP).toFixed(2)).toString();
   const label = `${fmt(wx)}, ${fmt(wy)}`;
-  ctx.font = `10px "JetBrains Mono", monospace`;
+  ctx.font = `600 13px ${FONT_FAMILY}`;
   const tw = ctx.measureText(label).width;
   const lx = sx + sq / 2 + 6;
   const ly = sy - sq / 2 - 6;
-  ctx.fillStyle = "rgba(13,13,15,0.75)";
-  ctx.fillRect(lx - 2, ly - 11, tw + 6, 14);
-  ctx.fillStyle = COLORS.textBright;
-  ctx.fillText(label, lx + 1, ly);
+  ctx.fillStyle = "rgba(13,13,15,0.85)";
+  ctx.fillRect(lx - 2, ly - 14, tw + 8, 18);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(label, lx + 2, ly - 1);
 
   ctx.restore();
 }
@@ -264,8 +308,8 @@ export function drawRotateGizmo(
   // ── Guide circle
   ctx.beginPath();
   ctx.arc(px, py, R, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(167,139,250,0.18)";
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(167,139,250,0.45)";
+  ctx.lineWidth = 3;
   ctx.stroke();
 
   // ── Pivot crosshair + dot
@@ -334,14 +378,14 @@ export function drawRotateGizmo(
     const deg   = ((currentAngle * 180) / Math.PI).toFixed(1);
     const snap  = snapActive ? " ⇧15°" : "";
     const label = `${deg}°${snap}`;
-    ctx.font = `bold 11px "JetBrains Mono", monospace`;
+    ctx.font = `700 14px ${FONT_FAMILY}`;
     const tw = ctx.measureText(label).width;
     const lx = handleSX + Math.cos(handleA) * 14;
     const ly = handleSY + Math.sin(handleA) * 14;
-    ctx.fillStyle = "rgba(13,13,15,0.82)";
-    ctx.fillRect(lx - 4, ly - 13, tw + 8, 17);
-    ctx.fillStyle = accent;
-    ctx.fillText(label, lx, ly);
+    ctx.fillStyle = "rgba(13,13,15,0.85)";
+    ctx.fillRect(lx - 5, ly - 16, tw + 10, 21);
+    ctx.fillStyle = "#c4b5fd";
+    ctx.fillText(label, lx, ly - 2);
   }
 
   ctx.restore();
@@ -415,21 +459,21 @@ export function drawScaleGizmo(
   // ── Scale label
   const fmt = (v: number) => v.toFixed(3);
   const label = `${fmt(shape.scaleX)}, ${fmt(shape.scaleY)}`;
-  ctx.font = `10px "JetBrains Mono", monospace`;
+  ctx.font = `600 13px ${FONT_FAMILY}`;
   const tw = ctx.measureText(label).width;
   const lx = sx + sq / 2 + 6;
   const ly = sy - sq / 2 - 6;
-  ctx.fillStyle = "rgba(13,13,15,0.8)";
-  ctx.fillRect(lx - 2, ly - 11, tw + 6, 14);
-  ctx.fillStyle = COLORS.textBright;
-  ctx.fillText(label, lx + 1, ly);
+  ctx.fillStyle = "rgba(13,13,15,0.85)";
+  ctx.fillRect(lx - 2, ly - 14, tw + 8, 18);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(label, lx + 2, ly - 1);
 
   ctx.restore();
 }
 
 // ─── Shear gizmo ─────────────────────────────────────────────────────────────
 
-export const SHEAR_HANDLE_HALF   = 28;  // half-length of the handle bar (screen px)
+export const SHEAR_HANDLE_HALF   = 84;  // half-length of the handle bar (screen px)
 export const SHEAR_HANDLE_HIT    = 14;  // hit-test radius around handle bar (screen px)
 export const SHEAR_HANDLE_OFFSET = 18;  // distance above/right of the bbox edge (screen px)
 
@@ -472,13 +516,13 @@ export function drawShearGizmo(
   const shiftX   = shearX * (bBottom - bTop) * 0.5; // screen px shift
   const hxCX     = bMidX + shiftX;
   const hxCY     = bTop - off;
-  const colorX   = hoveredAxis === "x" ? "#22d3ee" : "rgba(34,211,238,0.6)";
+  const colorX   = "#22d3ee";
 
   // ShearY handle: sits right of the right edge, shifts vertically with shearY
   const shiftY   = shearY * (bRight - bLeft) * 0.5;
   const hyCX     = bRight + off;
   const hyCY     = bMidY + shiftY;
-  const colorY   = hoveredAxis === "y" ? "#fb923c" : "rgba(251,146,60,0.6)";
+  const colorY   = "#fb923c";
 
   ctx.save();
 
@@ -505,7 +549,7 @@ export function drawShearGizmo(
   ctx.moveTo(hxCX - hl, hxCY);
   ctx.lineTo(hxCX + hl, hxCY);
   ctx.strokeStyle = colorX;
-  ctx.lineWidth = hoveredAxis === "x" ? 3 : 2;
+  ctx.lineWidth = hoveredAxis === "x" ? 4.5 : 3.5;
   ctx.stroke();
 
   // Centre dot
@@ -528,7 +572,7 @@ export function drawShearGizmo(
   ctx.moveTo(hyCX, hyCY - hl);
   ctx.lineTo(hyCX, hyCY + hl);
   ctx.strokeStyle = colorY;
-  ctx.lineWidth = hoveredAxis === "y" ? 3 : 2;
+  ctx.lineWidth = hoveredAxis === "y" ? 4.5 : 3.5;
   ctx.stroke();
 
   ctx.beginPath();
@@ -537,7 +581,7 @@ export function drawShearGizmo(
   ctx.fill();
 
   // ── Labels
-  ctx.font = `10px "JetBrains Mono", monospace`;
+  ctx.font = `600 13px ${FONT_FAMILY}`;
 
   const fmtShear = (v: number) => (v >= 0 ? "+" : "") + v.toFixed(3);
   const labelX = `shX ${fmtShear(shearX)}`;
@@ -545,17 +589,17 @@ export function drawShearGizmo(
 
   // ShearX label (above handle)
   const twX = ctx.measureText(labelX).width;
-  ctx.fillStyle = "rgba(13,13,15,0.82)";
-  ctx.fillRect(hxCX - twX / 2 - 3, hxCY - 24, twX + 6, 14);
-  ctx.fillStyle = hoveredAxis === "x" ? "#22d3ee" : "rgba(34,211,238,0.7)";
-  ctx.fillText(labelX, hxCX - twX / 2, hxCY - 13);
+  ctx.fillStyle = "rgba(13,13,15,0.85)";
+  ctx.fillRect(hxCX - twX / 2 - 4, hxCY - 27, twX + 8, 18);
+  ctx.fillStyle = "#22d3ee";
+  ctx.fillText(labelX, hxCX - twX / 2, hxCY - 14);
 
   // ShearY label (right of handle)
   const twY = ctx.measureText(labelY).width;
-  ctx.fillStyle = "rgba(13,13,15,0.82)";
-  ctx.fillRect(hyCX + 10, hyCY - 8, twY + 6, 14);
-  ctx.fillStyle = hoveredAxis === "y" ? "#fb923c" : "rgba(251,146,60,0.7)";
-  ctx.fillText(labelY, hyCX + 13, hyCY + 3);
+  ctx.fillStyle = "rgba(13,13,15,0.85)";
+  ctx.fillRect(hyCX + 10, hyCY - 10, twY + 8, 18);
+  ctx.fillStyle = "#fb923c";
+  ctx.fillText(labelY, hyCX + 14, hyCY + 4);
 
   ctx.restore();
 }
@@ -650,16 +694,159 @@ export function drawPolygonPreview(
     const label = snapEnabled
       ? `${Math.round(gx)}, ${Math.round(gy)}`
       : `${gx.toFixed(2)}, ${gy.toFixed(2)}`;
-    const fontSize = 10 / zoom;
-    ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
+    const fontSize = 13 / zoom;
+    ctx.font = `600 ${fontSize}px ${FONT_FAMILY}`;
     const tw = ctx.measureText(label).width;
     const ox = 10 / zoom;
     const oy = -10 / zoom;
-    ctx.fillStyle = "rgba(13,13,15,0.75)";
-    ctx.fillRect(cx + ox - 2 / zoom, cy + oy - fontSize, tw + 6 / zoom, fontSize + 4 / zoom);
-    ctx.fillStyle = COLORS.textBright;
-    ctx.fillText(label, cx + ox + 1 / zoom, cy + oy);
+    ctx.fillStyle = "rgba(13,13,15,0.85)";
+    ctx.fillRect(cx + ox - 3 / zoom, cy + oy - fontSize - 1 / zoom, tw + 8 / zoom, fontSize + 6 / zoom);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(label, cx + ox + 2 / zoom, cy + oy + 1 / zoom);
   }
 
   ctx.restore();
+}
+
+// ─── Bezier tool (in-progress editing) ─────────────────────────────────────────
+
+/** Draws the control points + connection lines while placing/editing a bezier curve (before it's committed) */
+export function drawBezierControlPoints(
+  ctx: CanvasRenderingContext2D,
+  points: [number, number][],
+  zoom: number,
+  hoveredIndex: number | null
+): void {
+  if (points.length > 1) {
+    ctx.save();
+    ctx.beginPath();
+    points.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+    ctx.strokeStyle = BEZIER_CONTROL_COLOR;
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 5 / zoom;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  points.forEach(([x, y], i) => {
+    ctx.save();
+    const r = (hoveredIndex === i ? 12 : 9) / zoom;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3 / zoom;
+    ctx.stroke();
+    ctx.font = `${10 / zoom}px "JetBrains Mono", monospace`;
+    ctx.fillStyle = COLORS.textMid;
+    ctx.fillText(`P${i}`, x + 6 / zoom, y - 6 / zoom);
+    ctx.restore();
+  });
+}
+
+/** Draws the final bezier curve as a polyline (used both for the committed shape and live preview) */
+export function drawBezierCurve(
+  ctx: CanvasRenderingContext2D,
+  points: [number, number][],
+  zoom: number,
+  progress: number = 1
+): void {
+  const clamped = Math.min(1, Math.max(0, progress));
+  const resolution = BEZIER_CURVE_RESOLUTION;
+  const full = sampleBezier(points, resolution);
+  // Advance by exact arc-length parameter so the traced line always ends
+  // exactly at the De Casteljau point for `progress`, instead of snapping
+  // to the nearest sampled segment (which made the line visibly lag behind it).
+  const exactT = clamped * resolution;
+  const count = Math.floor(exactT);
+  const visible = full.slice(0, count + 1);
+  if (clamped < 1) {
+    const frac = exactT - count;
+    if (frac > 0 && count + 1 < full.length) {
+      const [ax, ay] = full[count];
+      const [bx, by] = full[count + 1];
+      visible.push([ax + (bx - ax) * frac, ay + (by - ay) * frac]);
+    }
+  } else if (visible[visible.length - 1] !== full[full.length - 1]) {
+    visible.push(full[full.length - 1]);
+  }
+
+  ctx.save();
+  ctx.beginPath();
+  visible.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+  ctx.strokeStyle = BEZIER_STROKE;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = BEZIER_CURVE_WIDTH / zoom;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Draws the classic De Casteljau construction lines/points at parameter t.
+ * `levels[0]` = original control points (drawn separately, always visible),
+ * `levels[1..n-2]` = intermediate interpolated levels, `levels[n-1]` = the
+ * final point on the curve. Drawn in fixed z-order: level 1 → level 2 → … → final point on top.
+ */
+export function drawBezierConstruction(
+  ctx: CanvasRenderingContext2D,
+  points: [number, number][],
+  t: number,
+  zoom: number,
+  visibility: BezierVisibility
+): void {
+  const levels = bezierConstructionLevels(points, t);
+  const lastIndex = levels.length - 1;
+  const levelColors = [BEZIER_CONSTRUCTION_GREEN, BEZIER_CONSTRUCTION_BLUE];
+
+  ctx.save();
+
+  // Intermediate levels (dots + lines), drawn bottom-to-top so later levels sit on top.
+  // levels[0] = original control points (handled separately by drawBezierControlPoints),
+  // so intermediate level li (UI-facing, 0-indexed) corresponds to levels[li + 1].
+  for (let li = 0; li < lastIndex - 1; li++) {
+    const level = levels[li + 1];
+    const color = levelColors[Math.min(li, levelColors.length - 1)];
+
+    if (visibility.levelLines[li] && level.length > 1) {
+      ctx.beginPath();
+      level.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.85;
+      ctx.lineWidth = BEZIER_PREVIEW_WIDTH / zoom;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    if (visibility.levelDots[li]) {
+      level.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 6 / zoom, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2 / zoom;
+        ctx.stroke();
+      });
+    }
+  }
+
+  // Final point on the curve — always on top
+  if (visibility.finalPoint) {
+    const [fx, fy] = levels[lastIndex][0];
+    ctx.beginPath();
+    ctx.arc(fx, fy, 9 / zoom, 0, Math.PI * 2);
+    ctx.fillStyle = BEZIER_STROKE;
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3 / zoom;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+export function getBezierMaxPoints(kind: BezierKind): number {
+  return kind === "cubic" ? 4 : 3;
 }

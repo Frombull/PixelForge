@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Moon, Sun } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "@/lib/theme";
+import { Slider } from "@/components/ui/Slider";
 
 export default function AliasingPage() {
+  const { theme, toggleTheme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -162,138 +165,156 @@ export default function AliasingPage() {
   const pct = Math.min((f0T / nyqT) * 50, 100);
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-[#e0e0e0] font-['DM_Sans',_sans-serif] font-light overflow-x-hidden pb-20">
-      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-6 border-b border-[#222]">
+    <div className="pf-surface min-h-screen bg-[var(--pf-bg)] text-[var(--pf-fg)] font-sans font-light overflow-x-hidden pb-20 transition-colors duration-200">
+      <header className="flex items-end justify-between gap-8 pt-5 px-16 pb-6 border-b border-[var(--pf-border-strong)]">
         <div>
-          <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#555] tracking-[0.15em] uppercase mb-2.5 pl-12">
+          <div className="font-sans text-[11px] text-[var(--pf-fg-faint)] tracking-[0.15em] uppercase mb-2.5 pl-12">
             Computação Gráfica — Amostragem
           </div>
-          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[#f0f0f0] m-0">
+          <h1 className="flex items-center gap-4 text-4xl font-light tracking-[-0.02em] leading-[1.1] text-[var(--pf-fg-strong)] m-0">
             <Link
               href="/"
-              className="flex items-center text-[#888] no-underline transition-all duration-200 hover:text-white"
+              className="flex items-center text-[var(--pf-fg-muted)] no-underline transition-all duration-200 hover:text-[var(--pf-fg-strong)]"
               title="Voltar para a Home"
             >
               <ArrowLeft size={32} strokeWidth={1} />
             </Link>
             <span>
-              <strong className="font-medium text-white">Sampling</strong> &amp; <strong className="font-medium text-white">Aliasing</strong>
+              <strong className="font-medium text-[var(--pf-fg-strong)]">Sampling</strong> &amp; <strong className="font-medium text-[var(--pf-fg-strong)]">Aliasing</strong>
             </span>
           </h1>
         </div>
-        <div className="font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#444] text-right leading-[1.8]">
-          <div>Nyquist · Shannon</div>
-          <div>f_alias</div>
+        <div className="flex items-start gap-6">
+          <div className="font-sans text-[11px] text-[var(--pf-fg-faint)] text-right leading-[1.8]">
+            <div>Nyquist · Shannon</div>
+            <div>f_alias</div>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center w-8 h-8 shrink-0 text-[var(--pf-fg-muted)] hover:text-[var(--pf-fg-strong)] border border-[var(--pf-border-strong)] hover:border-[var(--pf-accent)] rounded transition-colors"
+            title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
+          </button>
         </div>
       </header>
 
       <div className="px-16 mt-8">
         <div className="relative bg-[#111] border border-[#1e1e1e] overflow-hidden" ref={wrapRef}>
           <canvas ref={canvasRef} className="block w-full"></canvas>
-          <div className="absolute font-['IBM_Plex_Mono',_monospace] text-[20px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">{fsT}Hz</div>
+          <div className="absolute font-mono text-[20px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">{fsT}Hz</div>
         </div>
 
         <div className="flex gap-7 items-center py-2.5 px-3.5 border border-[#1e1e1e] border-t-0 bg-[#0d0d0d] flex-wrap">
-          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+          <div className="flex items-center gap-2 font-mono text-[12px] text-[#c8c8c8] tracking-[0.06em]">
             <div className="w-5 h-[2px] bg-[#6e6e6e]"></div>
             sinal original (f₀)
           </div>
-          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+          <div className="flex items-center gap-2 font-mono text-[12px] text-[#c8c8c8] tracking-[0.06em]">
             <svg className="w-2 h-2 shrink-0" viewBox="0 0 7 7"><rect width="7" height="7" fill="#f0f0f0"/></svg>
             amostras
           </div>
-          <div className="flex items-center gap-2 font-['IBM_Plex_Mono',_monospace] text-[11px] text-[#aaa] tracking-[0.06em]">
+          <div className="flex items-center gap-2 font-mono text-[12px] text-[#c8c8c8] tracking-[0.06em]">
             <div className="w-5 h-[2px]" style={{ background: hasAlias ? '#dc4646' : '#46c850' }}></div>
             <span>{hasAlias ? 'sinal com aliasing' : 'sinal sem aliasing'}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[#1a1a1a] mt-0.5">
-          <div className="bg-[#0d0d0d] py-6 px-7">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[var(--pf-border)] mt-0.5">
+          <div className="bg-[var(--pf-bg)] py-6 px-7">
             <div className="flex items-center gap-4 mb-3.5">
-              <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Taxa de Amostragem</span>
-              <input 
-                type="range" min="2" max="60" value={tgt.fs} step="1" 
-                onChange={(e) => setTgt({...tgt, fs: parseFloat(e.target.value)})} 
-                className="flex-1 h-[4px] rounded-full bg-[#444] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#eee] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#eee] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-grab"
+              <span className="text-[18px] font-normal text-[var(--pf-fg-strong)] tracking-tight">Taxa de Amostragem</span>
+              <Slider
+                min={2}
+                max={60}
+                step={1}
+                value={tgt.fs}
+                onChange={(v) => setTgt({ ...tgt, fs: v })}
+                aria-label="Taxa de amostragem"
+                className="flex-1"
               />
-              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[#eee] font-medium">{fsT}</span>
+              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[var(--pf-fg-strong)] font-medium">{fsT}</span>
             </div>
             <div className="mt-5">
-              <div className="flex justify-between items-center py-2.25 border-b border-t border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">frequência original</span>
-                <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">{f0T} Hz</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-t border-[var(--pf-border)]">
+                <span className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.08em] uppercase">frequência original</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] text-[var(--pf-fg)]">{f0T} Hz</span>
               </div>
-              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">limite de nyquist</span>
-                <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">{nyqT} Hz</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-[var(--pf-border)]">
+                <span className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.08em] uppercase">limite de nyquist</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] text-[var(--pf-fg)]">{nyqT} Hz</span>
               </div>
-              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[11px] text-[#666] tracking-[0.08em] uppercase">frequência alias</span>
-                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#555' }}>{hasAlias ? `${faT.toFixed(1)} Hz` : '—'}</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-[var(--pf-border)]">
+                <span className="font-mono text-[12px] text-[var(--pf-fg-muted)] tracking-[0.08em] uppercase">frequência alias</span>
+                <span className="font-mono text-[12px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : 'var(--pf-fg)' }}>{hasAlias ? `${faT.toFixed(1)} Hz` : '—'}</span>
               </div>
-              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[11px] text-[#666] tracking-[0.08em] uppercase">estado</span>
-                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#46c850' }}>{hasAlias ? 'ALIASING' : 'SEM ALIASING'}</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-[var(--pf-border)]">
+                <span className="font-mono text-[12px] text-[var(--pf-fg-muted)] tracking-[0.08em] uppercase">estado</span>
+                <span className="font-mono text-[12px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#dc4646' : '#2f9e46' }}>{hasAlias ? 'ALIASING' : 'SEM ALIASING'}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0d0d0d] py-6 px-7">
+          <div className="bg-[var(--pf-bg)] py-6 px-7">
             <div className="flex items-center gap-4 mb-3.5">
-              <span className="text-[18px] font-normal text-[#ececec] tracking-tight">Frequência do Sinal</span>
-              <input 
-                type="range" min="1" max="30" value={tgt.f0} step="1" 
-                onChange={(e) => setTgt({...tgt, f0: parseFloat(e.target.value)})} 
-                className="flex-1 h-[4px] rounded-full bg-[#444] appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#eee] [&::-webkit-slider-thumb]:cursor-grab [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-[#eee] [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-grab"
+              <span className="text-[18px] font-normal text-[var(--pf-fg-strong)] tracking-tight">Frequência do Sinal</span>
+              <Slider
+                min={1}
+                max={30}
+                step={1}
+                value={tgt.f0}
+                onChange={(v) => setTgt({ ...tgt, f0: v })}
+                aria-label="Frequência do sinal"
+                className="flex-1"
               />
-              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[#eee] font-medium">{f0T}Hz</span>
+              <span className="w-11 shrink-0 text-right font-mono text-[14px] text-[var(--pf-fg-strong)] font-medium">{f0T}Hz</span>
             </div>
-            <div className="mt-3.5 text-[12px] font-light text-[#555] leading-[1.7]">
+            <div className="mt-3.5 text-[13px] font-light text-[var(--pf-fg-muted)] leading-[1.7]">
               Frequência do sinal contínuo de entrada. Aumente até ultrapassar o limite de Nyquist (fₛ/2) para induzir aliasing e observar o surgimento da frequência fantasma no sinal reconstruído.
             </div>
             <div className="mt-5">
-              <div className="flex justify-between items-center py-2.25 border-b border-t border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">fₛ ≥ 2·f₀ ?</span>
-                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#8a5a5a' : '#5a8a5a' }}>{hasAlias ? 'não' : 'sim'}</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-t border-[var(--pf-border)]">
+                <span className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.08em] uppercase">fₛ ≥ 2·f₀ ?</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#a8453a' : '#2f9e46' }}>{hasAlias ? 'não' : 'sim'}</span>
               </div>
-              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">recuperação</span>
-                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#8a5a5a' : '#5a8a5a' }}>{hasAlias ? 'impossível' : 'perfeita'}</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-[var(--pf-border)]">
+                <span className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.08em] uppercase">recuperação</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] font-medium" style={{ color: hasAlias ? '#a8453a' : '#2f9e46' }}>{hasAlias ? 'impossível' : 'perfeita'}</span>
               </div>
-              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">artefato</span>
-                <span className="font-mono text-[10px] tracking-[0.06em]" style={{ color: hasAlias ? '#7a7a5a' : '#3e3e3e' }}>{hasAlias ? `alias em ${faT.toFixed(1)} Hz` : 'nenhum'}</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-[var(--pf-border)]">
+                <span className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.08em] uppercase">artefato</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] text-[var(--pf-fg)]">{hasAlias ? `alias em ${faT.toFixed(1)} Hz` : 'nenhum'}</span>
               </div>
-              <div className="flex justify-between items-center py-2.25 border-b border-[#181818]">
-                <span className="font-mono text-[10px] text-[#3e3e3e] tracking-[0.08em] uppercase">aplicação</span>
-                <span className="font-mono text-[10px] tracking-[0.06em] text-[#7a7a5a]">áudio · imagem · vídeo</span>
+              <div className="flex justify-between items-center py-2.25 border-b border-[var(--pf-border)]">
+                <span className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.08em] uppercase">aplicação</span>
+                <span className="font-mono text-[11px] tracking-[0.06em] text-[var(--pf-fg)]">áudio · imagem · vídeo</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 font-mono text-[10px] text-[#444] tracking-[0.2em] uppercase mt-8 pb-3.5">
-          02 <span className="text-[#333]">—</span> Fundamentos teóricos
+        <div className="flex items-center gap-6 font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.2em] uppercase mt-8 pb-3.5">
+          02 <span className="text-[var(--pf-border-strong)]">—</span> Fundamentos teóricos
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[#1a1a1a] border-t-2 border-[#1a1a1a]">
-          <div className="bg-[#0d0d0d] py-7 px-8">
-            <h3 className="font-mono text-[10px] text-[#444] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[#1a1a1a]">Teorema de Nyquist–Shannon</h3>
-            <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-3">
-              Para reconstruir um sinal de frequência <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">f₀</code> sem distorção, a taxa de amostragem <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">fₛ</code> deve satisfazer <strong className="font-medium text-[#b0b0b0]">fₛ &gt; 2·f₀</strong>. Este limiar é chamado de <strong className="font-medium text-[#b0b0b0]">frequência de Nyquist</strong>.
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[var(--pf-border)] border-t-2 border-[var(--pf-border)]">
+          <div className="bg-[var(--pf-bg)] py-7 px-8">
+            <h3 className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[var(--pf-border)]">Teorema de Nyquist–Shannon</h3>
+            <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-3">
+              Para reconstruir um sinal de frequência <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">f₀</code> sem distorção, a taxa de amostragem <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">fₛ</code> deve satisfazer <strong className="font-medium text-[var(--pf-fg)]">fₛ &gt; 2·f₀</strong>. Este limiar é chamado de <strong className="font-medium text-[var(--pf-fg)]">frequência de Nyquist</strong>.
             </p>
-            <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
+            <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75]">
               Quando a condição é atendida, o Teorema da Amostragem garante que o sinal contínuo original pode ser recuperado <em className="italic">exatamente</em> a partir das amostras discretas, via filtragem passa-baixas ideal.
             </p>
           </div>
-          <div className="bg-[#0d0d0d] py-7 px-8">
-            <h3 className="font-mono text-[10px] text-[#444] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[#1a1a1a]">Aliasing — Frequência Fantasma</h3>
-            <p className="text-[13.5px] font-light text-[#888] leading-[1.75] mb-3">
-              Quando <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">fₛ &lt; 2·f₀</code>, ocorre <strong className="font-medium text-[#b0b0b0]">aliasing</strong>: componentes de frequência acima de Nyquist são dobradas de volta ao espectro em outra frequência, criando um sinal fantasma.
+          <div className="bg-[var(--pf-bg)] py-7 px-8">
+            <h3 className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[var(--pf-border)]">Aliasing — Frequência Fantasma</h3>
+            <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-3">
+              Quando <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">fₛ &lt; 2·f₀</code>, ocorre <strong className="font-medium text-[var(--pf-fg)]">aliasing</strong>: componentes de frequência acima de Nyquist são dobradas de volta ao espectro em outra frequência, criando um sinal fantasma.
             </p>
-            <p className="text-[13.5px] font-light text-[#888] leading-[1.75]">
-              A frequência alias é calculada por <code className="font-mono text-[11.5px] text-[#666] bg-[#161616] px-1.5 py-px">f_alias = | f₀ − round(f₀/fₛ)·fₛ |</code>. O artefato é irreversível — amostrado com fₛ insuficiente, a informação original não pode ser recuperada.
+            <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75]">
+              A frequência alias é calculada por <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">f_alias = | f₀ − round(f₀/fₛ)·fₛ |</code>. O artefato é irreversível — amostrado com fₛ insuficiente, a informação original não pode ser recuperada.
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { COLORS } from "./lib/constants";
+import { COLORS, FONT_FAMILY } from "./lib/constants";
 
 interface ZoomControlsProps {
   zoom: number;
@@ -30,7 +30,7 @@ export default function ZoomControls({
     >
       <ZoomBtn title="Zoom in (+)" onClick={onZoomIn}>
         {/* Plus icon */}
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
           <line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
           <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
         </svg>
@@ -38,14 +38,14 @@ export default function ZoomControls({
 
       <ZoomBtn title="Zoom out (−)" onClick={onZoomOut}>
         {/* Minus icon */}
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
           <line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
         </svg>
       </ZoomBtn>
 
       <ZoomBtn title="Reset view" onClick={onReset}>
         {/* Home / reset icon */}
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <svg width="16" height="16" viewBox="0 0 12 12" fill="none">
           <polyline points="1,6 6,1 11,6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="miter" fill="none" />
           <rect x="3" y="6" width="6" height="5" stroke="currentColor" strokeWidth="1.5" fill="none" />
         </svg>
@@ -56,14 +56,14 @@ export default function ZoomControls({
         style={{
           marginTop: 4,
           textAlign: "center",
-          fontSize: 9,
+          fontSize: 12,
           color: COLORS.textSubtle,
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: FONT_FAMILY,
           letterSpacing: "0.04em",
           background: COLORS.panel,
           border: `1px solid ${COLORS.border}`,
-          padding: "2px 0",
-          width: 28,
+          padding: "3px 0",
+          width: 36,
           boxSizing: "border-box",
         }}
       >
@@ -91,8 +91,8 @@ function ZoomBtn({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: 28,
-        height: 28,
+        width: 36,
+        height: 36,
         background: hovered ? COLORS.accentDim : COLORS.panel,
         border: `1px solid ${hovered ? COLORS.borderAct : COLORS.border}`,
         color: hovered ? COLORS.accent : COLORS.textMid,

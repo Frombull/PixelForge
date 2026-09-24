@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback, useState } from "react";
-import { COLORS } from "./lib/constants";
+import { COLORS, FONT_FAMILY } from "./lib/constants";
 
 // ── Color conversions ──────────────────────────────────────────────────────────
 
@@ -253,14 +253,14 @@ export default function ColorPicker({ color, onChange, style }: ColorPickerProps
     background: COLORS.bg,
     border: `1px solid ${COLORS.border}`,
     color: COLORS.textBright,
-    fontSize: 10,
+    fontSize: 13,
     padding: "2px 4px",
-    fontFamily: "'JetBrains Mono', monospace",
+    fontFamily: FONT_FAMILY,
     outline: "none",
     width: "100%",
   };
   const labelStyle: React.CSSProperties = {
-    fontSize: 8,
+    fontSize: 11,
     color: COLORS.textSubtle,
     letterSpacing: "0.1em",
     display: "block",
@@ -277,7 +277,7 @@ export default function ColorPicker({ color, onChange, style }: ColorPickerProps
         flexDirection: "column",
         gap: 8,
         userSelect: "none",
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         ...style,
       }}
     >
@@ -304,7 +304,7 @@ export default function ColorPicker({ color, onChange, style }: ColorPickerProps
             flexShrink: 0,
           }}
         />
-        <span style={{ color: COLORS.textSubtle, fontSize: 9, flexShrink: 0 }}>#</span>
+        <span style={{ color: COLORS.textSubtle, fontSize: 12, flexShrink: 0 }}>#</span>
         <input
           type="text"
           maxLength={6}

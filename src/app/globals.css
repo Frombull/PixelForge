@@ -133,3 +133,129 @@ video {
     opacity: 0.9 !important;
   }
 }
+
+/* ===========================================================
+   Themeable surface tokens (opt-in via .pf-surface)
+   See docs/design/visual-style.md for usage across endpoints.
+   =========================================================== */
+.pf-surface {
+  --pf-bg: #0d0d0d;
+  --pf-bg-raised: #111111;
+  --pf-fg: #e0e0e0;
+  --pf-fg-strong: #f0f0f0;
+  --pf-fg-muted: #a8a8a8;
+  --pf-fg-faint: #7a7a7a;
+  --pf-border: #1e1e1e;
+  --pf-border-strong: #222222;
+  --pf-accent: #6ea8d8;
+  --pf-danger-fg: #8a5a5a;
+  --pf-danger-fg-hover: #d46a6a;
+  --pf-danger-border: #331111;
+  --pf-danger-bg: #160505;
+  --pf-danger-border-hover: #552222;
+  --pf-code-bg: #161616;
+  --pf-code-fg: #888888;
+}
+
+[data-theme="light"] .pf-surface {
+  --pf-bg: #f4f2ee;
+  --pf-bg-raised: #fbfaf8;
+  --pf-fg: #211f1a;
+  --pf-fg-strong: #17150f;
+  --pf-fg-muted: #4a463c;
+  --pf-fg-faint: #665f50;
+  --pf-border: #e4e0d8;
+  --pf-border-strong: #d6d0c4;
+  --pf-accent: #3d6a91;
+  --pf-danger-fg: #8a3c2e;
+  --pf-danger-fg-hover: #a8452f;
+  --pf-danger-border: #e9d4ca;
+  --pf-danger-bg: #f7ece6;
+  --pf-danger-border-hover: #ddb8a8;
+  --pf-code-bg: #eae6dc;
+  --pf-code-fg: #45402f;
+}
+
+/* ===========================================================
+   Custom range slider (used via the <Slider /> component)
+   =========================================================== */
+.pf-slider {
+  --pf-slider-fill: 0%;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    var(--pf-accent) 0%,
+    var(--pf-accent) var(--pf-slider-fill),
+    var(--pf-border-strong) var(--pf-slider-fill),
+    var(--pf-border-strong) 100%
+  );
+  transition: box-shadow 0.15s ease;
+}
+
+.pf-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pf-fg-strong);
+  border: 2px solid var(--pf-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.pf-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.pf-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--pf-accent) 25%, transparent);
+}
+
+.pf-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--pf-border-strong);
+}
+
+.pf-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--pf-accent);
+}
+
+.pf-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pf-fg-strong);
+  border: 2px solid var(--pf-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.pf-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+.pf-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--pf-accent) 35%, transparent);
+}
+
+.pf-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--pf-accent) 35%, transparent);
+}

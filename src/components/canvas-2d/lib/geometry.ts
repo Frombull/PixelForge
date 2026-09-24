@@ -151,3 +151,78 @@ export function uid(): string {
 export function cloneShape(s: Shape): Shape {
   return JSON.parse(JSON.stringify(s));
 }
+
+// ─── Bezier ───────────────────────────────────────────────────────────────────
+
+/** Evaluate a quadratic (3 pts) or cubic (4 pts) bezier curve at parameter t (0..1) */
+export function evaluateBezier(points: [number, number][], t: number): [number, number] {
+  if (points.length === 3) {
+    const [p0, p1, p2] = points;
+    const x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t ** 2 * p2[0];
+    const y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1];
+    return [x, y];
+  }
+  const [p0, p1, p2, p3] = points;
+  const x =
+    (1 - t) ** 3 * p0[0] +
+    3 * (1 - t) ** 2 * t * p1[0] +
+    3 * (1 - t) * t ** 2 * p2[0] +
+    t ** 3 * p3[0];
+  const y =
+    (1 - t) ** 3 * p0[1] +
+    3 * (1 - t) ** 2 * t * p1[1] +
+    3 * (1 - t) * t ** 2 * p2[1] +
+    t ** 3 * p3[1];
+  return [x, y];
+}
+
+/** Sample a bezier curve into a polyline of `resolution` segments */
+export function sampleBezier(points: [number, number][], resolution: number): [number, number][] {
+  const out: [number, number][] = [];
+  for (let i = 0; i <= resolution; i++) {
+    out.push(evaluateBezier(points, i / resolution));
+  }
+  return out;
+}
+
+/** De Casteljau construction levels at parameter t — used to draw the classic bezier construction lines */
+export function bezierConstructionLevels(
+  points: [number, number][],
+  t: number
+): [number, number][][] {
+  const levels: [number, number][][] = [points];
+  let current = points;
+  while (current.length > 1) {
+    const next: [number, number][] = [];
+    for (let i = 0; i < current.length - 1; i++) {
+      const [ax, ay] = current[i];
+      const [bx, by] = current[i + 1];
+      next.push([(1 - t) * ax + t * bx, (1 - t) * ay + t * by]);
+    }
+    levels.push(next);
+    current = next;
+  }
+  return levels;
+}
+
+// ─── Keyframe interpolation ───────────────────────────────────────────────────
+
+/** Linearly interpolate between two keyframe snapshots (requires matching point counts) */
+export function lerpSnapshot(
+  a: { x: number; y: number; points: [number, number][] },
+  b: { x: number; y: number; points: [number, number][] },
+  t: number
+): { x: number; y: number; points: [number, number][] } {
+  const points: [number, number][] =
+    a.points.length === b.points.length
+      ? a.points.map(([ax, ay], i) => {
+          const [bx, by] = b.points[i];
+          return [ax + (bx - ax) * t, ay + (by - ay) * t];
+        })
+      : a.points;
+  return {
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+    points,
+  };
+}

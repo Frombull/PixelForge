@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import { COLORS, TOOLS, PLACEHOLDER_TOOLS } from "./lib/constants";
+import { COLORS, TOOLS, PLACEHOLDER_TOOLS, FONT_FAMILY } from "./lib/constants";
 import type { Tool, Shape } from "./lib/types";
 import { buildTransformMatrixLatex, getMatrixTitle } from "./lib/matrixMath";
 
@@ -39,7 +39,7 @@ export default function Toolbar({ activeTool, onToolChange, selectedShape }: Too
   return (
     <div
       style={{
-        width: 176,
+        width: 240,
         background: COLORS.panel,
         borderRight: `1px solid ${COLORS.border}`,
         display: "flex",
@@ -90,11 +90,11 @@ export default function Toolbar({ activeTool, onToolChange, selectedShape }: Too
           style={{
             flex: 1,
             padding: "0 12px",
-            fontSize: 9,
-            fontWeight: 600,
+            fontSize: 12,
+            fontWeight: 700,
             color: COLORS.textLabel,
             letterSpacing: "0.18em",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: FONT_FAMILY,
             textTransform: "uppercase",
           }}
         >
@@ -104,7 +104,7 @@ export default function Toolbar({ activeTool, onToolChange, selectedShape }: Too
 
       {/* Primary tools group */}
       <GroupLabel label="Principais" />
-      <div style={{ padding: "4px 8px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
+      <div style={{ padding: "4px 8px 8px", display: "flex", flexDirection: "column", gap: 6 }}>
         {TOOLS.map((t) => (
           <ToolButton
             key={t.id}
@@ -119,22 +119,6 @@ export default function Toolbar({ activeTool, onToolChange, selectedShape }: Too
 
       <SidebarDivider />
 
-      {/* Placeholder tools group */}
-      <GroupLabel label="Em breve" />
-      <div style={{ padding: "4px 8px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-        {PLACEHOLDER_TOOLS.map((t) => (
-          <ToolButton
-            key={t.label}
-            icon="⬚"
-            shortcut=""
-            label={t.label}
-            active={false}
-            disabled
-            onClick={() => {}}
-          />
-        ))}
-      </div>
-
       <div style={{ flex: 1 }} />
 
       {/* ── Transformation matrix (bottom of sidebar) */}
@@ -148,13 +132,13 @@ export default function Toolbar({ activeTool, onToolChange, selectedShape }: Too
         >
           <div
             style={{
-              fontSize: 9,
-              fontWeight: 600,
+              fontSize: 12,
+              fontWeight: 700,
               color: COLORS.textLabel,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               marginBottom: 10,
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: FONT_FAMILY,
             }}
           >
             {getMatrixTitle(activeTool)}
@@ -184,11 +168,11 @@ function GroupLabel({ label }: { label: string }) {
     <div
       style={{
         padding: "10px 12px 4px",
-        fontSize: 9,
-        fontWeight: 600,
+        fontSize: 12,
+        fontWeight: 700,
         color: COLORS.textLabel,
         letterSpacing: "0.14em",
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: FONT_FAMILY,
         textTransform: "uppercase",
       }}
     >
@@ -261,7 +245,7 @@ function ToolButton({ icon, shortcut, label, active, disabled = false, onClick }
     >
       <span
         style={{
-          fontSize: 14,
+          fontSize: 17,
           width: 16,
           textAlign: "center",
           flexShrink: 0,
@@ -272,9 +256,9 @@ function ToolButton({ icon, shortcut, label, active, disabled = false, onClick }
       </span>
       <span
         style={{
-          fontSize: 10,
-          fontWeight: active ? 600 : 400,
-          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 14,
+          fontWeight: active ? 700 : 500,
+          fontFamily: FONT_FAMILY,
           letterSpacing: "0.04em",
           flex: 1,
           color: textColor,
@@ -285,9 +269,9 @@ function ToolButton({ icon, shortcut, label, active, disabled = false, onClick }
       {shortcut && (
         <span
           style={{
-            fontSize: 9,
+            fontSize: 12,
             color: active ? COLORS.accent : COLORS.textSubtle,
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: FONT_FAMILY,
             background: active ? `${COLORS.accent}14` : `${COLORS.bg}cc`,
             border: `1px solid ${active ? COLORS.accent + "33" : COLORS.border}`,
             borderRadius: 2,

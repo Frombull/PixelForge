@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import { Settings } from "lucide-react";
-import { COLORS } from "./lib/constants";
+import { COLORS, FONT_FAMILY } from "./lib/constants";
 import type { EditorSettings } from "./lib/types";
 
 interface SettingsMenuProps {
@@ -33,26 +33,26 @@ export default function SettingsMenu({ settings, onChange }: SettingsMenuProps) 
           border: `1px solid ${COLORS.border}`,
           color: open ? COLORS.textBright : COLORS.textMid,
           cursor: "pointer",
-          fontSize: 10,
-          padding: "0 10px",
-          height: 28,
+          fontSize: 13,
+          padding: "0 12px",
+          height: 36,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: 5,
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: FONT_FAMILY,
           transition: "color 0.1s, background 0.1s",
           whiteSpace: "nowrap",
         }}
       >
-        <Settings size={13} strokeWidth={1.5} />
+        <Settings size={17} strokeWidth={1.5} />
       </button>
 
       {open && (
         <div
           style={{
             position: "absolute",
-            top: 36,
+            top: 44,
             right: 0,
             width: 224,
             background: COLORS.panel,
@@ -65,10 +65,10 @@ export default function SettingsMenu({ settings, onChange }: SettingsMenuProps) 
             style={{
               padding: "6px 12px",
               borderBottom: `1px solid ${COLORS.border}`,
-              fontSize: 9,
+              fontSize: 12,
               color: COLORS.textDim,
               letterSpacing: "0.12em",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: FONT_FAMILY,
             }}
           >
             CONFIGURAÇÕES
@@ -122,9 +122,9 @@ function ToggleRow({
       <div>
         <div
           style={{
-            fontSize: 10,
+            fontSize: 13,
             color: value ? COLORS.textBright : COLORS.textMid,
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: FONT_FAMILY,
             letterSpacing: "0.04em",
           }}
         >
@@ -132,9 +132,9 @@ function ToggleRow({
         </div>
         <div
           style={{
-            fontSize: 8,
+            fontSize: 11,
             color: COLORS.textSubtle,
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: FONT_FAMILY,
             marginTop: 1,
           }}
         >

@@ -35,40 +35,21 @@ export class SkewGizmo {
         );
         diamond.userData = { axis, isGizmo: true };
         diamond.renderOrder = 999;
-        
+
+        let dir;
         if (axis === 'xy') {
-            line.rotation.z = -Math.PI / 4;
-            line.position.set(
-                length / 2 * Math.cos(-Math.PI / 4),
-                length / 2 * Math.sin(-Math.PI / 4), 0
-            );
-            diamond.position.set(
-                length * Math.cos(-Math.PI / 4),
-                length * Math.sin(-Math.PI / 4), 0
-            );
+            dir = new THREE.Vector3(Math.cos(-Math.PI / 4), Math.sin(-Math.PI / 4), 0);
         } else if (axis === 'xz') {
-            line.rotation.y = Math.PI / 4;
-            line.rotation.z = -Math.PI / 2;
-            line.position.set(
-                length / 2 * Math.cos(Math.PI / 4), 0,
-                length / 2 * Math.sin(Math.PI / 4)
-            );
-            diamond.position.set(
-                length * Math.cos(Math.PI / 4), 0,
-                length * Math.sin(Math.PI / 4)
-            );
+            dir = new THREE.Vector3(Math.cos(Math.PI / 4), 0, Math.sin(Math.PI / 4));
         } else {
-            line.rotation.x = Math.PI / 4;
-            line.position.set(0,
-                length / 2 * Math.cos(Math.PI / 4),
-                length / 2 * Math.sin(Math.PI / 4)
-            );
-            diamond.position.set(0,
-                length * Math.cos(Math.PI / 4),
-                length * Math.sin(Math.PI / 4)
-            );
+            dir = new THREE.Vector3(0, Math.cos(Math.PI / 4), Math.sin(Math.PI / 4));
         }
-        
+        dir.normalize();
+
+        line.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+        line.position.copy(dir).multiplyScalar(length / 2);
+        diamond.position.copy(dir).multiplyScalar(length);
+
         group.add(line, diamond);
         return group;
     }

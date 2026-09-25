@@ -218,6 +218,7 @@ export type Canvas3DBridge = {
   loadScene: (payload: string) => Canvas3DSceneLoadResult;
 
   addObject: (kind: CanvasObjectKind) => void;
+  importModel: (arrayBuffer: ArrayBuffer, fileName: string) => Promise<Canvas3DSceneLoadResult>;
   setMode: (mode: Canvas3DMode) => void;
 
   selectObject: (uuid: string) => void;

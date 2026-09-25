@@ -74,6 +74,7 @@ export default function Canvas3DWorkspace() {
   const infoRef = useRef<HTMLDivElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
   const sceneFileInputRef = useRef<HTMLInputElement | null>(null);
+  const modelFileInputRef = useRef<HTMLInputElement | null>(null);
   const scaleMatrixRef = useRef<HTMLDivElement | null>(null);
   const projectionSettingsRef = useRef<ProjectionCameraSettings>(projectionSettings);
   const selected = engineState.selected;
@@ -457,6 +458,34 @@ export default function Canvas3DWorkspace() {
     sceneFileInputRef.current?.click();
   };
 
+  const openModelPicker = () => {
+    modelFileInputRef.current?.click();
+  };
+
+  const importModelFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      setSceneFeedback({ type: "error", text: "O arquivo excede o limite de 50 MB." });
+      return;
+    }
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const result = await window.Canvas3DBridge?.importModel(buffer, file.name);
+      if (!result?.ok) {
+        setSceneFeedback({ type: "error", text: result?.error || "Não foi possível importar o modelo." });
+        return;
+      }
+
+      setSceneFeedback({ type: "success", text: `Modelo importado: ${file.name}` });
+    } catch {
+      setSceneFeedback({ type: "error", text: "Não foi possível ler o arquivo selecionado." });
+    }
+  };
+
   const loadSceneFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -512,6 +541,7 @@ export default function Canvas3DWorkspace() {
           onAddObject={addObject}
           onDeleteObject={(uuid) => window.Canvas3DBridge?.deleteObject(uuid)}
           onFocusObject={(uuid) => window.Canvas3DBridge?.focusObject(uuid)}
+          onImportModel={openModelPicker}
           onSelectObject={(uuid) => window.Canvas3DBridge?.selectObject(uuid)}
           onSetMode={setMode}
           onToggleCollapse={() => setIsLeftSidebarCollapsed((prev) => !prev)}
@@ -542,6 +572,14 @@ export default function Canvas3DWorkspace() {
             accept=".json,application/json"
             className="hidden"
             onChange={loadSceneFile}
+            type="file"
+          />
+
+          <input
+            ref={modelFileInputRef}
+            accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+            className="hidden"
+            onChange={importModelFile}
             type="file"
           />
 

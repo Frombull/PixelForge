@@ -12,6 +12,7 @@ type LeftSidebarProps = {
   scaleMatrixRef: React.RefObject<HTMLDivElement | null>;
   isCollapsed: boolean;
   onAddObject: (kind: CanvasObjectKind) => void;
+  onImportModel: () => void;
   onSetMode: (mode: Canvas3DMode) => void;
   onSelectObject: (uuid: string) => void;
   onFocusObject: (uuid: string) => void;
@@ -26,6 +27,7 @@ export default function LeftSidebar({
   scaleMatrixRef,
   isCollapsed,
   onAddObject,
+  onImportModel,
   onSetMode,
   onSelectObject,
   onFocusObject,
@@ -134,6 +136,10 @@ export default function LeftSidebar({
             >
               Sub. Cube
             </button>
+          </div>
+          <div className="mt-[0.65rem]">
+            <div className="mb-1 text-[0.68rem] uppercase text-(--ui-text-muted)">Importar</div>
+            <button className={panelActionButtonClass} onClick={onImportModel} type="button">Importar Modelo (.glb/.gltf)</button>
           </div>
           <div className="mt-[0.65rem]">
             <div className="mb-1 text-[0.68rem] uppercase text-(--ui-text-muted)">Demos</div>

@@ -1,0 +1,53 @@
+export const metadata = {
+  title: "Cubo RGB — PixelForge",
+  description:
+    "O espaço de cores RGB representado como um cubo tridimensional.",
+};
+
+# Cubo RGB
+
+Toda cor exibida em uma tela é uma mistura de três luzes primárias:
+**vermelho (R)**, **verde (G)** e **azul (B)**. Representar essas três
+componentes como eixos de um espaço 3D forma o **cubo RGB**.
+
+## Mistura aditiva
+
+Diferente de tintas (mistura subtrativa), luz se combina de forma **aditiva**:
+somar todas as cores primárias no máximo produz branco, e a ausência de todas
+produz preto.
+
+```
+(0,0,0)       = preto
+(255,255,255) = branco
+(255,0,0)     = vermelho puro
+(255,255,0)   = amarelo (vermelho + verde)
+```
+
+## O cubo como espaço de cores
+
+Cada canal (R, G, B) varia de 0 a 255 e corresponde a um eixo do cubo:
+
+- **Origem (0,0,0)** — canto preto
+- **Vértice oposto (255,255,255)** — canto branco
+- **Diagonal principal** — a escala de cinza, onde R = G = B
+- **Demais vértices** — as cores primárias e secundárias (vermelho, verde,
+  azul, ciano, magenta, amarelo)
+
+Qualquer cor RGB corresponde a exatamente um ponto dentro desse cubo.
+
+## Câmera ortogonal
+
+Visualizar o cubo exige uma **câmera ortogonal**: como o objetivo é comparar
+posições relativas de cores sem distorção de perspectiva, projeções
+ortogonais preservam proporções e paralelismo entre os eixos.
+
+## Aplicações
+
+- Seletores de cor (*color pickers*) em softwares gráficos
+- Calibração de monitores e displays
+- Conversão entre espaços de cor (RGB, HSV, CMYK)
+- Ensino de teoria da cor em computação gráfica
+
+---
+
+Gire e explore o espaço de cores no [Cubo RGB interativo](/cube).

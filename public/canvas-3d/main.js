@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { SceneManager } from '/canvas-3d/core/sceneManager.js';
 import { ControlsManager } from '/canvas-3d/core/controlsManager.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { ObjectManager } from '/canvas-3d/objects/objectManager.js';
 import { BooleanOperations } from '/canvas-3d/objects/booleanOperations.js';
 import { GizmoManager } from '/canvas-3d/gizmos/gizmoManager.js';
@@ -237,6 +238,7 @@ class App {
         this.objectManager = new ObjectManager(this.sceneManager.scene);
         this.booleanOps = new BooleanOperations(this.objectManager.objects);
         this.gizmoManager = new GizmoManager(this.sceneManager.scene);
+        this.gltfLoader = new GLTFLoader();
 
         this.setupEventListeners();
         this.animate();
@@ -420,14 +422,15 @@ class App {
         const camera = this.sceneManager.camera;
         const target = this.controlsManager?.controls?.target;
         const settings = this.getSettingsSnapshot();
-        const selectedIndex = this.objectManager.selectedObject
-            ? this.objectManager.objects.indexOf(this.objectManager.selectedObject)
+        const exportableObjects = this.objectManager.objects.filter((object) => !object.userData.isImportedModel);
+        const selectedIndex = this.objectManager.selectedObject && !this.objectManager.selectedObject.userData.isImportedModel
+            ? exportableObjects.indexOf(this.objectManager.selectedObject)
             : -1;
 
         const scene = {
             format: SCENE_FORMAT,
             version: SCENE_VERSION,
-            objects: this.objectManager.objects.map((object) => ({
+            objects: exportableObjects.map((object) => ({
                 uuid: object.uuid,
                 name: object.userData.name || object.userData.type || 'Object',
                 type: this.getSceneObjectType(object),
@@ -820,6 +823,48 @@ class App {
         window.dispatchEvent(new CustomEvent(STATE_EVENT_NAME, {
             detail: this.getStateSnapshot()
         }));
+    }
+
+    importModel(arrayBuffer, fileName) {
+        return new Promise((resolve) => {
+            this.gltfLoader.parse(
+                arrayBuffer,
+                '',
+                (gltf) => {
+                    const root = gltf.scene || gltf.scenes?.[0];
+                    if (!root) {
+                        resolve({ ok: false, error: 'O arquivo não contém uma cena válida.' });
+                        return;
+                    }
+
+                    root.userData.sceneKind = 'model';
+                    root.userData.isImportedModel = true;
+                    root.userData.type = 'Model';
+                    root.userData.name = String(fileName || 'Modelo')
+                        .replace(/\.(glb|gltf)$/i, '')
+                        .slice(0, 120) || 'Modelo';
+
+                    const box = new THREE.Box3().setFromObject(root);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z, 0.0001);
+                    root.scale.setScalar(2 / maxDim);
+
+                    const scaledBox = new THREE.Box3().setFromObject(root);
+                    const center = scaledBox.getCenter(new THREE.Vector3());
+                    root.position.set(-center.x, -scaledBox.min.y, -center.z);
+
+                    this.objectManager.addObject(root);
+                    this.applyWireframeVisibility();
+                    this.objectManager.select(root);
+                    this.updateSelection();
+                    resolve({ ok: true });
+                },
+                (error) => {
+                    console.warn('Model import failed:', error);
+                    resolve({ ok: false, error: 'Não foi possível importar o modelo. Verifique se o arquivo é um .glb/.gltf válido.' });
+                }
+            );
+        });
     }
 
     addObject(kind) {
@@ -1374,7 +1419,7 @@ class App {
         else if (code === KEY_BINDINGS.VIEW_FRONT) this.setCameraAxisView('front');
         else if (code === KEY_BINDINGS.VIEW_RIGHT) this.setCameraAxisView('right');
         else if (code === KEY_BINDINGS.VIEW_TOP) this.setCameraAxisView('top');
-        else if (key === KEY_BINDINGS.DELETE_SELECTED && this.objectManager.selectedObject) {
+        else if ((key === KEY_BINDINGS.DELETE_SELECTED || key === 'backspace') && this.objectManager.selectedObject) {
             this.deleteSelected();
         }
     }
@@ -1473,6 +1518,10 @@ window.Canvas3DBridge = {
     },
 
     addObject: (kind) => appInstance?.addObject(kind),
+    importModel: (arrayBuffer, fileName) => appInstance?.importModel(arrayBuffer, fileName) || Promise.resolve({
+        ok: false,
+        error: 'Canvas 3D ainda não está pronto.'
+    }),
     setMode: (mode) => appInstance?.setMode(mode),
 
     selectObject: (uuid) => appInstance?.selectObjectByUuid(uuid),

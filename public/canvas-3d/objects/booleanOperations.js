@@ -31,8 +31,8 @@ export class BooleanOperations {
         const subtractBox = new THREE.Box3().setFromObject(subtractCube);
         
         this.objects.forEach(obj => {
-            if (obj === subtractCube || obj.userData.isSubtractCube) return;
-            
+            if (obj === subtractCube || obj.userData.isSubtractCube || !obj.geometry) return;
+
             const objBox = new THREE.Box3().setFromObject(obj);
             
             if (subtractBox.intersectsBox(objBox)) {

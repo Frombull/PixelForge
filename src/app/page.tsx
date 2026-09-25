@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="relative isolate min-h-screen bg-[#13141c] text-white overflow-x-hidden">
+    <main className="relative isolate min-h-screen bg-[var(--pf-bg)] text-[var(--pf-fg-strong)] overflow-x-hidden">
       <div className="relative z-10">
         <Header />
         <HeroSection />

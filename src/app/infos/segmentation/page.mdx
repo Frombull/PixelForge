@@ -1,0 +1,54 @@
+export const metadata = {
+  title: "Segmentação de Imagens — PixelForge",
+  description:
+    "Técnicas para dividir uma imagem em regiões significativas.",
+};
+
+# Segmentação de Imagens
+
+**Segmentar** uma imagem é dividi-la em regiões que compartilham alguma
+característica — cor, textura, borda — separando, por exemplo, um objeto do
+seu fundo. É um passo fundamental em edição de imagem e visão computacional.
+
+## Segmentação manual
+
+A abordagem mais direta: o usuário desenha diretamente os limites da região
+de interesse (laço, caneta). Precisa, mas lenta para imagens complexas ou
+grande volume de trabalho.
+
+## Seleção inteligente
+
+Algoritmos de **seleção inteligente** automatizam parte do processo
+analisando propriedades locais da imagem:
+
+- **Crescimento de região** — parte de um ponto semente e expande para
+  pixels vizinhos com cor/intensidade similar
+- **Detecção de bordas** — usa gradientes de intensidade (veja
+  [Processamento de Imagem](/infos/image-processing)) para encontrar limites
+  naturais entre regiões
+- **Clustering de cor** (k-means) — agrupa pixels por similaridade de cor,
+  útil quando o objeto tem cor bem distinta do fundo
+
+## Critérios de decisão
+
+Toda técnica de segmentação equilibra dois objetivos concorrentes:
+
+```
+precisão nos limites  ←──────→  robustez a ruído
+```
+
+Algoritmos muito sensíveis capturam bordas com precisão mas "vazam" em
+regiões ruidosas; algoritmos mais tolerantes são robustos mas perdem
+detalhes finos.
+
+## Aplicações
+
+- Remoção de fundo (fotografia, videoconferência)
+- Edição de imagem (seleção de objetos)
+- Diagnóstico médico (identificar tecidos, tumores)
+- Visão computacional em robótica e veículos autônomos
+
+---
+
+Teste seleção manual e inteligente no [módulo de Segmentação de
+Imagens](/segmentation).

@@ -50,8 +50,8 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="mb-12 flex items-center gap-4">
-          <span className="text-neutral-600 font-mono text-xl sm:text-2xl mt-1">$</span>
-          <h2 className="text-2xl sm:text-3xl font-mono text-white tracking-wide flex items-center whitespace-pre h-[36px] sm:h-[40px]">
+          <span className="text-[var(--pf-fg-faint)] font-mono text-xl sm:text-2xl mt-1">$</span>
+          <h2 className="text-2xl sm:text-3xl font-mono text-[var(--pf-fg-strong)] tracking-wide flex items-center whitespace-pre h-[36px] sm:h-[40px]">
             <span>ls ~/modules/</span>
             {isVisible && (
               <span className="text-sky-400">
@@ -65,7 +65,7 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
               </span>
             )}
           </h2>
-          <div className="flex-1 h-[1px] bg-neutral-800 ml-4 hidden sm:block" />
+          <div className="flex-1 h-[1px] bg-[var(--pf-border)] ml-4 hidden sm:block" />
         </div>
 
         {/* Tools Grid */}
@@ -74,10 +74,10 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
             <Link
               key={index}
               href={tool.href}
-              className="group relative flex flex-col bg-neutral-900/40 border border-neutral-800 rounded-[1px] p-6 transition-colors duration-100 hover:bg-neutral-900/80 overflow-hidden"
+              className="group relative flex flex-col bg-[var(--pf-bg-raised)]/40 border border-[var(--pf-border)] rounded-[1px] p-6 transition-colors duration-100 hover:bg-[var(--pf-bg-raised)]/80 overflow-hidden"
             >
               {tool.previewImage && (
-                <div className="relative -mx-6 -mt-6 mb-5 overflow-hidden rounded-t-[1px] h-44 sm:h-40 bg-neutral-950/40 border-b border-neutral-800">
+                <div className="relative -mx-6 -mt-6 mb-5 overflow-hidden rounded-t-[1px] h-44 sm:h-40 bg-[#0d0d0d] border-b border-(--pf-border)">
                   <img
                     src={tool.previewImage}
                     alt={`${tool.title} preview`}
@@ -93,12 +93,12 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
               )}
 
               {/* Title */}
-              <h3 className="text-[20px] font-bold text-white mb-2 tracking-wide font-mono">
+              <h3 className="text-[20px] font-bold text-[var(--pf-fg-strong)] mb-2 tracking-wide font-mono">
                 {tool.title}
               </h3>
 
               {/* Description */}
-              <p className="text-neutral-400 font-light leading-relaxed text-[14px] mb-6 flex-grow font-mono">
+              <p className="text-[var(--pf-fg-muted)] font-light leading-relaxed text-[14px] mb-6 flex-grow font-mono">
                 {tool.description}
               </p>
 
@@ -107,7 +107,7 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
                 {tool.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="border border-neutral-900 bg-neutral-900/50 text-neutral-400 px-2 py-1 rounded-[1px] text-[10px] font-mono tracking-wide"
+                    className="border border-[var(--pf-border)] bg-[var(--pf-bg-raised)]/50 text-[var(--pf-fg-muted)] px-2 py-1 rounded-[1px] text-[10px] font-mono tracking-wide"
                   >
                     {tag}
                   </span>

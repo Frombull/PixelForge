@@ -17,11 +17,11 @@ export default function InfosContentWrapper({ children }: { children: React.Reac
       className="flex-1 min-w-0 flex flex-col items-center px-6 lg:px-10 transition-colors"
       style={
         isArticle
-          ? { background: "rgba(20, 22, 31, 0.7)" }
+          ? { background: "color-mix(in srgb, var(--pf-bg-raised) 70%, transparent)" }
           : undefined
       }
     >
-      <div className="w-full max-w-6xl lg:-translate-x-[110px]">
+      <div className="w-full max-w-6xl">
         {children}
       </div>
     </div>

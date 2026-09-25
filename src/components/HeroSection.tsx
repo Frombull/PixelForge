@@ -55,7 +55,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#13141c] px-6 pt-32 pb-20 sm:px-10">
+    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[var(--pf-bg)] px-6 pt-32 pb-20 sm:px-10">
       <div className="app-noise absolute inset-0 pointer-events-none" aria-hidden="true" />
       <div
         className="absolute -bottom-50 left-0 z-0 -translate-x-[40%] opacity-30"
@@ -65,7 +65,7 @@ export default function HeroSection() {
 
       <div className="relative z-10 flex flex-col items-center max-w-5xl gap-8 text-center pt-10 pointer-events-none">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-2">
-          <h1 className="flex items-baseline gap-2 font-mono text-5xl sm:text-7xl lg:text-[6.5rem] font-bold tracking-tighter text-white">
+          <h1 className="flex items-baseline gap-2 font-mono text-5xl sm:text-7xl lg:text-[6.5rem] font-bold tracking-tighter text-[var(--pf-fg-strong)]">
             <span className="text-sky-400">PixelForge</span>
           </h1>
           <div className="pointer-events-auto">
@@ -73,38 +73,38 @@ export default function HeroSection() {
           </div>
         </div>
 
-        <p className="max-w-2xl text-lg sm:text-xl text-neutral-400 font-medium leading-relaxed font-mono mt-4">
-          <span className="text-neutral-500"></span>Plataforma educacional interativa para
-          <span className="text-white"> computação gráfica</span>,
-          <span className="text-white"> multimídia</span> e
-          <span className="text-white"> IA</span>.
+        <p className="max-w-2xl text-lg sm:text-xl text-[var(--pf-fg-muted)] font-medium leading-relaxed font-mono mt-4">
+          <span className="text-[var(--pf-fg-faint)]"></span>Plataforma educacional interativa para
+          <span className="text-[var(--pf-fg-strong)]"> computação gráfica</span>,
+          <span className="text-[var(--pf-fg-strong)]"> multimídia</span> e
+          <span className="text-[var(--pf-fg-strong)]"> IA</span>.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto font-mono text-sm pointer-events-auto">
           <Link
             href="#graphics"
-            className="flex items-center justify-center gap-2 rounded-[1px] border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-neutral-600/50">
+            className="flex items-center justify-center gap-2 rounded-[1px] border border-[var(--pf-border)] bg-[var(--pf-bg-raised)]/50 px-8 py-3 text-[var(--pf-fg-muted)] transition-colors hover:bg-[var(--pf-bg-raised)] hover:text-[var(--pf-fg-strong)] hover:border-[var(--pf-border-strong)]">
             Computação Gráfica
           </Link>
           <Link
             href="#multimidia"
-            className="flex items-center justify-center gap-2 rounded-[1px] border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-neutral-600/50">
+            className="flex items-center justify-center gap-2 rounded-[1px] border border-[var(--pf-border)] bg-[var(--pf-bg-raised)]/50 px-8 py-3 text-[var(--pf-fg-muted)] transition-colors hover:bg-[var(--pf-bg-raised)] hover:text-[var(--pf-fg-strong)] hover:border-[var(--pf-border-strong)]">
             Multimídia
           </Link>
           <Link
             href="#ia"
-            className="flex items-center justify-center gap-2 rounded-[1px] border border-neutral-800 bg-neutral-900/50 px-8 py-3 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white hover:border-neutral-600/50">
+            className="flex items-center justify-center gap-2 rounded-[1px] border border-[var(--pf-border)] bg-[var(--pf-bg-raised)]/50 px-8 py-3 text-[var(--pf-fg-muted)] transition-colors hover:bg-[var(--pf-bg-raised)] hover:text-[var(--pf-fg-strong)] hover:border-[var(--pf-border-strong)]">
             Inteligência Computacional
           </Link>
           <Link
             href="/infos"
-            className="flex items-center justify-center gap-2 rounded-[1px] bg-white/95 px-8 py-3 font-semibold text-black transition-transform hover:scale-102">
+            className="flex items-center justify-center gap-2 rounded-[1px] bg-[var(--pf-fg-strong)] px-8 py-3 font-semibold text-[var(--pf-bg)] transition-transform hover:scale-102">
             Material Teórico
           </Link>
         </div>
 
         <div className="mt-16 pt-8 w-full flex justify-center pointer-events-none">
-          <div className="w-full max-w-3xl px-4 py-3 text-center font-mono text-[12px] text-neutral-500 pointer-events-none">
+          <div className="w-full max-w-3xl px-4 py-3 text-center font-mono text-[12px] text-[var(--pf-fg-faint)] pointer-events-none">
             <p className="h-4 whitespace-nowrap">
               <span className="text-green-400">~/pixelforge3d</span> $ {typedCommand}
               {typedCommand.length < TERMINAL_COMMAND.length && (
@@ -115,7 +115,7 @@ export default function HeroSection() {
               {TERMINAL_OUTPUT.map((line, lineIndex) => (
                 <p
                   key={line}
-                  className={`h-4 whitespace-nowrap text-neutral-400 transition-all duration-150 ${
+                  className={`h-4 whitespace-nowrap text-[var(--pf-fg-muted)] transition-all duration-150 ${
                     lineIndex < visibleOutputLines ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0"
                   }`}>
                   {lineIndex < visibleOutputLines ? line : ""}
@@ -129,7 +129,7 @@ export default function HeroSection() {
       <Link
         href="#graphics"
         aria-label="Descer"
-        className="scroll-cue group absolute bottom-7 left-1/2 z-20 -translate-x-1/2 text-neutral-400 transition-colors hover:text-sky-300 focus-visible:text-sky-300">
+        className="scroll-cue group absolute bottom-7 left-1/2 z-20 -translate-x-1/2 text-[var(--pf-fg-muted)] transition-colors hover:text-sky-300 focus-visible:text-sky-300">
         <svg
           viewBox="0 0 20 20"
           fill="none"

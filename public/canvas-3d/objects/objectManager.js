@@ -108,20 +108,25 @@ export class ObjectManager {
     
     deleteSelected() {
         if (!this.selectedObject) return false;
-        
+
         if (this.hoveredObject === this.selectedObject) {
             this.removeHighlight(this.hoveredObject);
             this.hoveredObject = null;
         }
-        
+
         this.scene.remove(this.selectedObject);
-        
-        if (this.selectedObject.geometry) this.selectedObject.geometry.dispose();
-        if (this.selectedObject.material) this.selectedObject.material.dispose();
+
+        this.selectedObject.traverse((node) => {
+            node.geometry?.dispose?.();
+            if (node.material) {
+                const materials = Array.isArray(node.material) ? node.material : [node.material];
+                materials.forEach((material) => material?.dispose?.());
+            }
+        });
         if (this.selectedObject.userData.originalGeometry) {
             this.selectedObject.userData.originalGeometry.dispose();
         }
-        
+
         const index = this.objects.indexOf(this.selectedObject);
         if (index > -1) this.objects.splice(index, 1);
         
@@ -134,7 +139,8 @@ export class ObjectManager {
     addHighlight(object) {
         if (object === this.selectedObject) return;
         if (object.userData.outlineMesh) return;
-        
+        if (!object.geometry) return;
+
         const outlineMaterial = new THREE.MeshBasicMaterial({
             color: COLORS.highlight,
             side: THREE.BackSide,
@@ -181,9 +187,11 @@ export class ObjectManager {
     }
     
     applySkew(object) {
+        if (!object.geometry) return;
+
         const skew = this.skewValues.get(object);
         if (!skew) return;
-        
+
         const matrix = new THREE.Matrix4();
         matrix.set(
             1,        skew.yx, skew.zx, 0,
@@ -203,6 +211,18 @@ export class ObjectManager {
     }
     
     raycastObjects(raycaster) {
-        return raycaster.intersectObjects(this.objects, false);
+        const hits = raycaster.intersectObjects(this.objects, true);
+        const resolved = [];
+        const seen = new Set();
+
+        for (const hit of hits) {
+            let node = hit.object;
+            while (node && !this.objects.includes(node)) node = node.parent;
+            if (!node || seen.has(node)) continue;
+            seen.add(node);
+            resolved.push({ ...hit, object: node });
+        }
+
+        return resolved;
     }
 }

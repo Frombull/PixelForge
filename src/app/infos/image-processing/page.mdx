@@ -1,0 +1,52 @@
+export const metadata = {
+  title: "Processamento de Imagem — PixelForge",
+  description:
+    "Filtros, convoluções e a Transformada de Fourier aplicados a imagens digitais.",
+};
+
+# Processamento de Imagem
+
+Uma imagem digital é uma matriz de pixels. **Processar** essa imagem significa
+transformar essa matriz — realçando bordas, suavizando ruído ou analisando
+padrões — através de operações matemáticas bem definidas.
+
+## Convolução e filtros
+
+A operação central do processamento de imagem é a **convolução**: um pequeno
+*kernel* (matriz de pesos) desliza sobre a imagem, e cada pixel de saída é a
+soma ponderada de seus vizinhos.
+
+```
+saída(x,y) = Σ kernel(i,j) · entrada(x+i, y+j)
+```
+
+Kernels diferentes produzem efeitos diferentes:
+
+- **Blur (desfoque)** — média os vizinhos, suavizando detalhes
+- **Sharpen (nitidez)** — realça a diferença entre um pixel e seus vizinhos
+- **Detecção de bordas** (Sobel, Laplaciano) — destaca mudanças abruptas de
+  intensidade
+
+## Domínio da frequência e FFT
+
+Toda imagem pode ser decomposta em ondas de diferentes frequências espaciais
+pela **Transformada Rápida de Fourier (FFT)**. Regiões de mudança suave
+correspondem a baixas frequências; bordas e ruído, a altas frequências.
+
+Trabalhar no domínio da frequência permite:
+
+- Remover ruído periódico isolando frequências específicas
+- Comprimir dados descartando frequências pouco perceptíveis (base do JPEG)
+- Aplicar filtros passa-baixa/passa-alta de forma eficiente
+
+## Aplicações
+
+- Realce médico (raio-X, ressonância)
+- Visão computacional e reconhecimento de padrões
+- Compressão de imagem (veja [Compressão de Dados](/infos/compression))
+- Efeitos fotográficos (Instagram, Photoshop)
+
+---
+
+Experimente filtros e FFT em tempo real no [módulo de Processamento de
+Imagem](/image-fft).

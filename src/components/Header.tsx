@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, Fragment } from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 
 //  Types
 interface NavLinkDef {
@@ -48,7 +50,7 @@ function NavLink({ href, label, className, bracketClassName, active = false, onC
 
 // Separator
 function Separator() {
-  return <span aria-hidden="true" className="h-4 w-px bg-[#3a3a3a]" />;
+  return <span aria-hidden="true" className="h-4 w-px bg-(--pf-border-strong)" />;
 }
 
 // Header 
@@ -56,12 +58,13 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
 
   const desktopLinkBase =
-    "group inline-flex items-center px-3 py-1.5 text-neutral-400 whitespace-nowrap transition-colors duration-100 hover:text-neutral-100";
+    "group inline-flex items-center px-3 py-1.5 text-(--pf-fg-muted) whitespace-nowrap transition-colors duration-100 hover:text-(--pf-fg-strong)";
   const mobileLinkBase =
-    "group inline-flex items-center px-4 py-3 text-neutral-300 uppercase tracking-[0.06em] text-[11px] transition-colors duration-100 hover:text-neutral-100";
-  const bracketBase = "text-[#5a5a5a] transition-opacity duration-100";
+    "group inline-flex items-center px-4 py-3 text-(--pf-fg-muted) uppercase tracking-[0.06em] text-[11px] transition-colors duration-100 hover:text-(--pf-fg-strong)";
+  const bracketBase = "text-(--pf-fg-faint) transition-opacity duration-100";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -73,10 +76,8 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed left-0 top-0 w-full z-50 border-b ${
-        scrolled
-          ? "border-[#303030] bg-[rgb(13,13,13)]/95 backdrop-blur-md"
-          : "border-[#242424] bg-[rgb(18,18,18)]/95 backdrop-blur-sm"
+      className={`fixed left-0 top-0 w-full z-50 border-b border-(--pf-border) bg-(--pf-bg)/95 ${
+        scrolled ? "backdrop-blur-md" : "backdrop-blur-sm"
       }`}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4">
@@ -88,7 +89,7 @@ export default function Header() {
               <img src="/images/PixelForge_Logo_V2.png" alt="logo" className="w-5 h-5 lg:w-8 lg:h-8" />
             </div>
             <div className="hidden sm:block">
-              <div className="text-white font-bold font-mono text-lg lg:text-xl tracking-tight flex items-baseline gap-1.5">
+              <div className="text-(--pf-fg-strong) font-bold font-mono text-lg lg:text-xl tracking-tight flex items-baseline gap-1.5">
                 <span>PixelForge</span>
                 <span className="text-sky-400 font-normal">3D</span>
               </div>
@@ -113,7 +114,7 @@ export default function Header() {
                 <NavLink
                   {...link}
                   active={pathname === link.href}
-                  className={`${desktopLinkBase} ${pathname === link.href ? "text-white" : ""}`}
+                  className={`${desktopLinkBase} ${pathname === link.href ? "text-(--pf-fg-strong)" : ""}`}
                   bracketClassName={bracketBase}
                 />
                 {/* Separator between secondary links */}
@@ -121,6 +122,16 @@ export default function Header() {
               </Fragment>
             ))}
           </nav>
+
+          {/* Theme toggle (desktop) */}
+          <button
+            onClick={toggleTheme}
+            className="hidden lg:flex items-center justify-center w-8 h-8 shrink-0 text-(--pf-fg-muted) hover:text-(--pf-fg-strong) border border-(--pf-border) hover:border-sky-400/60 rounded transition-colors"
+            title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+            aria-label="Alternar tema"
+          >
+            {theme === "dark" ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
+          </button>
 
           {/* Mobile Menu Button */}
           <div className="flex lg:hidden items-center gap-4 z-10">
@@ -130,8 +141,8 @@ export default function Header() {
               aria-expanded={mobileMenuOpen}
               className={`inline-flex h-9 w-9 items-center justify-center border transition-colors duration-100 ${
                 mobileMenuOpen
-                  ? "border-[#4a4a4a] bg-[#1a1a1a] text-white"
-                  : "border-[#2a2a2a] bg-[#101010] text-[#a0a0a0] hover:border-[#3a3a3a] hover:bg-[#171717] hover:text-white"
+                  ? "border-(--pf-border-strong) bg-(--pf-bg-raised) text-(--pf-fg-strong)"
+                  : "border-(--pf-border) bg-(--pf-bg-raised)/60 text-(--pf-fg-muted) hover:border-(--pf-border-strong) hover:bg-(--pf-bg-raised) hover:text-(--pf-fg-strong)"
               }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,17 +159,24 @@ export default function Header() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden mt-1 pb-3">
-            <nav className="flex flex-col gap-2 font-mono text-sm border border-[#222222] bg-[#0d0d0d] p-3">
+            <nav className="flex flex-col gap-2 font-mono text-sm border border-(--pf-border-strong) bg-(--pf-bg-raised) p-3">
               {[...PRIMARY_LINKS, ...SECONDARY_LINKS].map((link) => (
                 <NavLink
                   key={link.href}
                   {...link}
                   active={link.exactMatch ? pathname === link.href : false}
-                  className={`${mobileLinkBase} ${link.exactMatch && pathname === link.href ? "text-white" : ""}`}
+                  className={`${mobileLinkBase} ${link.exactMatch && pathname === link.href ? "text-(--pf-fg-strong)" : ""}`}
                   bracketClassName={bracketBase}
                   onClick={closeMobileMenu}
                 />
               ))}
+              <button
+                onClick={() => { toggleTheme(); closeMobileMenu(); }}
+                className="group inline-flex items-center gap-2 px-4 py-3 text-(--pf-fg-muted) uppercase tracking-[0.06em] text-[11px] transition-colors duration-100 hover:text-(--pf-fg-strong)"
+              >
+                {theme === "dark" ? <Sun size={13} strokeWidth={1.5} /> : <Moon size={13} strokeWidth={1.5} />}
+                <span>{theme === "dark" ? "Modo claro" : "Modo escuro"}</span>
+              </button>
             </nav>
           </div>
         )}

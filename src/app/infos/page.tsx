@@ -242,7 +242,7 @@ export default function InfosPage() {
                           className="bg-[var(--pf-bg-raised)] p-0 relative cursor-pointer block transition-colors group border border-[var(--pf-border)] rounded-md overflow-hidden hover:border-[var(--pf-border-strong)]">
 
                           {concept.image && (
-                            <div className="relative -mx-0 -mt-0 overflow-hidden rounded-t-md h-40 bg-[var(--pf-bg)] border-b border-[var(--pf-border)]">
+                            <div className="relative -mx-0 -mt-0 overflow-hidden rounded-t-md h-40 bg-[#0d0d0d] border-b border-[var(--pf-border)]">
                               <img
                                 src={concept.image}
                                 alt={`${concept.title} preview`}

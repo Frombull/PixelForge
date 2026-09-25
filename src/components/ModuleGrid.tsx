@@ -77,7 +77,7 @@ export default function ModuleGrid({ id, title, modules: tools, className = "" }
               className="group relative flex flex-col bg-[var(--pf-bg-raised)]/40 border border-[var(--pf-border)] rounded-[1px] p-6 transition-colors duration-100 hover:bg-[var(--pf-bg-raised)]/80 overflow-hidden"
             >
               {tool.previewImage && (
-                <div className="relative -mx-6 -mt-6 mb-5 overflow-hidden rounded-t-[1px] h-44 sm:h-40 bg-[var(--pf-bg)]/40 border-b border-[var(--pf-border)]">
+                <div className="relative -mx-6 -mt-6 mb-5 overflow-hidden rounded-t-[1px] h-44 sm:h-40 bg-[#0d0d0d] border-b border-(--pf-border)">
                   <img
                     src={tool.previewImage}
                     alt={`${tool.title} preview`}

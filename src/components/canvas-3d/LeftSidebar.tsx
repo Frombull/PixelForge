@@ -62,8 +62,9 @@ export default function LeftSidebar({
       <div className="h-full w-full overflow-hidden">
         <div
           aria-hidden={isCollapsed}
-          className={`flex h-full w-75 flex-col p-2 transition-opacity duration-100 ${isCollapsed ? "opacity-0" : "opacity-100"}`}
+          className={`flex h-full w-75 flex-col overflow-y-auto p-2 transition-opacity duration-100 ${isCollapsed ? "opacity-0" : "opacity-100"}`}
           id="sidebar-left-content"
+          style={{ scrollbarGutter: "stable" }}
         >
       <div className={panelSectionClass} id="hierarchy-section">
         <div className={`${panelHeaderClass} relative flex items-center justify-center`}>
@@ -76,7 +77,7 @@ export default function LeftSidebar({
           <span className="text-center">Hierarquia</span>
         </div>
 
-        <div className="h-68 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
+        <div className="h-40 overflow-y-auto p-0 pr-1" id="hierarchy-list" style={{ scrollbarGutter: "stable" }}>
           {engineState.objects.length === 0 && (
             <div className="p-1 text-xs text-(--ui-text-muted) text-center">Nenhum objeto na cena</div>
           )}
@@ -126,9 +127,6 @@ export default function LeftSidebar({
           <div className="grid grid-cols-2 gap-2">
             <button className={panelActionButtonClass} onClick={() => onAddObject("cube")} type="button">Cubo</button>
             <button className={panelActionButtonClass} onClick={() => onAddObject("cylinder")} type="button">Cilindro</button>
-            <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Esfera</button>
-            <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Cone</button>
-            <button className={`${panelActionButtonClass} opacity-45`} disabled type="button">Torus</button>
             <button
               className={`${panelActionButtonClass} border-[#f7768e] text-[#f7768e]`}
               onClick={() => onAddObject("subtractCube")}
@@ -144,7 +142,6 @@ export default function LeftSidebar({
           <div className="mt-[0.65rem]">
             <div className="mb-1 text-[0.68rem] uppercase text-(--ui-text-muted)">Demos</div>
             <button className={panelActionButtonClass} onClick={() => onAddObject("zFighting")} type="button">Z-Fighting</button>
-            <button className={`${panelActionButtonClass} mt-2 opacity-45`} disabled type="button">Skew Demo</button>
           </div>
         </div>
       </div>

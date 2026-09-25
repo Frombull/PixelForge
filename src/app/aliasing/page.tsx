@@ -11,14 +11,14 @@ const F0 = 6;
 const FS_MIN = 3;
 const FS_MAX = 40;
 const FS_DEFAULT = 8; // abaixo de Nyquist (12Hz) por padrão, para expor o aliasing de imediato.
-const PANEL_SPLIT = 0.58;
-const PANEL_GAP = 22;
 
 const aliasFreq = (f0: number, fs: number) => {
   let f = ((f0 % fs) + fs) % fs;
   if (f > fs / 2) f = fs - f;
   return f;
 };
+
+type Layers = { original: boolean; constructed: boolean; points: boolean };
 
 export default function AliasingPage() {
   const { theme, toggleTheme } = useTheme();
@@ -27,6 +27,13 @@ export default function AliasingPage() {
 
   const [tgtFs, setTgtFs] = useState(FS_DEFAULT);
   const curFsRef = useRef(FS_DEFAULT);
+
+  const [layers, setLayers] = useState<Layers>({ original: true, constructed: true, points: true });
+  const layersRef = useRef(layers);
+  useEffect(() => { layersRef.current = layers; }, [layers]);
+
+  const toggleLayer = (key: keyof Layers) =>
+    setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
     let animationFrameId: number;
@@ -43,7 +50,7 @@ export default function AliasingPage() {
     const resize = () => {
       if (!wrap) return;
       W = wrap.clientWidth;
-      H = Math.round(W * 0.48);
+      H = Math.round(W * 0.34);
       canvas.width = W;
       canvas.height = H;
     };
@@ -55,10 +62,10 @@ export default function AliasingPage() {
       Math.round(lerp(a[2], b[2], t)),
     ];
 
-    const COL_ORIG = [150, 150, 150]; // sinal contínuo original
-    const COL_MARK = [110, 168, 216]; // pontos/hastes de amostragem sobre o sinal original
-    const COL_OK = [70, 200, 80]; // sinal discreto sem aliasing
-    const COL_ALIAS = [220, 70, 70]; // sinal discreto / fantasma com aliasing
+    const COL_ORIG = [150, 150, 150]; // sinal original
+    const COL_MARK = [110, 168, 216]; // pontos amostrados sobre o sinal original
+    const COL_OK = [70, 200, 80]; // sinal construído, fiel ao original
+    const COL_ALIAS = [220, 70, 70]; // sinal construído, com aliasing
 
     const draw = () => {
       const fs = curFsRef.current;
@@ -66,23 +73,16 @@ export default function AliasingPage() {
       const fa = aliasFreq(F0, fs);
       const eps = Math.max(F0 * 0.06, 0.3);
       const mix = Math.max(0, Math.min(1, (F0 - nyq) / eps));
+      const { original, constructed, points } = layersRef.current;
 
       ctx.clearRect(0, 0, W, H);
 
       const tEnd = 3 / F0;
       const xOf = (t: number) => (t / tEnd) * W;
       const steps = W * 2;
-
-      const splitY = H * PANEL_SPLIT;
-      const topH = splitY - PANEL_GAP / 2;
-      const botTop = splitY + PANEL_GAP / 2;
-      const botH = H - botTop;
-      const cyA = topH / 2;
-      const cyB = botTop + botH / 2;
-      const ampA = topH * 0.38;
-      const ampB = botH * 0.4;
-      const yA = (v: number) => cyA - v * ampA;
-      const yB = (v: number) => cyB - v * ampB;
+      const cy = H / 2;
+      const amp = H * 0.36;
+      const yOf = (v: number) => cy - v * amp;
 
       // grade de fundo
       ctx.strokeStyle = "rgba(255,255,255,0.015)";
@@ -91,47 +91,25 @@ export default function AliasingPage() {
       for (let x = 0; x <= W; x += gs) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
       for (let y = 0; y <= H; y += gs) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
 
-      // divisor entre os dois painéis
-      ctx.strokeStyle = "rgba(255,255,255,0.09)";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath(); ctx.moveTo(0, splitY); ctx.lineTo(W, splitY); ctx.stroke();
-      ctx.setLineDash([]);
-
-      // eixos zero
-      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      // eixo zero
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, cyA); ctx.lineTo(W, cyA); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0, cyB); ctx.lineTo(W, cyB); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
 
-      // --- PAINEL A: sinal contínuo fixo ---
-      ctx.beginPath();
-      for (let i = 0; i <= steps; i++) {
-        const t = (i / steps) * tEnd;
-        const v = Math.sin(2 * Math.PI * F0 * t);
-        i === 0 ? ctx.moveTo(xOf(t), yA(v)) : ctx.lineTo(xOf(t), yA(v));
-      }
-      ctx.strokeStyle = `rgba(${COL_ORIG.join(",")},0.75)`;
-      ctx.lineWidth = 3.5;
-      ctx.stroke();
-
-      // curva fantasma (frequência alias) sobreposta ao sinal original, quando presente
-      if (mix > 0.02) {
-        const recRGB = lerpRGB(COL_OK, COL_ALIAS, mix);
+      // sinal original (fixo)
+      if (original) {
         ctx.beginPath();
         for (let i = 0; i <= steps; i++) {
           const t = (i / steps) * tEnd;
-          const v = Math.sin(2 * Math.PI * fa * t);
-          i === 0 ? ctx.moveTo(xOf(t), yA(v)) : ctx.lineTo(xOf(t), yA(v));
+          const v = Math.sin(2 * Math.PI * F0 * t);
+          i === 0 ? ctx.moveTo(xOf(t), yOf(v)) : ctx.lineTo(xOf(t), yOf(v));
         }
-        ctx.strokeStyle = `rgba(${recRGB.join(",")},${lerp(0, 0.9, mix)})`;
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([7, 5]);
+        ctx.strokeStyle = `rgba(${COL_ORIG.join(",")},0.75)`;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
-        ctx.setLineDash([]);
       }
 
-      // amostras: hastes + pontos mostrando ONDE o sinal original é lido
+      // amostras: onde o sinal original é lido
       const nSamples = Math.floor(fs * tEnd) + 1;
       const dt = 1 / fs;
       const samples: { t: number; v: number }[] = [];
@@ -141,43 +119,34 @@ export default function AliasingPage() {
         samples.push({ t, v: Math.sin(2 * Math.PI * F0 * t) });
       }
 
-      ctx.strokeStyle = `rgba(${COL_MARK.join(",")},0.55)`;
-      ctx.lineWidth = 1.5;
-      for (const s of samples) {
-        ctx.beginPath(); ctx.moveTo(xOf(s.t), cyA); ctx.lineTo(xOf(s.t), yA(s.v)); ctx.stroke();
-      }
-      for (const s of samples) {
+      // sinal construído: liga as amostras — verde se fiel, vermelho se aliasing
+      if (constructed) {
+        const discRGB = lerpRGB(COL_OK, COL_ALIAS, mix);
         ctx.beginPath();
-        ctx.arc(xOf(s.t), yA(s.v), 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${COL_MARK.join(",")},0.95)`;
-        ctx.fill();
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = "rgba(255,255,255,0.9)";
+        samples.forEach((s, i) => {
+          i === 0 ? ctx.moveTo(xOf(s.t), yOf(s.v)) : ctx.lineTo(xOf(s.t), yOf(s.v));
+        });
+        ctx.strokeStyle = `rgba(${discRGB.join(",")},0.95)`;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
       }
 
-      // --- PAINEL B: representação do sinal discreto ---
-      const discRGB = lerpRGB(COL_OK, COL_ALIAS, mix);
-      const discCol = `rgba(${discRGB.join(",")},0.95)`;
-
-      // reconstrução (liga as amostras — mostra o que o sinal discreto "parece" representar)
-      ctx.beginPath();
-      samples.forEach((s, i) => {
-        i === 0 ? ctx.moveTo(xOf(s.t), yB(s.v)) : ctx.lineTo(xOf(s.t), yB(s.v));
-      });
-      ctx.strokeStyle = discCol;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // hastes + pontos do sinal discreto (stem plot)
-      for (const s of samples) {
-        ctx.beginPath(); ctx.moveTo(xOf(s.t), cyB); ctx.lineTo(xOf(s.t), yB(s.v)); ctx.stroke();
-      }
-      for (const s of samples) {
-        ctx.beginPath();
-        ctx.arc(xOf(s.t), yB(s.v), 5, 0, Math.PI * 2);
-        ctx.fillStyle = discCol;
-        ctx.fill();
+      // pontos do sinal construído (hastes + marcadores, na própria curva original)
+      if (points) {
+        ctx.strokeStyle = `rgba(${COL_MARK.join(",")},0.5)`;
+        ctx.lineWidth = 1.5;
+        for (const s of samples) {
+          ctx.beginPath(); ctx.moveTo(xOf(s.t), cy); ctx.lineTo(xOf(s.t), yOf(s.v)); ctx.stroke();
+        }
+        for (const s of samples) {
+          ctx.beginPath();
+          ctx.arc(xOf(s.t), yOf(s.v), 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${COL_MARK.join(",")},0.95)`;
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "rgba(255,255,255,0.9)";
+          ctx.stroke();
+        }
       }
     };
 
@@ -245,42 +214,46 @@ export default function AliasingPage() {
         <div className="relative bg-[#111] border border-[#1e1e1e] overflow-hidden" ref={wrapRef}>
           <canvas ref={canvasRef} className="block w-full"></canvas>
           <div className="absolute font-mono text-[20px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">{fsT}Hz</div>
-          <div
-            className="absolute font-mono text-[10px] text-[#555] tracking-[0.15em] uppercase pointer-events-none top-2.5 left-3.5"
-          >
-            sinal contínuo · amostragem
-          </div>
-          <div
-            className="absolute font-mono text-[10px] text-[#555] tracking-[0.15em] uppercase pointer-events-none left-3.5"
-            style={{ top: `calc(${PANEL_SPLIT * 100}% + 8px)` }}
-          >
-            sinal discreto (reconstrução)
-          </div>
-        </div>
 
-        <div className="flex gap-7 items-center py-2.5 px-3.5 border border-[#1e1e1e] border-t-0 bg-[#0d0d0d] flex-wrap">
-          <div className="flex items-center gap-2 font-mono text-[12px] text-[#c8c8c8] tracking-[0.06em]">
-            <div className="w-5 h-[2px] bg-[#969696]"></div>
-            sinal original (f₀ fixo)
-          </div>
-          <div className="flex items-center gap-2 font-mono text-[12px] text-[#c8c8c8] tracking-[0.06em]">
-            <svg className="w-2.5 h-2.5 shrink-0" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#6ea8d8"/></svg>
-            onde o sinal é amostrado
-          </div>
-          <div className="flex items-center gap-2 font-mono text-[12px] text-[#c8c8c8] tracking-[0.06em]">
-            <div className="w-5 h-[2px]" style={{ background: hasAlias ? '#dc4646' : '#46c850' }}></div>
-            <span>{hasAlias ? 'sinal discreto (com aliasing)' : 'sinal discreto (fiel ao original)'}</span>
-          </div>
-        </div>
-
-        {hasAlias && (
-          <div className="flex items-start gap-3.5 mt-0.5 py-4 px-5 border border-[var(--pf-danger-border)] bg-[var(--pf-danger-bg)]">
-            <AlertTriangle size={18} strokeWidth={1.75} className="text-[var(--pf-danger-fg-hover)] shrink-0 mt-0.5" />
-            <div className="text-[13.5px] font-light leading-[1.7] text-[var(--pf-danger-fg-hover)]">
-              <strong className="font-medium">Aliasing detectado.</strong> A taxa de amostragem (fₛ = {fsT} Hz) é menor que o dobro da frequência do sinal (2·f₀ = {2 * F0} Hz). As amostras coletadas são indistinguíveis das que seriam geradas por um sinal de <strong className="font-medium">{faT.toFixed(1)} Hz</strong> — a frequência fantasma visível no painel inferior. A informação original não pode mais ser recuperada a partir dessas amostras.
+          {hasAlias && (
+            <div className="absolute left-0 right-0 bottom-0 flex items-center gap-3 py-2.5 px-3.5 bg-[rgba(22,5,5,0.92)] border-t border-[#552222] backdrop-blur-[1px]">
+              <AlertTriangle size={15} strokeWidth={1.75} className="text-[#e08080] shrink-0" />
+              <div className="font-mono text-[11.5px] leading-[1.5] text-[#e08080]">
+                <strong className="font-medium">Aliasing</strong> — fₛ ({fsT} Hz) &lt; 2·f₀ ({2 * F0} Hz). As amostras equivalem a um sinal de <strong className="font-medium">{faT.toFixed(1)} Hz</strong>, indistinguível do original.
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        <div className="flex gap-1.5 items-center py-2.5 px-3.5 border border-[#1e1e1e] border-t-0 bg-[#0d0d0d] flex-wrap">
+          <button
+            onClick={() => toggleLayer("original")}
+            className={`flex items-center gap-2 font-mono text-[12px] tracking-[0.06em] px-2.5 py-1.5 border transition-colors cursor-pointer ${
+              layers.original ? "border-[#333] text-[#c8c8c8]" : "border-transparent text-[#555]"
+            }`}
+          >
+            <div className={`w-5 h-[2px] ${layers.original ? "bg-[#969696]" : "bg-[#444]"}`}></div>
+            sinal original
+          </button>
+          <button
+            onClick={() => toggleLayer("constructed")}
+            className={`flex items-center gap-2 font-mono text-[12px] tracking-[0.06em] px-2.5 py-1.5 border transition-colors cursor-pointer ${
+              layers.constructed ? "border-[#333] text-[#c8c8c8]" : "border-transparent text-[#555]"
+            }`}
+          >
+            <div className="w-5 h-[2px]" style={{ background: !layers.constructed ? '#444' : hasAlias ? '#dc4646' : '#46c850' }}></div>
+            <span>sinal construído {hasAlias ? '(com aliasing)' : '(fiel ao original)'}</span>
+          </button>
+          <button
+            onClick={() => toggleLayer("points")}
+            className={`flex items-center gap-2 font-mono text-[12px] tracking-[0.06em] px-2.5 py-1.5 border transition-colors cursor-pointer ${
+              layers.points ? "border-[#333] text-[#c8c8c8]" : "border-transparent text-[#555]"
+            }`}
+          >
+            <svg className="w-2.5 h-2.5 shrink-0" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill={layers.points ? "#6ea8d8" : "#444"}/></svg>
+            pontos amostrados
+          </button>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-0.5 bg-[var(--pf-border)] mt-0.5">
           <div className="bg-[var(--pf-bg)] py-6 px-7">
@@ -326,7 +299,7 @@ export default function AliasingPage() {
               <span className="font-mono text-[13px] text-[var(--pf-fg-faint)] tracking-[0.06em]">fixo, não editável</span>
             </div>
             <div className="mt-3.5 text-[13px] font-light text-[var(--pf-fg-muted)] leading-[1.7]">
-              A senoide contínua abaixo permanece constante em {F0} Hz. Só a taxa de amostragem muda — assim fica claro que o aliasing é resultado exclusivo de <em className="italic">como</em> o sinal foi medido, não de qualquer alteração no sinal original.
+              A senoide contínua acima permanece constante em {F0} Hz. Só a taxa de amostragem muda — assim fica claro que o aliasing é resultado exclusivo de <em className="italic">como</em> o sinal foi medido, não de qualquer alteração no sinal original.
             </div>
             <div className="mt-5">
               <div className="flex justify-between items-center py-2.25 border-b border-t border-[var(--pf-border)]">
@@ -360,13 +333,13 @@ export default function AliasingPage() {
               Para reconstruir um sinal de frequência <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">f₀</code> sem distorção, a taxa de amostragem <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">fₛ</code> deve satisfazer <strong className="font-medium text-[var(--pf-fg)]">fₛ &gt; 2·f₀</strong>. Este limiar é chamado de <strong className="font-medium text-[var(--pf-fg)]">frequência de Nyquist</strong>.
             </p>
             <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75]">
-              Quando a condição é atendida, o Teorema da Amostragem garante que o sinal contínuo original pode ser recuperado <em className="italic">exatamente</em> a partir das amostras discretas, via filtragem passa-baixas ideal — é exatamente o que o painel inferior mostra ao seguir de perto a curva cinza.
+              Quando a condição é atendida, o Teorema da Amostragem garante que o sinal contínuo original pode ser recuperado <em className="italic">exatamente</em> a partir das amostras discretas — o sinal construído (verde) acompanha de perto a curva cinza.
             </p>
           </div>
           <div className="bg-[var(--pf-bg)] py-7 px-8">
             <h3 className="font-mono text-[11px] text-[var(--pf-fg-faint)] tracking-[0.15em] uppercase mb-3.5 pb-2.5 border-b border-[var(--pf-border)]">Aliasing — Frequência Fantasma</h3>
             <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75] mb-3">
-              Quando <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">fₛ &lt; 2·f₀</code>, ocorre <strong className="font-medium text-[var(--pf-fg)]">aliasing</strong>: as mesmas amostras (bolinhas azuis no painel superior) também pertencem a uma senoide de frequência muito mais baixa — a curva vermelha tracejada. O sinal discreto não tem como distinguir as duas.
+              Quando <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">fₛ &lt; 2·f₀</code>, ocorre <strong className="font-medium text-[var(--pf-fg)]">aliasing</strong>: os mesmos pontos amostrados (bolinhas azuis) também pertencem a uma senoide de frequência muito mais baixa. É essa senoide — não a original — que o sinal construído (vermelho) acaba representando.
             </p>
             <p className="text-[14.5px] font-light text-[var(--pf-fg-muted)] leading-[1.75]">
               A frequência alias é calculada por <code className="font-mono text-[12.5px] text-[var(--pf-code-fg)] bg-[var(--pf-code-bg)] px-1.5 py-px">f_alias = | f₀ − round(f₀/fₛ)·fₛ |</code>. O artefato é irreversível — amostrado com fₛ insuficiente, a informação original não pode ser recuperada.

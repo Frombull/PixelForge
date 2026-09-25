@@ -69,6 +69,12 @@ export default function Canvas3DWorkspace() {
   const [colorInputs, setColorInputs] = useState<ColorInputState>(EMPTY_COLOR_INPUTS);
   const [sceneFeedback, setSceneFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  useEffect(() => {
+    if (!sceneFeedback) return;
+    const timer = window.setTimeout(() => setSceneFeedback(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [sceneFeedback]);
+
   const settingsRef = useRef<HTMLDivElement | null>(null);
   const settingsButtonRef = useRef<HTMLButtonElement | null>(null);
   const infoRef = useRef<HTMLDivElement | null>(null);

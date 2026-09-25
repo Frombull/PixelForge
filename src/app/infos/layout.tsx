@@ -16,7 +16,7 @@ export default function InfosLayout({ children }: { children: React.ReactNode })
           {/* Sidebar — sticky within the scrolling page.
               `self-start` prevents flex from stretching it to row height,
               which would leave no room for sticky to slide. */}
-          <aside className="hidden lg:block w-[220px] shrink-0 self-start sticky top-[72px] max-h-[calc(100vh-72px)] overflow-y-auto pt-10 px-6">
+          <aside className="hidden lg:block w-[260px] min-w-[260px] max-w-[260px] shrink-0 self-start sticky top-[72px] max-h-[calc(100vh-72px)] overflow-y-auto overflow-x-hidden pt-10 px-6">
             <InfosSidebar />
           </aside>
 

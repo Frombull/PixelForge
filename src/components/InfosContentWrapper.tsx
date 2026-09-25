@@ -21,7 +21,7 @@ export default function InfosContentWrapper({ children }: { children: React.Reac
           : undefined
       }
     >
-      <div className="w-full max-w-6xl lg:-translate-x-[110px]">
+      <div className="w-full max-w-6xl">
         {children}
       </div>
     </div>

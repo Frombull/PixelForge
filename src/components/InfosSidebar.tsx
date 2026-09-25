@@ -74,7 +74,7 @@ export default function InfosSidebar() {
     : pathname.split("/infos/")[1]?.split("/")[0] ?? null;
 
   return (
-    <aside className="flex flex-col w-full overflow-y-auto pb-8 pr-2">
+    <aside className="flex flex-col w-full min-w-0 overflow-y-auto overflow-x-hidden pb-8 pr-2">
       <div className="mb-4 pb-3 border-b border-[var(--pf-border)]">
         <Link
           href="/infos"
@@ -86,20 +86,20 @@ export default function InfosSidebar() {
         </Link>
       </div>
 
-      <nav className="space-y-5">
+      <nav className="min-w-0 space-y-5">
         {grouped.map((group) => (
-          <div key={group.key}>
+          <div key={group.key} className="min-w-0">
             <div className="text-[9px] tracking-[1.8px] uppercase font-mono font-bold mb-2.5 text-[var(--pf-fg-faint)]">
               {group.label}
             </div>
-            <ul className="space-y-0.5">
+            <ul className="min-w-0 space-y-0.5">
               {group.items.map((concept) => {
                 const isActive = activeConceptId === concept.id;
                 return (
-                  <li key={concept.id}>
+                  <li key={concept.id} className="min-w-0">
                     <Link
                       href={`/infos/${concept.id}`}
-                      className={`block px-2 py-1.5 rounded-[3px] text-[13px] font-sans transition-colors ${
+                      className={`block w-full min-w-0 break-words px-2 py-1.5 rounded-[3px] text-[13px] font-sans transition-colors ${
                         isActive
                           ? "text-[var(--pf-fg-strong)]"
                           : "text-[var(--pf-fg-faint)] hover:text-[var(--pf-fg)]"

@@ -11,6 +11,7 @@ const F0 = 6;
 const FS_MIN = 3;
 const FS_MAX = 40;
 const FS_DEFAULT = 8; // abaixo de Nyquist (12Hz) por padrão, para expor o aliasing de imediato.
+const WINDOW = 1; // janela fixa de 1s — nº de amostras visíveis = fs + 1, sem "degraus".
 
 const aliasFreq = (f0: number, fs: number) => {
   let f = ((f0 % fs) + fs) % fs;
@@ -77,7 +78,7 @@ export default function AliasingPage() {
 
       ctx.clearRect(0, 0, W, H);
 
-      const tEnd = 3 / F0;
+      const tEnd = WINDOW;
       const xOf = (t: number) => (t / tEnd) * W;
       const steps = W * 2;
       const cy = H / 2;
@@ -216,10 +217,10 @@ export default function AliasingPage() {
           <div className="absolute font-mono text-[20px] text-[#555] tracking-widest pointer-events-none top-2.5 right-3.5">{fsT}Hz</div>
 
           {hasAlias && (
-            <div className="absolute left-0 right-0 bottom-0 flex items-center gap-3 py-2.5 px-3.5 bg-[rgba(22,5,5,0.92)] border-t border-[#552222] backdrop-blur-[1px]">
+            <div className="absolute left-0 right-0 bottom-0 flex items-center gap-2.5 py-2.5 px-3.5 bg-[rgba(22,5,5,0.92)] border-t border-[#552222] backdrop-blur-[1px]">
               <AlertTriangle size={15} strokeWidth={1.75} className="text-[#e08080] shrink-0" />
-              <div className="font-mono text-[11.5px] leading-[1.5] text-[#e08080]">
-                <strong className="font-medium">Aliasing</strong> — fₛ ({fsT} Hz) &lt; 2·f₀ ({2 * F0} Hz). As amostras equivalem a um sinal de <strong className="font-medium">{faT.toFixed(1)} Hz</strong>, indistinguível do original.
+              <div className="font-sans text-[13px] font-normal leading-[1.4] text-[#e08080]">
+                Aliasing — parece um sinal de {faT.toFixed(1)} Hz.
               </div>
             </div>
           )}

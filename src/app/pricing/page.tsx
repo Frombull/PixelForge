@@ -61,7 +61,7 @@ export default function PricingPage() {
               <h1 className="text-[28px] sm:text-4xl font-bold text-[var(--pf-fg-strong)] tracking-tight font-sans">
                 Preços
               </h1>
-              <p className="mt-4 mx-auto max-w-xl text-sm sm:text-base text-[var(--pf-fg-muted)] font-mono">
+              <p className="mt-4 mx-auto max-w-xl text-sm sm:text-base text-[var(--pf-fg-muted)] font-sans">
                 O PixelForge é e sempre será open source — todos os módulos, de graça, para qualquer aluno ou professor.
                 Os planos abaixo existem para instituições que querem mais do que self-hosting.
               </p>
@@ -73,7 +73,7 @@ export default function PricingPage() {
               ))}
             </div>
 
-            <p className="mt-12 text-center text-xs text-[var(--pf-fg-faint)] font-mono">
+            <p className="mt-12 text-center text-xs text-[var(--pf-fg-faint)] font-sans">
               Precisa de algo diferente? Escreva para{" "}
               <a
                 href="mailto:marcorrditoro@gmail.com"

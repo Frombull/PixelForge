@@ -23,7 +23,7 @@ export default function PricingCard({
 }: PricingCardProps) {
   return (
     <div
-      className={`relative flex flex-col gap-6 rounded-lg border p-8 font-mono transition-colors duration-150 ${
+      className={`relative flex flex-col gap-6 rounded-lg border p-8 font-sans transition-colors duration-150 ${
         highlighted
           ? "border-sky-400/60 bg-[var(--pf-bg-raised)]"
           : "border-[var(--pf-border)] bg-[var(--pf-bg-raised)] hover:border-[var(--pf-border-strong)]"

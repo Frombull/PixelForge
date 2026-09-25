@@ -1419,7 +1419,7 @@ class App {
         else if (code === KEY_BINDINGS.VIEW_FRONT) this.setCameraAxisView('front');
         else if (code === KEY_BINDINGS.VIEW_RIGHT) this.setCameraAxisView('right');
         else if (code === KEY_BINDINGS.VIEW_TOP) this.setCameraAxisView('top');
-        else if (key === KEY_BINDINGS.DELETE_SELECTED && this.objectManager.selectedObject) {
+        else if ((key === KEY_BINDINGS.DELETE_SELECTED || key === 'backspace') && this.objectManager.selectedObject) {
             this.deleteSelected();
         }
     }

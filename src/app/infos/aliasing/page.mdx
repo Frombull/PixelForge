@@ -1,0 +1,58 @@
+export const metadata = {
+  title: "Aliasing — PixelForge",
+  description:
+    "O que acontece quando a frequência de amostragem não é suficiente para representar um sinal.",
+};
+
+# Aliasing
+
+**Aliasing** é a distorção que aparece quando um sinal contínuo — som, imagem,
+movimento — é amostrado com frequência insuficiente. O resultado é um padrão
+enganoso que não existia no sinal original.
+
+## Amostragem
+
+Digitalizar qualquer sinal contínuo significa medi-lo em pontos discretos.
+Uma imagem, por exemplo, amostra uma cena contínua em uma grade finita de
+pixels; áudio digital amostra uma onda sonora contínua em intervalos de
+tempo fixos.
+
+## Teorema de Nyquist
+
+O **teorema de Nyquist-Shannon** define o limite: para reconstruir um sinal
+corretamente, a frequência de amostragem precisa ser **pelo menos o dobro**
+da maior frequência presente no sinal.
+
+```
+f_amostragem ≥ 2 × f_máxima_do_sinal
+```
+
+Quando essa condição é violada, frequências altas "se disfarçam" como
+frequências baixas — daí o nome *aliasing* (do inglês, "fazer-se passar por
+outro").
+
+## Aliasing visual
+
+Em imagens, aliasing aparece como:
+
+- **Serrilhado (jaggies)** em bordas diagonais ou curvas
+- **Padrões de moiré** em texturas com detalhes finos e repetitivos
+- *Flicker* em animações quando objetos finos se movem entre quadros
+
+## Anti-aliasing
+
+Técnicas de **anti-aliasing** suavizam esse efeito misturando cores nas
+bordas (*supersampling*, MSAA) ou filtrando frequências altas antes da
+amostragem — aplicando os mesmos princípios de filtro discutidos em
+[Processamento de Imagem](/infos/image-processing).
+
+## Aplicações
+
+- Renderização de jogos e gráficos (MSAA, FXAA, TAA)
+- Áudio digital (filtros anti-aliasing antes da conversão A/D)
+- Redimensionamento de imagens sem introduzir padrões falsos
+
+---
+
+Veja o efeito da frequência de amostragem ao vivo no [módulo de
+Aliasing](/aliasing).

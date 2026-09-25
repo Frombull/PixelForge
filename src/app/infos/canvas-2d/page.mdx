@@ -1,0 +1,63 @@
+export const metadata = {
+  title: "Canvas 2D — PixelForge",
+  description:
+    "Sistema de coordenadas, transformações e composição de formas em um plano 2D.",
+};
+
+# Canvas 2D
+
+Um **canvas 2D** é uma superfície de desenho endereçada por pixels, controlada
+programaticamente. É a base de editores vetoriais, jogos 2D e praticamente
+toda interface gráfica que desenha formas customizadas.
+
+## Sistema de coordenadas
+
+Diferente do plano cartesiano da matemática, o canvas usa origem no **canto
+superior esquerdo**, com o eixo Y crescendo para baixo:
+
+```
+(0,0) ────────► x
+  │
+  │    canvas
+  │
+  ▼
+  y
+```
+
+Toda forma desenhada — retângulo, círculo, linha — é posicionada em relação a
+essa origem.
+
+## Transformações
+
+As três transformações fundamentais podem ser combinadas em uma única matriz:
+
+- **Translação** — move a origem do desenho
+- **Rotação** — gira em torno de um ponto (geralmente a origem atual)
+- **Escala** — estica ou encolhe formas nos eixos X e Y
+
+```
+translate(x, y) → rotate(θ) → scale(sx, sy)
+```
+
+A ordem importa: aplicar rotação antes de translação produz um resultado
+diferente de aplicar depois, porque cada transformação afeta o sistema de
+coordenadas usado pela próxima.
+
+## Composição de formas
+
+Formas complexas nascem da combinação de primitivas simples (retângulos,
+arcos, caminhos/*paths*) com operações booleanas ou empilhamento em camadas —
+o mesmo princípio usado em ferramentas como Figma e Illustrator.
+
+## Aplicações
+
+- Editores de desenho e design (Figma, Canva)
+- Interfaces de jogos 2D e HUDs
+- Visualização de dados (gráficos, dashboards)
+- Prototipagem de UI antes de codificar em CSS
+
+---
+
+Experimente na prática no [Canvas 2D interativo](/canvas-2d), ou veja também
+[Curvas de Bézier](/infos/bezier-curves) — usadas para desenhar formas
+suaves dentro de um canvas.

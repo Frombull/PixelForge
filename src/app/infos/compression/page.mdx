@@ -1,0 +1,53 @@
+export const metadata = {
+  title: "Compressão de Dados — PixelForge",
+  description:
+    "Algoritmos com e sem perdas usados para reduzir o tamanho de imagens e arquivos.",
+};
+
+# Compressão de Dados
+
+**Comprimir** um arquivo significa representar a mesma informação usando
+menos bits — essencial para armazenamento e transmissão de imagens, vídeo e
+áudio pela internet.
+
+## Com perdas vs. sem perdas
+
+- **Sem perdas (lossless)** — os dados originais podem ser reconstruídos
+  perfeitamente. Usado quando cada bit importa: PNG, ZIP, texto.
+- **Com perdas (lossy)** — descarta informação considerada imperceptível ao
+  olho ou ouvido humano, trocando fidelidade por taxas de compressão muito
+  maiores. Usado em JPEG, MP3, WebP.
+
+## DCT e JPEG
+
+O JPEG divide a imagem em blocos de 8×8 pixels e aplica a **Transformada
+Discreta de Cosseno (DCT)**, convertendo cada bloco para o domínio da
+frequência — o mesmo princípio da FFT em
+[Processamento de Imagem](/infos/image-processing).
+
+```
+bloco 8×8 → DCT → quantização → codificação
+```
+
+A **quantização** é onde a perda acontece: frequências altas (detalhes finos,
+menos perceptíveis) são arredondadas de forma mais agressiva que frequências
+baixas.
+
+## WebP e compressão fractal
+
+- **WebP** combina predição de blocos com codificação entrópica, alcançando
+  arquivos menores que JPEG em qualidade equivalente.
+- **Compressão fractal** explora auto-similaridade na imagem: em vez de
+  guardar pixels, guarda transformações que recriam partes da imagem a
+  partir de outras partes dela mesma.
+
+## Aplicações
+
+- Streaming de vídeo e imagens na web
+- Armazenamento em nuvem
+- Transmissão eficiente em redes com banda limitada
+
+---
+
+Compare algoritmos e taxas de compressão no [módulo de Compressão de
+Dados](/compress).

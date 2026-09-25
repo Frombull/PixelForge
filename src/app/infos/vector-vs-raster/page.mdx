@@ -1,0 +1,57 @@
+export const metadata = {
+  title: "Vetorial vs Matricial — PixelForge",
+  description:
+    "As diferenças fundamentais entre representar imagens como formas matemáticas ou como grades de pixels.",
+};
+
+# Vetorial vs Matricial
+
+Imagens digitais são representadas de duas formas fundamentalmente
+diferentes: **matricial** (*raster*), como uma grade fixa de pixels, ou
+**vetorial**, como um conjunto de formas geométricas descritas
+matematicamente.
+
+## Imagens matriciais
+
+Uma imagem matricial (PNG, JPEG, fotografias) é uma grade de pixels, cada um
+com uma cor definida. A resolução é fixa no momento da criação:
+
+```
+grade[y][x] = cor
+```
+
+Ampliar uma imagem matricial além de sua resolução original não cria novo
+detalhe — apenas aumenta cada pixel, produzindo serrilhado (veja
+[Aliasing](/infos/aliasing)).
+
+## Imagens vetoriais
+
+Uma imagem vetorial (SVG, fontes, ícones) armazena **equações e pontos de
+controle** — retas, curvas (frequentemente [Bézier](/infos/bezier-curves)),
+preenchimentos — em vez de pixels.
+
+```
+círculo(centro, raio) + preenchimento(cor)
+```
+
+Como a forma é recalculada a cada renderização, escalar uma imagem vetorial
+para qualquer tamanho não perde qualidade.
+
+## Trade-offs
+
+| | Matricial | Vetorial |
+|---|---|---|
+| Escalabilidade | Perde qualidade | Perfeita em qualquer escala |
+| Complexidade visual | Ótima p/ fotos, gradientes | Ótima p/ formas geométricas |
+| Tamanho de arquivo | Cresce com resolução | Cresce com nº de formas |
+| Edição | Pixel a pixel | Por objeto/curva |
+
+## Aplicações
+
+- **Vetorial**: logos, ícones, fontes, ilustrações técnicas
+- **Matricial**: fotografias, texturas, capturas de tela
+
+---
+
+Compare qualidade e escala lado a lado no [módulo Vetorial vs
+Matricial](/vector).

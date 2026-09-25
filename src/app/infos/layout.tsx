@@ -5,7 +5,7 @@ import InfosContentWrapper from "@/components/InfosContentWrapper";
 
 export default function InfosLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate min-h-screen flex flex-col font-mono text-left bg-[#13141c] text-[#a9b1d6] overflow-x-clip">
+    <div className="relative isolate min-h-screen flex flex-col font-sans text-left bg-[var(--pf-bg)] text-[var(--pf-fg)] overflow-x-clip">
       <div className="app-noise absolute inset-0 z-0 pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 flex min-h-screen flex-col">
         <Header />
@@ -21,7 +21,7 @@ export default function InfosLayout({ children }: { children: React.ReactNode })
           </aside>
 
           {/* Divider */}
-          <div className="hidden lg:block w-px bg-[#2a2d3e] shrink-0 self-stretch" />
+          <div className="hidden lg:block w-px bg-[var(--pf-border)] shrink-0 self-stretch" />
 
           {/* Main content — background shifts on article pages */}
           <InfosContentWrapper>

@@ -14,6 +14,14 @@ interface ConceptItem {
 const concepts: ConceptItem[] = [
   { id: "bezier-curves", icon: "◫", title: "Curvas de Bézier", category: "Computação Gráfica" },
   { id: "animations", icon: "◫", title: "Animações", category: "Computação Gráfica" },
+  { id: "canvas-2d", icon: "◫", title: "Canvas 2D", category: "Computação Gráfica" },
+  { id: "canvas-3d", icon: "◫", title: "Canvas 3D", category: "Computação Gráfica" },
+  { id: "rgb-cube", icon: "◫", title: "Cubo RGB", category: "Computação Gráfica" },
+  { id: "image-processing", icon: "◫", title: "Processamento de Imagem", category: "Multimídia" },
+  { id: "aliasing", icon: "◫", title: "Aliasing", category: "Multimídia" },
+  { id: "compression", icon: "◫", title: "Compressão de Dados", category: "Multimídia" },
+  { id: "segmentation", icon: "◫", title: "Segmentação de Imagens", category: "Multimídia" },
+  { id: "vector-vs-raster", icon: "◫", title: "Vetorial vs Matricial", category: "Multimídia" },
 ];
 
 const grouped = [
@@ -67,11 +75,11 @@ export default function InfosSidebar() {
 
   return (
     <aside className="flex flex-col w-full overflow-y-auto pb-8 pr-2">
-      <div className="mb-4 pb-3 border-b border-[#2a2d3e]">
+      <div className="mb-4 pb-3 border-b border-[var(--pf-border)]">
         <Link
           href="/infos"
           className={`text-[11px] font-bold tracking-widest uppercase transition-colors font-mono ${
-            isHub ? "text-[#c0caf5]" : "text-[#414868] hover:text-[#a9b1d6]"
+            isHub ? "text-[var(--pf-fg-strong)]" : "text-[var(--pf-fg-faint)] hover:text-[var(--pf-fg)]"
           }`}
         >
           material teórico
@@ -81,7 +89,7 @@ export default function InfosSidebar() {
       <nav className="space-y-5">
         {grouped.map((group) => (
           <div key={group.key}>
-            <div className="text-[9px] tracking-[1.8px] uppercase font-mono font-bold mb-2.5 text-[#414868]">
+            <div className="text-[9px] tracking-[1.8px] uppercase font-mono font-bold mb-2.5 text-[var(--pf-fg-faint)]">
               {group.label}
             </div>
             <ul className="space-y-0.5">
@@ -91,10 +99,10 @@ export default function InfosSidebar() {
                   <li key={concept.id}>
                     <Link
                       href={`/infos/${concept.id}`}
-                      className={`block px-2 py-1.5 rounded-[3px] text-[13px] font-mono transition-colors ${
+                      className={`block px-2 py-1.5 rounded-[3px] text-[13px] font-sans transition-colors ${
                         isActive
-                          ? "text-[#c0caf5]"
-                          : "text-[#414868] hover:text-[#a9b1d6]"
+                          ? "text-[var(--pf-fg-strong)]"
+                          : "text-[var(--pf-fg-faint)] hover:text-[var(--pf-fg)]"
                       }`}
                     >
                       {concept.title}

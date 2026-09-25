@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "Canvas 3D — PixelForge",
+  description:
+    "Renderização de cenas tridimensionais com câmeras, iluminação e z-buffer.",
+};
+
+# Canvas 3D
+
+Renderizar em **3D** significa projetar uma cena com profundidade —
+posições em X, Y e Z — em uma tela plana de pixels. Esse processo depende de
+câmeras, matrizes de projeção e técnicas para decidir o que está na frente
+do quê.
+
+## Câmeras e projeção
+
+Uma câmera 3D define de onde e para onde se olha. Dois tipos de projeção são
+usados com propósitos diferentes:
+
+- **Perspectiva** — objetos distantes parecem menores, como a visão humana.
+  Usada em jogos e visualizações realistas.
+- **Ortogonal** — preserva paralelismo e tamanho independente da distância.
+  Usada em CAD, editores e o [Cubo RGB](/infos/rgb-cube).
+
+## Z-buffer
+
+Para saber qual objeto aparece na frente de outro, cada pixel guarda a
+profundidade (*z*) do fragmento mais próximo já desenhado nele:
+
+```
+para cada pixel:
+  se novo_z < z_buffer[pixel]:
+    desenha fragmento
+    z_buffer[pixel] = novo_z
+```
+
+Sem essa comparação, objetos seriam desenhados na ordem em que o código os
+processa, ignorando qual está realmente mais perto da câmera.
+
+## Z-fighting
+
+Quando duas superfícies têm profundidades quase idênticas, o z-buffer não
+consegue decidir com precisão qual desenhar por cima — o resultado é um
+*flicker* entre as duas, chamado **z-fighting**. É corrigido afastando as
+superfícies ou ajustando a precisão do buffer.
+
+## Iluminação e gizmos
+
+Luzes (direcionais, pontuais, ambiente) determinam como as superfícies são
+sombreadas. *Gizmos* — os eixos e alças visuais usados para mover, rotacionar
+e escalar objetos — são a interface entre o usuário e a cena 3D.
+
+## Aplicações
+
+- Engines de jogos (Unity, Unreal, three.js)
+- Modelagem e CAD
+- Visualização científica e arquitetura
+- Realidade aumentada e virtual
+
+---
+
+Explore câmeras, z-buffer e gizmos no [Canvas 3D interativo](/canvas-3d).

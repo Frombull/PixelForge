@@ -52,6 +52,9 @@ export default function Footer() {
                 <Link href="/infos" className="hover:text-sky-400 transition-colors">Material Teórico</Link>
               </li>
               <li>
+                <Link href="/pricing" className="hover:text-sky-400 transition-colors">Planos e Preços</Link>
+              </li>
+              <li>
                 <Link href="/" className="hover:text-sky-400 transition-colors">Página Inicial</Link>
               </li>
             </ul>

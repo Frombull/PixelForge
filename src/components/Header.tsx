@@ -30,6 +30,7 @@ const PRIMARY_LINKS: NavLinkDef[] = [
 
 const SECONDARY_LINKS: NavLinkDef[] = [
   { href: "/infos", label: "material teórico", exactMatch: true },
+  { href: "/pricing", label: "preços", exactMatch: true },
 ];
 
 //  NavLink component

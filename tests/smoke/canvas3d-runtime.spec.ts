@@ -117,4 +117,44 @@ test.describe('Canvas 3D runtime', () => {
     await expect(page.locator('output[for="color-h"]')).toHaveText('180°');
     await expect.poll(() => page.evaluate(() => window.Canvas3DBridge?.getState()?.selected?.material.hsv.h)).toBe(180);
   });
+
+  test('copies and pastes the selected object with Ctrl+C / Ctrl+V', async ({ page }) => {
+    const browserErrors: string[] = [];
+    page.on('pageerror', (error) => browserErrors.push(error.message));
+
+    const response = await page.goto('/canvas-3d');
+    expect(response?.status()).toBe(200);
+
+    await expect
+      .poll(() => page.evaluate(() => Boolean(window.Canvas3DBridge?.getState())))
+      .toBe(true);
+
+    await page.evaluate(() => {
+      window.Canvas3DBridge?.addObject('cylinder');
+      const addedObject = window.Canvas3DBridge?.getState()?.objects.at(-1);
+      if (addedObject) window.Canvas3DBridge?.selectObject(addedObject.uuid);
+    });
+    await expect.poll(() => page.evaluate(() => Boolean(window.Canvas3DBridge?.getState()?.selected))).toBe(true);
+
+    const original = await page.evaluate(() => window.Canvas3DBridge!.getState()!.selected!);
+    const initialCount = await page.evaluate(() => window.Canvas3DBridge!.getState()!.objects.length);
+
+    await page.keyboard.press('ControlOrMeta+c');
+    await page.keyboard.press('ControlOrMeta+v');
+    await page.keyboard.press('ControlOrMeta+v');
+
+    await expect
+      .poll(() => page.evaluate(() => window.Canvas3DBridge?.getState()?.objects.length))
+      .toBe(initialCount + 2);
+
+    const pasted = await page.evaluate(() => window.Canvas3DBridge!.getState()!.selected!);
+    expect(pasted.uuid).not.toBe(original.uuid);
+    expect(pasted.name).toBe(`${original.name}.002`);
+    expect(pasted.material.hex).toBe(original.material.hex);
+    expect(pasted.position.x).toBeCloseTo(original.position.x + 1);
+    expect(pasted.position.y).toBeCloseTo(original.position.y);
+    expect(pasted.position.z).toBeCloseTo(original.position.z + 1);
+
+    expect(browserErrors).toEqual([]);
+  });
 });

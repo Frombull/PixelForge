@@ -73,6 +73,8 @@ export const CONSTANTS = {
         TOGGLE_CAMERA: 'o',
         FOCUS_SELECTED: 'f',
         DELETE_SELECTED: 'delete',
+        COPY: 'c',
+        PASTE: 'v',
         VIEW_FRONT: 'Numpad7',
         VIEW_RIGHT: 'Numpad3',
         VIEW_TOP: 'Numpad1'
@@ -90,6 +92,7 @@ export const CONSTANTS = {
         },
         skewDragFactor: 0.5,
         minScale: 0.1,
+        pasteOffset: 0.5,
         defaultGridColorHex: '#bbbbbb',
         defaultMaterialColorHex: '#ffffff'
     }

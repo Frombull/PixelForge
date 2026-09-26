@@ -646,7 +646,7 @@ export default function Canvas3DWorkspace() {
             <div>- Focar objeto: {KEY_BINDINGS.FOCUS_SELECTED.toUpperCase()}</div>
             <div>- Snap to grid: Segure SHIFT </div>
             <strong className="mt-2">Keybinds</strong>
-            <div>{`${KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}: Translate | ${KEY_BINDINGS.ROTATE_MODE.toUpperCase()}: Rotate | ${KEY_BINDINGS.SCALE_MODE.toUpperCase()}: Scale | ${KEY_BINDINGS.SKEW_MODE.toUpperCase()}: Skew | ${KEY_BINDINGS.TOGGLE_CAMERA.toUpperCase()}: Toggle Camera | ${KEY_BINDINGS.DELETE_SELECTED.toUpperCase()}: Delete`}</div>
+            <div>{`${KEY_BINDINGS.TRANSLATE_MODE.toUpperCase()}: Translate | ${KEY_BINDINGS.ROTATE_MODE.toUpperCase()}: Rotate | ${KEY_BINDINGS.SCALE_MODE.toUpperCase()}: Scale | ${KEY_BINDINGS.SKEW_MODE.toUpperCase()}: Skew | ${KEY_BINDINGS.TOGGLE_CAMERA.toUpperCase()}: Toggle Camera | ${KEY_BINDINGS.DELETE_SELECTED.toUpperCase()}: Delete | Ctrl+${KEY_BINDINGS.COPY.toUpperCase()}: Copy | Ctrl+${KEY_BINDINGS.PASTE.toUpperCase()}: Paste`}</div>
           </div>
         </main>
 

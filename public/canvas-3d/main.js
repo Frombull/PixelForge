@@ -177,6 +177,8 @@ class App {
         this.animationFrameId = null;
         this.isDestroyed = false;
         this.isShiftSnapActive = false;
+        this.clipboard = null;
+        this.pasteCount = 0;
 
         this.handleWindowResize = () => {
             this.sceneManager.onResize();
@@ -385,16 +387,31 @@ class App {
         };
     }
 
+    getSubtractionEntry(object) {
+        for (const other of this.objectManager.objects) {
+            const entry = other.userData.subtractedObjects?.get?.(object);
+            if (entry?.geometry) return entry;
+        }
+        return null;
+    }
+
+    getSourceGeometry(object) {
+        return this.getSubtractionEntry(object)?.geometry
+            || object?.userData?.originalGeometry
+            || object?.geometry;
+    }
+
     getSceneObjectType(object) {
         if (object?.userData?.isSubtractCube) return 'subtractCube';
         if (object?.userData?.sceneKind) return object.userData.sceneKind;
-        if (object?.geometry?.type === 'CylinderGeometry') return 'cylinder';
+        if (this.getSourceGeometry(object)?.type === 'CylinderGeometry') return 'cylinder';
         return 'cube';
     }
 
     getSceneGeometrySnapshot(object) {
-        const parameters = object?.geometry?.parameters;
-        if (object?.geometry?.type === 'CylinderGeometry' && parameters) {
+        const geometry = this.getSourceGeometry(object);
+        const parameters = geometry?.parameters;
+        if (geometry?.type === 'CylinderGeometry' && parameters) {
             return {
                 kind: 'cylinder',
                 radiusTop: finiteOr(parameters.radiusTop, 0.5),
@@ -416,6 +433,25 @@ class App {
         return { kind: 'box', width: 1, height: 1, depth: 1 };
     }
 
+    serializeSceneObject(object) {
+        const transform = this.getSubtractionEntry(object) || object;
+        return {
+            uuid: object.uuid,
+            name: object.userData.name || object.userData.type || 'Object',
+            type: this.getSceneObjectType(object),
+            geometry: this.getSceneGeometrySnapshot(object),
+            position: vectorToData(transform.position),
+            rotation: {
+                x: transform.rotation.x * 180 / Math.PI,
+                y: transform.rotation.y * 180 / Math.PI,
+                z: transform.rotation.z * 180 / Math.PI
+            },
+            scale: vectorToData(transform.scale),
+            skew: sceneSkewToData(this.objectManager.getSkew(object)),
+            material: materialToData(object.material)
+        };
+    }
+
     serializeScene() {
         if (!this.sceneManager || !this.objectManager) return null;
 
@@ -430,21 +466,7 @@ class App {
         const scene = {
             format: SCENE_FORMAT,
             version: SCENE_VERSION,
-            objects: exportableObjects.map((object) => ({
-                uuid: object.uuid,
-                name: object.userData.name || object.userData.type || 'Object',
-                type: this.getSceneObjectType(object),
-                geometry: this.getSceneGeometrySnapshot(object),
-                position: vectorToData(object.position),
-                rotation: {
-                    x: object.rotation.x * 180 / Math.PI,
-                    y: object.rotation.y * 180 / Math.PI,
-                    z: object.rotation.z * 180 / Math.PI
-                },
-                scale: vectorToData(object.scale),
-                skew: sceneSkewToData(this.objectManager.getSkew(object)),
-                material: materialToData(object.material)
-            })),
+            objects: exportableObjects.map((object) => this.serializeSceneObject(object)),
             selectedIndex,
             mode: this.gizmoManager.currentMode,
             view: {
@@ -874,6 +896,78 @@ class App {
         else if (kind === 'zFighting') this.objectManager.addZFightingDemo();
         this.applyWireframeVisibility();
         this.emitState();
+    }
+
+    cloneModel(source) {
+        const clone = source.clone(true);
+        clone.traverse((node) => {
+            if (node.geometry) node.geometry = node.geometry.clone();
+            if (node.material) {
+                node.material = Array.isArray(node.material)
+                    ? node.material.map((material) => material.clone())
+                    : node.material.clone();
+            }
+        });
+        return clone;
+    }
+
+    getCopyName(name) {
+        const base = String(name || 'Object').replace(/\.\d{3}$/, '');
+        const usedNames = new Set(this.objectManager.objects.map((object) => object.userData.name));
+        let index = 1;
+        while (usedNames.has(`${base}.${String(index).padStart(3, '0')}`)) index++;
+        return `${base}.${String(index).padStart(3, '0')}`.slice(0, 120);
+    }
+
+    copySelected() {
+        const object = this.objectManager.selectedObject;
+        if (!object) return false;
+
+        this.clipboard = object.userData.isImportedModel
+            ? { kind: 'model', template: this.cloneModel(object) }
+            : { kind: 'object', record: this.serializeSceneObject(object) };
+        this.pasteCount = 0;
+        return true;
+    }
+
+    pasteClipboard() {
+        if (!this.clipboard) return false;
+
+        this.pasteCount++;
+        const offset = APP_CONFIG.pasteOffset * this.pasteCount;
+        let object;
+
+        if (this.clipboard.kind === 'model') {
+            object = this.cloneModel(this.clipboard.template);
+            object.userData.name = this.getCopyName(object.userData.name);
+            object.position.x += offset;
+            object.position.z += offset;
+            this.objectManager.addObject(object);
+        } else {
+            const record = this.clipboard.record;
+            object = this.createSceneObject(record.type, record.geometry);
+            this.applySceneObject(object, {
+                ...record,
+                name: this.getCopyName(record.name),
+                position: {
+                    x: record.position.x + offset,
+                    y: record.position.y,
+                    z: record.position.z + offset
+                }
+            });
+
+            // Força as subtrações a reavaliarem com o novo objeto na cena.
+            this.objectManager.objects.forEach((item) => {
+                if (!item.userData.isSubtractCube) return;
+                item.userData.lastPosition.set(NaN, NaN, NaN);
+            });
+            this.booleanOps.update();
+        }
+
+        this.applyWireframeVisibility();
+        this.objectManager.select(object);
+        this.updateSelection();
+        return true;
     }
 
     setMode(mode) {
@@ -1405,6 +1499,18 @@ class App {
         const key = e.key.toLowerCase();
         const code = e.code;
 
+        if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+            if (key === KEY_BINDINGS.COPY) {
+                if (window.getSelection()?.toString()) return;
+                if (this.copySelected()) e.preventDefault();
+                return;
+            }
+            if (key === KEY_BINDINGS.PASTE) {
+                if (this.pasteClipboard()) e.preventDefault();
+                return;
+            }
+        }
+
         if (key === KEY_BINDINGS.FOCUS_SELECTED && this.objectManager.selectedObject) {
             this.controlsManager.focusOnObject(
                 this.objectManager.selectedObject,
@@ -1458,6 +1564,7 @@ class App {
 
     destroy() {
         this.isDestroyed = true;
+        this.clipboard = null;
 
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
